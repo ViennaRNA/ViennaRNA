@@ -25,25 +25,17 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/probing/basic.h"
-#include "ViennaRNA/probing/transform.h"
+#include "ViennaRNA/data/transform.h"
 #include "ViennaRNA/probing/strategies.h"
 
 
 
 struct vrna_probing_data_s {
-  unsigned int              method;
   vrna_array(double *)                  data_linear;   /* actual data */
   vrna_array(double)                    data_linear_weight;    /* weight for each data set */
   vrna_array(vrna_probing_strategy_f)   cbs_linear;
   vrna_array(void *)                    cbs_linear_options;
   vrna_array(vrna_auxdata_free_f)       cbs_linear_options_free;
-
-  vrna_array(double)    params1;
-  vrna_array(double)    params2;
-  vrna_array(double *)  reactivities;
-  vrna_array(double *)  transformeds;
-  vrna_array(double *)  datas1;
-  vrna_array(double *)  datas2;
 };
 
 
@@ -266,37 +258,29 @@ vrna_probing_data_free(struct vrna_probing_data_s *d)
 {
   if (d) {
     /* free all reactivity data */
-    if (d->reactivities)
-      for (unsigned int i = 0; i < vrna_array_size(d->reactivities); i++)
-        vrna_array_free(d->reactivities[i]);
+    if (d->data_linear)
+      for (size_t i = 0; i < vrna_array_size(d->data_linear); i++)
+        vrna_array_free(d->data_linear[i]);
 
-    vrna_array_free(d->reactivities);
+    vrna_array_free(d->data_linear);
 
-    if (d->transformeds)
-      for (unsigned int i = 0; i < vrna_array_size(d->transformeds); i++)
-          printf("%u, %ld\n", i, d->transformeds[i]);
-//        vrna_array_free(d->transformeds[i]);
+    /* free weight vector */
+    vrna_array_free(d->data_linear_weight);
 
-    vrna_array_free(d->transformeds);
+    /* free probing strategy callback vector */
+    vrna_array_free(d->cbs_linear);
 
-    /* free parameters */
-    vrna_array_free(d->params1);
-    vrna_array_free(d->params2);
+    /* free probing strategy options vector */
+    if ((d->cbs_linear_options_free) &&
+        (d->cbs_linear_options)) {
+      for (size_t i = 0; i < vrna_array_size(d->cbs_linear_options_free); i++)
+        if (d->cbs_linear_options_free[i])
+          d->cbs_linear_options_free[i](d->cbs_linear_options[i]);
 
-    /* free auxiliary data */
-    if (d->datas1) {
-      for (unsigned int i = 0; i < vrna_array_size(d->datas1); i++)
-        vrna_array_free(d->datas1[i]);
-
-      vrna_array_free(d->datas1);
     }
 
-    if (d->datas2) {
-      for (unsigned int i = 0; i < vrna_array_size(d->datas2); i++)
-        vrna_array_free(d->datas2[i]);
-
-      vrna_array_free(d->datas2);
-    }
+    vrna_array_free(d->cbs_linear_options);
+    vrna_array_free(d->cbs_linear_options_free);
 
     free(d);
   }
@@ -713,18 +697,9 @@ get_cb_up_options_free_default(void)
 PRIVATE void
 nullify_probing_data_s(struct vrna_probing_data_s *data)
 {
-  data->method = 0;
-
   data->data_linear              = NULL;
   data->data_linear_weight       = NULL;
   data->cbs_linear               = NULL;
   data->cbs_linear_options       = NULL;
   data->cbs_linear_options_free  = NULL;
-
-  data->params1 = NULL;
-  data->params2 = NULL;
-  data->reactivities = NULL;
-  data->transformeds = NULL;
-  data->datas1 = NULL;
-  data->datas2 = NULL;
 }

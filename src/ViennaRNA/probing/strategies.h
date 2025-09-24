@@ -10,7 +10,7 @@ typedef double *(*vrna_probing_strategy_f)(vrna_fold_compound_t *fc,
 
 
 #include <ViennaRNA/probing/basic.h>
-#include <ViennaRNA/probing/transform.h>
+#include <ViennaRNA/data/transform.h>
 
 /**
  *  @file     ViennaRNA/probing/strategies.h
@@ -53,11 +53,12 @@ vrna_probing_strategy_deigan(vrna_fold_compound_t *fc,
 
 
 void *
-vrna_probing_strategy_deigan_options(double                   m,
-                                     double                   b,
-                                     vrna_probing_transform_f cb_preprocess,
-                                     void                     *cb_preprocess_opt,
-                                     vrna_auxdata_free_f      cb_preprocess_opt_free);
+vrna_probing_strategy_deigan_options(double                         m,
+                                     double                         b,
+                                     double                         max_value,
+                                     vrna_data_lin_trans_f          cb_preprocess,
+                                     vrna_data_lin_trans_opt_t      cb_preprocess_opt,
+                                     vrna_data_lin_trans_opt_free_f cb_preprocess_opt_free);
 
 void
 vrna_probing_strategy_deigan_options_free(void *options);
@@ -104,13 +105,13 @@ vrna_probing_data_deigan(const double *reactivities,
 
 
 vrna_probing_data_t
-vrna_probing_data_deigan_trans(const double *reactivities,
-                               unsigned int n,
-                               double       m,
-                               double       b,
-                               double               (*trans) (double, void*),
-                               void                 *trans_options,
-                               vrna_auxdata_free_f  trans_options_free);
+vrna_probing_data_deigan_trans(const double                   *reactivities,
+                               unsigned int                   n,
+                               double                         m,
+                               double                         b,
+                               vrna_data_lin_trans_f          cb_preprocess,
+                               vrna_data_lin_trans_opt_t      cb_preprocess_opt,
+                               vrna_data_lin_trans_opt_free_f cb_preprocess_opt_free);
 
 
 /**
@@ -165,15 +166,15 @@ vrna_probing_data_deigan_comparative(const double       **reactivities,
 
 
 vrna_probing_data_t
-vrna_probing_data_deigan_trans_comparative(const double       **reactivities,
-                                           const unsigned int *n,
-                                           unsigned int       n_seq,
-                                           double             *ms,
-                                           double             *bs,
-                                           unsigned int       multi_params,
-                                           double               (*trans) (double, void*),
-                                           void                 *trans_options,
-                                           vrna_auxdata_free_f  trans_options_free);
+vrna_probing_data_deigan_trans_comparative(const double                   **reactivities,
+                                           const unsigned int             *n,
+                                           unsigned int                   n_seq,
+                                           double                         *ms,
+                                           double                         *bs,
+                                           unsigned int                   multi_params,
+                                           vrna_data_lin_trans_f          *cb_preprocess,
+                                           vrna_data_lin_trans_opt_t      *cb_preprocess_opt,
+                                           vrna_data_lin_trans_opt_free_f *cb_preprocess_opt_free);
 
 
 /**
@@ -211,12 +212,12 @@ vrna_probing_strategy_zarringhalam(vrna_fold_compound_t *fc,
 
 
 void *
-vrna_probing_strategy_zarringhalam_options(double                   beta,
-                                           double                   default_probability,
-                                           double                   max_value,
-                                           vrna_probing_transform_f cb_preprocess,
-                                           void                     *cb_preprocess_opt,
-                                           vrna_auxdata_free_f      cb_preprocess_opt_free);
+vrna_probing_strategy_zarringhalam_options(double                         beta,
+                                           double                         default_probability,
+                                           double                         max_value,
+                                           vrna_data_lin_trans_f          cb_preprocess,
+                                           vrna_data_lin_trans_opt_t      cb_preprocess_opt,
+                                           vrna_data_lin_trans_opt_free_f cb_preprocess_opt_free);
 
 
 void
@@ -265,13 +266,13 @@ vrna_probing_data_zarringhalam(const double *reactivities,
 
 
 vrna_probing_data_t
-vrna_probing_data_zarringhalam_trans(const double *reactivities,
-                                     unsigned int n,
-                                     double       beta,
-                                     double       pr_default,
-                                     vrna_probing_transform_f trans,
-                                     void                     *trans_options,
-                                     vrna_auxdata_free_f      trans_options_free);
+vrna_probing_data_zarringhalam_trans(const double                   *reactivities,
+                                     unsigned int                   n,
+                                     double                         beta,
+                                     double                         pr_default,
+                                     vrna_data_lin_trans_f          cb_preprocess,
+                                     vrna_data_lin_trans_opt_t      cb_preprocess_opt,
+                                     vrna_data_lin_trans_opt_free_f cb_preprocess_opt_free);
 
 
 /**
@@ -328,15 +329,15 @@ vrna_probing_data_zarringhalam_comparative(const double **reactivities,
 
 
 vrna_probing_data_t
-vrna_probing_data_zarringhalam_trans_comparative(const double **reactivities,
-                                                 unsigned int *n,
-                                                 unsigned int n_seq,
-                                                 double       *betas,
-                                                 double       *pr_defaults,
-                                                 unsigned int multi_params,
-                                                 vrna_probing_transform_f *trans,
-                                                 void                     **trans_options,
-                                                 vrna_auxdata_free_f      *trans_options_free);
+vrna_probing_data_zarringhalam_trans_comparative(const double                   **reactivities,
+                                                 unsigned int                   *n,
+                                                 unsigned int                   n_seq,
+                                                 double                         *betas,
+                                                 double                         *pr_defaults,
+                                                 unsigned int                   multi_params,
+                                                 vrna_data_lin_trans_f          *cb_preprocess,
+                                                 vrna_data_lin_trans_opt_t      *cb_preprocess_opt,
+                                                 vrna_data_lin_trans_opt_free_f *cb_preprocess_opt_free);
 
 
 #define VRNA_PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT              0
@@ -352,15 +353,15 @@ vrna_probing_strategy_eddy(vrna_fold_compound_t *fc,
 
 
 void *
-vrna_probing_strategy_eddy_options(double                   temperature,
-                                   unsigned char            options,
-                                   const double             *prior_unpaired,
-                                   size_t                   prior_unpaired_size,
-                                   const double             *prior_paired,
-                                   size_t                   prior_paired_size,
-                                   vrna_probing_transform_f cb_preprocess,
-                                   void                     *cb_preprocess_opt,
-                                   vrna_auxdata_free_f      cb_preprocess_opt_free);
+vrna_probing_strategy_eddy_options(double                         temperature,
+                                   unsigned char                  options,
+                                   const double                   *prior_unpaired,
+                                   size_t                         prior_unpaired_size,
+                                   const double                   *prior_paired,
+                                   size_t                         prior_paired_size,
+                                   vrna_data_lin_trans_f          cb_preprocess,
+                                   vrna_data_lin_trans_opt_t      cb_preprocess_opt,
+                                   vrna_data_lin_trans_opt_free_f cb_preprocess_opt_free);
 
 
 void
@@ -419,17 +420,17 @@ vrna_probing_data_eddy(const double   *reactivities,
 
 
 struct vrna_probing_data_s *
-vrna_probing_data_eddy_trans(const double             *reactivities,
-                             unsigned int             n,
-                             double                   temperature,
-                             unsigned char            options,
-                             const double             *unpaired_data,
-                             unsigned int             unpaired_len,
-                             const double             *paired_data,
-                             unsigned int             paired_len,
-                             vrna_probing_transform_f trans,
-                             void                     *trans_options,
-                             vrna_auxdata_free_f      trans_options_free);
+vrna_probing_data_eddy_trans(const double                   *reactivities,
+                             unsigned int                   n,
+                             double                         temperature,
+                             unsigned char                  options,
+                             const double                   *unpaired_data,
+                             unsigned int                   unpaired_len,
+                             const double                   *paired_data,
+                             unsigned int                   paired_len,
+                             vrna_data_lin_trans_f          cb_preprocess,
+                             vrna_data_lin_trans_opt_t      cb_preprocess_opt,
+                             vrna_data_lin_trans_opt_free_f cb_preprocess_opt_free);
 
 
 /**
@@ -495,19 +496,19 @@ vrna_probing_data_eddy_comparative(const double       **reactivities,
 
 
 struct vrna_probing_data_s *
-vrna_probing_data_eddy_trans_comparative(const double **reactivities,
-                                         const unsigned int *n,
-                                         unsigned int n_seq,
-                                         double       temperature,
-                                         unsigned char  options,
-                                         const double **unpaired_datas,
-                                         const unsigned int *unpaired_lens,
-                                         const double **paired_datas,
-                                         const unsigned int *paired_lens,
-                                         unsigned int multi_params,
-                                         vrna_probing_transform_f *trans,
-                                         void                     **trans_options,
-                                         vrna_auxdata_free_f      *trans_options_free);
+vrna_probing_data_eddy_trans_comparative(const double                   **reactivities,
+                                         const unsigned int             *n,
+                                         unsigned int                   n_seq,
+                                         double                         temperature,
+                                         unsigned char                  options,
+                                         const double                   **unpaired_datas,
+                                         const unsigned int             *unpaired_lens,
+                                         const double                   **paired_datas,
+                                         const unsigned int             *paired_lens,
+                                         unsigned int                   multi_params,
+                                         vrna_data_lin_trans_f          *cb_preprocess,
+                                         vrna_data_lin_trans_opt_t      *cb_preprocess_opt,
+                                         vrna_data_lin_trans_opt_free_f *cb_preprocess_opt_free);
 
 
 /**

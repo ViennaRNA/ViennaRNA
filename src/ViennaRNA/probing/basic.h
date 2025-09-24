@@ -206,20 +206,6 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
                     double      default_value);
 
 
-double
-(*vrna_reactivity_trans_default(unsigned int flag))(double, void*);
-
-
-double
-(*vrna_reactivity_trans_method(unsigned int flag))(double, void*);
-
-
-FLT_OR_DBL *
-vrna_reactivity_transform(unsigned int n,
-                          const double *reactivity,
-                          double (*trans) (double, void*),
-                          void *options);
-
 /**
  *  @}
  */

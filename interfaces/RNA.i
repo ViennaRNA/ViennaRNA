@@ -64,8 +64,8 @@ extern "C" {
 #include  <ViennaRNA/probing/basic.h>
 #include  <ViennaRNA/probing/SHAPE.h>
 #include  <ViennaRNA/probing/strategies.h>
-#include  <ViennaRNA/probing/transform.h>
 
+#include  <ViennaRNA/data/transform.h>
 
 #ifdef VRNA_WITH_NAVIEW_LAYOUT
 #include  <ViennaRNA/plotting/naview/naview.h>

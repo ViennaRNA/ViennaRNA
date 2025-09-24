@@ -13,11 +13,12 @@
 #include "ViennaRNA/probing/strategies.h"
 
 typedef struct {
-  double                    m;
-  double                    b;
-  vrna_probing_transform_f  cb_preprocess;
-  void                      *cb_preprocess_opt;
-  vrna_auxdata_free_f       cb_preprocess_opt_free;
+  double                          m;
+  double                          b;
+  double                          max_value;
+  vrna_data_lin_trans_f           cb_preprocess;
+  vrna_data_lin_trans_opt_t       cb_preprocess_opt;
+  vrna_data_lin_trans_opt_free_f  cb_preprocess_opt_free;
 } deigan_options_t;
 
 /*
@@ -67,21 +68,27 @@ vrna_probing_strategy_deigan(vrna_fold_compound_t *fc,
       (data) &&
       (data_size > 0)) {
 
-    /* preprare (default) options */
-    if (options)
+    /* preprare (default) options */ 
+    if (options) {
       opt = (deigan_options_t *)options;
-    else
+    } else {
+      double max = data[0];
+      for (size_t i = 1; i < data_size; i++)
+        max = MAX2(max, data[i]);
+
       opt = vrna_probing_strategy_deigan_options(VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m,
                                                  VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b,
+                                                 max,
                                                  NULL,
                                                  NULL,
                                                  NULL);
+    }
 
     /* pre-process data */
-    pseudo_energies = vrna_reactivity_transform(data_size,
-                                                data,
-                                                opt->cb_preprocess,
-                                                opt->cb_preprocess_opt);
+    pseudo_energies = vrna_data_lin_transform(data,
+                                              data_size,
+                                              opt->cb_preprocess,
+                                              opt->cb_preprocess_opt);
 
     /* transform data into actual pseudo-energies */
     for (size_t i = 0; i < data_size; i++) {
@@ -100,25 +107,37 @@ vrna_probing_strategy_deigan(vrna_fold_compound_t *fc,
 
 
 PUBLIC void *
-vrna_probing_strategy_deigan_options(double                   m,
-                                     double                   b,
-                                     vrna_probing_transform_f cb_preprocess,
-                                     void                     *cb_preprocess_opt,
-                                     vrna_auxdata_free_f      cb_preprocess_opt_free)
+vrna_probing_strategy_deigan_options(double                         m,
+                                     double                         b,
+                                     double                         max_value,
+                                     vrna_data_lin_trans_f          cb_preprocess,
+                                     vrna_data_lin_trans_opt_t      cb_preprocess_opt,
+                                     vrna_data_lin_trans_opt_free_f cb_preprocess_opt_free)
 {
   deigan_options_t  *opt = (deigan_options_t *)vrna_alloc(sizeof(deigan_options_t));
 
-  opt->m = m;
-  opt->b = b;
+  opt->m          = m;
+  opt->b          = b;
+  opt->max_value  = max_value;
 
   if (cb_preprocess) {
     opt->cb_preprocess          = cb_preprocess;
     opt->cb_preprocess_opt      = cb_preprocess_opt;
     opt->cb_preprocess_opt_free = cb_preprocess_opt_free;
   } else {
-    opt->cb_preprocess          = vrna_reactivity_trans_method(VRNA_REACTIVITY_TRANS_NEG_IGNORE);
-    opt->cb_preprocess_opt      = NULL;
-    opt->cb_preprocess_opt_free = NULL;
+    /* default transformation: ignore negative data */
+    double map[2][2] = { { 0., 0.},
+                         { 0., 1.0}};
+
+    map[1][0] = map[1][1] = max_value;
+
+    opt->cb_preprocess = vrna_data_transform_method_bin(&(map[0]),
+                                                         2,
+                                                         VRNA_REACTIVITY_MISSING,
+                                                         VRNA_REACTIVITY_MISSING,
+                                                         VRNA_TRANSFORM_BIN_OPTION_PROJECT,
+                                                         &(opt->cb_preprocess_opt),
+                                                         &(opt->cb_preprocess_opt_free));
   }
 
   return (void *)opt;
@@ -158,16 +177,25 @@ vrna_probing_data_deigan_trans(const double             *reactivities,
                                unsigned int             n,
                                double                   m,
                                double                   b,
-                               vrna_probing_transform_f trans,
-                               void                     *trans_options,
-                               vrna_auxdata_free_f      trans_options_free)
+                               vrna_data_lin_trans_f          trans,
+                               vrna_data_lin_trans_opt_t      trans_options,
+                               vrna_data_lin_trans_opt_free_f trans_options_free)
 {
   if (reactivities) {
+    double max = reactivities[0];
+    for (size_t i = 1; i <= n; i++)
+      max = MAX2(max, reactivities[i]);
+
     return vrna_probing_data_linear(reactivities,
                                     n,
                                     1.,
                                     vrna_probing_strategy_deigan,
-                                    vrna_probing_strategy_deigan_options(m, b, trans, trans_options, trans_options_free),
+                                    vrna_probing_strategy_deigan_options(m,
+                                                                         b,
+                                                                         max,
+                                                                         trans,
+                                                                         trans_options,
+                                                                         trans_options_free),
                                     vrna_probing_strategy_deigan_options_free);
   }
 
@@ -198,16 +226,19 @@ vrna_probing_data_deigan_comparative(const double       **reactivities,
 PUBLIC struct vrna_probing_data_s *
 vrna_probing_data_deigan_trans_comparative(const double       **reactivities,
                                           const unsigned int *n,
-                                         unsigned int       n_seq,
-                                         double             *ms,
-                                         double             *bs,
-                                         unsigned int       multi_params,
-                                         vrna_probing_transform_f trans,
-                                         void                     *trans_options,
-                                         vrna_auxdata_free_f      trans_options_free)
+                                          unsigned int       n_seq,
+                                          double             *ms,
+                                          double             *bs,
+                                          unsigned int       multi_params,
+                                          vrna_data_lin_trans_f           *trans,
+                                          vrna_data_lin_trans_opt_t       *trans_options,
+                                          vrna_data_lin_trans_opt_free_f  *trans_options_free)
 {
   struct vrna_probing_data_s  *d = NULL;
   double                      m, b;
+  vrna_data_lin_trans_f                 cb_trans;
+  vrna_data_lin_trans_opt_t             cb_trans_options;
+  vrna_data_lin_trans_opt_free_f        cb_trans_options_free;
   vrna_array(vrna_probing_strategy_f)   cbs_linear;
   vrna_array(void *)                    cbs_linear_options;
   vrna_array(vrna_auxdata_free_f)       cbs_linear_options_free;
@@ -215,11 +246,15 @@ vrna_probing_data_deigan_trans_comparative(const double       **reactivities,
   if ((reactivities) &&
       (n)) {
 
-    m = (ms) ? *ms : VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m;
-    b = (bs) ? *bs : VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b;
+    m                     = (ms) ? *ms : VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m;
+    b                     = (bs) ? *bs : VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b;
+    cb_trans              = (trans) ? *trans : NULL;
+    cb_trans_options      = (trans_options) ? *trans_options : NULL;
+    cb_trans_options_free = (trans_options_free) ? *trans_options_free : NULL;
 
     if (((ms == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)) ||
-        ((bs == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2))) {
+        ((bs == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)) ||
+        ((trans == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_3))) {
       /* if multi_params != 0, either ms or bs or both must be provided! */
       return d;
     }
@@ -230,17 +265,34 @@ vrna_probing_data_deigan_trans_comparative(const double       **reactivities,
     vrna_array_init_size(cbs_linear_options_free, n_seq);
 
     /* fill callback vectors */
-    for (size_t i = 0; i < n_seq; i++) {
-      if (reactivities[i]) {
+    for (size_t s = 0; s < n_seq; s++) {
+      if (reactivities[s]) {
+        double max = reactivities[s][0];
+        for (size_t i = 1; i <= n[s]; i++)
+          max = MAX2(max, reactivities[s][i]);
+
         if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)
-          m = ms[i];
+          m = ms[s];
 
         if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)
-          b = bs[i];
+          b = bs[s];
+
+        if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_3) {
+          cb_trans = trans[s];
+          if (trans_options)
+            cb_trans_options = trans_options[s];
+          if (trans_options_free)
+            cb_trans_options_free = trans_options_free[s];
+        }
 
         vrna_array_append(cbs_linear, vrna_probing_strategy_deigan);
-        vrna_array_append(cbs_linear_options, vrna_probing_strategy_deigan_options(m, b, trans, trans_options, trans_options_free));
-        vrna_array_append(cbs_linear_options_free, free);
+        vrna_array_append(cbs_linear_options, vrna_probing_strategy_deigan_options(m,
+                                                                                   b,
+                                                                                   max,
+                                                                                   cb_trans,
+                                                                                   cb_trans_options,
+                                                                                   cb_trans_options_free));
+        vrna_array_append(cbs_linear_options_free, vrna_probing_strategy_deigan_options_free);
       } else {
         vrna_array_append(cbs_linear, NULL);
         vrna_array_append(cbs_linear_options, NULL);

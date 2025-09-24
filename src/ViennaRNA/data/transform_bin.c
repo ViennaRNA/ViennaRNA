@@ -10,13 +10,12 @@
 #include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/utils/basic.h"
 
-#include "ViennaRNA/probing/basic.h"
-#include "ViennaRNA/probing/transform.h"
+#include "ViennaRNA/data/transform.h"
 
 typedef struct {
   vrna_array(double)  threshold_source;
   vrna_array(double)  threshold_target;
-  unsigned char       options;  /* (1 << 0) -> project, (1 << 1) -> map_upper_bound, (1 << 2) -> map_lower_bound */
+  unsigned char       options;
   double              v_min;
   double              v_max;
 } bin_transform_param_t;
@@ -28,12 +27,12 @@ typedef struct {
  #################################
  */
 PRIVATE void
-transform_bin_option_free(void *options);
+transform_bin_option_free(vrna_data_lin_trans_opt_t options);
 
 
 PRIVATE double
-transform_bin(double  v,
-              void    *options);
+transform_bin(double                    v,
+              vrna_data_lin_trans_opt_t options);
 
 
 /*
@@ -41,16 +40,16 @@ transform_bin(double  v,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC vrna_probing_transform_f
-vrna_data_transform_method_bin(const double         **thresholds,
-                               unsigned int         thresholds_num,
-                               double               oolb_value,
-                               double               ooub_value,
-                               unsigned char        options,
-                               void                 **transform_options_p,
-                               vrna_auxdata_free_f  *transform_options_free)
+PUBLIC vrna_data_lin_trans_f
+vrna_data_transform_method_bin(double                         (*thresholds)[2],
+                               unsigned int                   thresholds_num,
+                               double                         oolb_value,
+                               double                         ooub_value,
+                               unsigned char                  options,
+                               vrna_data_lin_trans_opt_t      *transform_options_p,
+                               vrna_data_lin_trans_opt_free_f *transform_options_free)
 {
-  vrna_probing_transform_f  cb = NULL;
+  vrna_data_lin_trans_f  cb = NULL;
 
   if ((thresholds) &&
       (thresholds_num > 1) &&
@@ -71,7 +70,7 @@ vrna_data_transform_method_bin(const double         **thresholds,
     }
 
     cb                      = transform_bin;
-    *transform_options_p    = (void *)o;
+    *transform_options_p    = (vrna_data_lin_trans_opt_t)o;
     *transform_options_free = transform_bin_option_free;
   }
 
@@ -85,7 +84,7 @@ vrna_data_transform_method_bin(const double         **thresholds,
  #####################################
  */
 PRIVATE void
-transform_bin_option_free(void *options)
+transform_bin_option_free(vrna_data_lin_trans_opt_t options)
 {
   bin_transform_param_t *o = (bin_transform_param_t *)options;
 
@@ -96,8 +95,8 @@ transform_bin_option_free(void *options)
 
 
 PRIVATE double
-transform_bin(double  v,
-              void    *options)
+transform_bin(double                    v,
+              vrna_data_lin_trans_opt_t options)
 {
   bin_transform_param_t *o = (bin_transform_param_t *)options;
 

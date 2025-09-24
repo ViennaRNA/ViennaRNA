@@ -13,6 +13,7 @@ DIST_SUBDIRS = static @NAVIEW_DIR@
 vrna_backtrackdir       = $(pkgincludedir)/backtrack
 vrna_combinatoricsdir   = $(pkgincludedir)/combinatorics
 vrna_constraintsdir     = $(pkgincludedir)/constraints
+vrna_datadir            = $(pkgincludedir)/data
 vrna_datastructuresdir  = $(pkgincludedir)/datastructures
 vrna_evaldir            = $(pkgincludedir)/eval
 vrna_grammardir         = $(pkgincludedir)/grammar
@@ -45,6 +46,7 @@ noinst_LTLIBRARIES =  \
     libRNA_concentrations.la \
     libRNA_constraints.la \
     libRNA_conv.la \
+    libRNA_data.la \
     libRNA_datastructures.la \
     libRNA_eval.la \
     libRNA_grammar.la \
@@ -82,6 +84,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_combinatorics.la \
     libRNA_concentrations.la \
     libRNA_constraints.la \
+    libRNA_data.la \
     libRNA_datastructures.la \
     libRNA_eval.la \
     libRNA_grammar.la \
@@ -271,8 +274,11 @@ vrna_constraints_HEADERS = \
 vrna_probing_HEADERS = \
     probing/basic.h \
     probing/SHAPE.h \
-    probing/transform.h \
     probing/strategies.h
+
+
+vrna_data_HEADERS = \
+    data/transform.h
 
 
 vrna_loops_HEADERS = \
@@ -512,13 +518,17 @@ libRNA_constraints_la_SOURCES = \
 
 libRNA_probing_la_SOURCES = \
     probing/probing.c \
-    probing/transform.c \
-    probing/transform_bin.c \
-    probing/transform_linear.c \
     probing/strategy_deigan.c \
     probing/strategy_zarringhalam.c \
     probing/strategy_eddy.c \
     probing/SHAPE.c
+
+
+libRNA_data_la_SOURCES = \
+    data/transform.c \
+    data/transform_bin.c \
+    data/transform_linear.c \
+    data/transform_log.c
 
 
 libRNA_structures_la_SOURCES = \

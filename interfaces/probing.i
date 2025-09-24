@@ -531,11 +531,8 @@ probing_data_eddy_comparative(std::vector< std::vector<double> > reactivities,
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_3                       = VRNA_PROBING_METHOD_MULTI_PARAMS_3;
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_DEFAULT                 = VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT;
 %constant unsigned int  PROBING_DATA_CHECK_SEQUENCE                         = VRNA_PROBING_DATA_CHECK_SEQUENCE;
-%constant unsigned int  REACTIVITY_TRANS_DEFAULT                            = VRNA_REACTIVITY_TRANS_DEFAULT;
-%constant unsigned int  REACTIVITY_TRANS_IDEN                               = VRNA_REACTIVITY_TRANS_IDEN;
-%constant unsigned int  REACTIVITY_TRANS_NEG_IGNORE                         = VRNA_REACTIVITY_TRANS_NEG_IGNORE;
-%constant unsigned int  REACTIVITY_TRANS_NEG_ZERO                           = VRNA_REACTIVITY_TRANS_NEG_ZERO;
 
 %include  <ViennaRNA/probing/basic.h>
 %include  <ViennaRNA/probing/strategies.h>
-%include  <ViennaRNA/probing/transform.h>
+
+%include  <ViennaRNA/data/transform.h>
