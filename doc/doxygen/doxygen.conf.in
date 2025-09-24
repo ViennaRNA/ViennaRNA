@@ -877,6 +877,7 @@ INPUT                  =  @top_srcdir@/doc/doxygen/refman.include/ \
                           @top_srcdir@/src/ViennaRNA/backtrack \
                           @top_srcdir@/src/ViennaRNA/combinatorics \
                           @top_srcdir@/src/ViennaRNA/constraints \
+                          @top_srcdir@/src/ViennaRNA/data \
                           @top_srcdir@/src/ViennaRNA/datastructures \
                           @top_srcdir@/src/ViennaRNA/eval \
                           @top_srcdir@/src/ViennaRNA/grammar \

@@ -11,6 +11,7 @@ Utilities
    utils/msa
    utils/io
    utils/plots
+   utils/data
    utils/search
    utils/combinatorics
    utils/data_structures

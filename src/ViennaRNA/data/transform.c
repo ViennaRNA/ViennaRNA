@@ -44,7 +44,8 @@ vrna_data_lin_transform(const double              *data,
   /* init the transformed reactivity array */
   double *a = NULL;
 
-  if (data) {
+  if ((data) &&
+      (data_size > 0)) {
     a = (double *)vrna_alloc(sizeof(double) * data_size);
     a = memcpy(a, data, sizeof(double) * data_size);
 
