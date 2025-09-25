@@ -2,7 +2,7 @@
 #define VIENNA_RNA_PACKAGE_COMBINATORICS_H
 
 /**
- *  @file     combinatorics/combinatorics.h
+ *  @file     combinatorics/basic.h
  *  @ingroup  utils, combinatorics_utils
  *  @brief    Various implementations that deal with combinatorial aspects of objects
  */
