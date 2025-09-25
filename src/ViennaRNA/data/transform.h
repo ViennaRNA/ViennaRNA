@@ -80,10 +80,33 @@ vrna_data_lin_transform(const double              *data,
                         vrna_data_lin_trans_opt_t transform_opt);
 
 
+/**
+ *  @brief  Options flag for linear data binning to activate data projection (mapping) instead of actual binning
+ *  @see vrna_data_transform_method_bin()
+ */
 #define VRNA_TRANSFORM_BIN_OPTION_PROJECT               (1 << 0)
+
+
+/**
+ *  @brief  Options flag for linear data binning to indicate that values out-of-upper-bound are to be mapped to the respective domain limit
+ *  @see vrna_data_transform_method_bin()
+ */
 #define VRNA_TRANSFORM_BIN_OPTION_MAP_OUTOF_UPPERBOUND  (1 << 1)
+
+
+/**
+ *  @brief  Options flag for linear data binning to indicate that values out-of-lower-bound are to be mapped to the respective domain limit
+ *  @see vrna_data_transform_method_bin()
+ */
 #define VRNA_TRANSFORM_BIN_OPTION_MAP_OUTOF_LOWERBOUND  (1 << 2)
+
+
+/**
+ *  @brief  Options flag for linear data binning to indicate default settings
+ *  @see vrna_data_transform_method_bin()
+ */
 #define VRNA_TRANSFORM_BIN_OPTION_DEFAULT               0
+
 
 #define VRNA_TRANSFORM_LM_OPTION_LOG                    (1 << 0)
 #define VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_LOW        (1 << 1)
@@ -96,6 +119,52 @@ vrna_data_lin_transform(const double              *data,
 #define VRNA_TRANSFORM_LM_OPTION_DEFAULT                (VRNA_TRANSFORM_LM_OPTION_CLIP)
 
 
+
+/**
+ *  @brief  Retrieve a linear data transform callback that performs (discrete) binning and more
+ *
+ *  This function yields a linear data transform callback and the associated transform options
+ *  data structure suitable for usage in vrna_data_lin_transform(). The transformation this
+ *  callback performs can be described as (discrete) binning or data bucketing.
+ *
+ *  In more detail, the transformation callback can be used to map continuous data from
+ *  one domain (source) into discrete or continuous data of another domain (target).
+ *  User-defined domain boundaries are provided by the @p thresholds argument, which boils
+ *  down to a list of pairs of values, where the first value is the boundary in the source
+ *  domain. The second value is the corresponding boundary of the target domain. The first and
+ *  last pair of domain boundaries denote the lower and the upper domain limits, respectively.
+ *  Any value outside of these limits can either be discarded by assigning them a special
+ *  out-of-bounds value (@p oolb_value, @p ooub_value), or they can be mapped directly to the
+ *  domain limits. Control over this mapping is available through the @p options argument
+ *  by using the binary flags #VRNA_TRANSFORM_BIN_OPTION_MAP_OUTOF_UPPERBOUND and
+ *  #VRNA_TRANSFORM_BIN_OPTION_MAP_OUTOF_LOWERBOUND.
+ *
+ *  By default, the transformation maps any data within a source interval as specified
+ *  by two consecutive entries in the @p thresholds argument to the exact value of the
+ *  second target boundary. This process is also called @c binning. Alternatively, this
+ *  implementation also allows for a continuous mapping (projection) of the source intervals
+ *  into the target intervals. To activate this behavior, the #VRNA_TRANSFORM_BIN_OPTION_PROJECT
+ *  flag must be provided to the @p options argument.
+ *
+ *  The @p transform_options_p and @p transform_options_free pointers are used as additional
+ *  output to obtain the addresses of the transformation option data structure that has to
+ *  be provided to the vrna_data_lin_transform() function and a function pointer to release
+ *  the memory of the option data structure once it is not required anymore.
+ *  
+ *  @see  vrna_data_lin_transform(),
+ *        #VRNA_TRANSFORM_BIN_OPTION_DEFAULT, #VRNA_TRANSFORM_BIN_OPTION_PROJECT,
+ *        #VRNA_TRANSFORM_BIN_OPTION_MAP_OUTOF_UPPERBOUND, #VRNA_TRANSFORM_BIN_OPTION_MAP_OUTOF_LOWERBOUND,
+ *        vrna_data_transform_method_lm(), vrna_data_transform_method_log()
+ *
+ *  @param  thresholds              A pointer to an array of data pairs holding the source and target domain boundaries
+ *  @param  thresholds_num          The number of domain boundary pairs available in @p thresholds
+ *  @param  oolb_value              Out-of-lower-bound value
+ *  @param  ooub_value              Out-of-upper-bound value
+ *  @param  options                 Additional options that change the behavior of the callback function
+ *  @param  transform_options_p     A pointer to store the address of the options data structure
+ *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
+ *  @return                         A callback function that performs (discrete) data binning
+ */
 vrna_data_lin_trans_f
 vrna_data_transform_method_bin(double                         (*thresholds)[2],
                                unsigned int                   thresholds_num,
