@@ -15,7 +15,7 @@
 typedef struct {
   vrna_array(double)  threshold_source;
   vrna_array(double)  threshold_target;
-  unsigned char       options;
+  unsigned int        options;
   double              v_min;
   double              v_max;
 } bin_transform_param_t;
@@ -45,7 +45,7 @@ vrna_data_transform_method_bin(double                         (*thresholds)[2],
                                unsigned int                   thresholds_num,
                                double                         oolb_value,
                                double                         ooub_value,
-                               unsigned char                  options,
+                               unsigned int                   options,
                                vrna_data_lin_trans_opt_t      *transform_options_p,
                                vrna_data_lin_trans_opt_free_f *transform_options_free)
 {

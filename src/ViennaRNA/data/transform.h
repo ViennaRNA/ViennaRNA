@@ -107,19 +107,6 @@ vrna_data_lin_transform(const double              *data,
  */
 #define VRNA_TRANSFORM_BIN_OPTION_DEFAULT               0
 
-
-#define VRNA_TRANSFORM_LM_OPTION_LOG                    (1 << 0)
-#define VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_LOW        (1 << 1)
-#define VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_HIGH       (1 << 2)
-#define VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_LOW        (1 << 3)
-#define VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_HIGH       (1 << 4)
-#define VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE            (VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_LOW | VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_HIGH)
-#define VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET            (VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_LOW | VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_HIGH)
-#define VRNA_TRANSFORM_LM_OPTION_CLIP                   (VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_LOW | VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_HIGH | VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_LOW | VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_HIGH)
-#define VRNA_TRANSFORM_LM_OPTION_DEFAULT                (VRNA_TRANSFORM_LM_OPTION_CLIP)
-
-
-
 /**
  *  @brief  Retrieve a linear data transform callback that performs (discrete) binning and more
  *
@@ -170,17 +157,156 @@ vrna_data_transform_method_bin(double                         (*thresholds)[2],
                                unsigned int                   thresholds_num,
                                double                         oolb_value,
                                double                         ooub_value,
-                               unsigned char                  options,
+                               unsigned int                   options,
                                vrna_data_lin_trans_opt_t      *transform_options_p,
                                vrna_data_lin_trans_opt_free_f *transform_options_free);
 
 
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model that enables log-transform of the source value
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_LOG                    (1 << 0)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model to enforce source domain limits
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_SOURCE  (1 << 1)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model to enforce target domain limits
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_TARGET  (1 << 2)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model to enforce source and target domain limits
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAINS        (VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_SOURCE | VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_TARGET)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model to map source values below the domain limit to the lower domain limit
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_LOW         (1 << 3)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model to map source values above the domain limit to the upper domain limit
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_HIGH        (1 << 4)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model to map source values below and above the domain limits to the domain limits
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE             (VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_LOW | VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_HIGH)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model to map target values below the domain limit to the lower domain limit
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_LOW         (1 << 5)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model to map target values above the domain limit to the upper domain limit
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_HIGH        (1 << 6)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model to map target values below and above the domain limits to the domain limits
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_MAP_TARGET             (VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_LOW | VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_HIGH)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model to map source and target values below and above the domain limits to the respective domain limits
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_MAP                    (VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_LOW | VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_HIGH | VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_LOW | VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_HIGH)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a linear model that indicates default settings
+ *  @see vrna_data_transform_method_lm()
+ */
+#define VRNA_TRANSFORM_LM_OPTION_DEFAULT                (VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAINS | VRNA_TRANSFORM_LM_OPTION_MAP)
+
+
+/**
+ *  @brief  Retrieve a linear data transform callback that applies a linear model
+ *
+ *  This function yields a linear data transform callback and the associated transform options
+ *  data structure suitable for usage in vrna_data_lin_transform(). The callback applies
+ *  a linear model of the form
+ *  @f[ y = a + b \cdot f(x) @f]
+ *  where @f$ x @f$ is the input value (@c source), @f$ a @f$ and @f$ b @f$ are intercept
+ *  and slope, and @f$ y @f$ is the output value (@c target). By default, the function
+ *  @f$ f(x) = x @f$ is the identity function. However, the callback can be instructed
+ *  to apply a log-transform, @f$ f(x) = log x @f$, instead. Control over the behavior
+ *  of @f$ f(x) @f$ can be gained by providing a corresponding option flag to the
+ *  @p options argument, e.g. #VRNA_TRANSFORM_LM_OPTION_LOG.
+ *
+ *  Moreover, the transformation callback may enforce source and target domain limits
+ *  if the corresponding flag (#VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAINS) is provided
+ *  to the @p options argument. This means that one has complete control over the
+ *  accepted values of the source and target domains. The limits can be provided to
+ *  this function through the @p domain argument. Here, the order of the limits follows:
+ *  @f$ x_\text{min}, x_\text{max}, y_\text{min}, y_\text{max} @f$. If @c NULL is passed
+ *  instead of an actual domain array, the domain enforcement is deactivated and any
+ *  value will pass. In case a domain enforcing is active and a source or target value
+ *  doesn't meet the respective limits, the callback returns the out-of-bounds value
+ *  @p oob_value. This behavior can be changed to a mapping of out-of-bounds values
+ *  to the respetive domain limits. For that purpose, the @p options argument requires
+ *  the flag #VRNA_TRANSFORM_LM_OPTION_MAP.
+ *
+ *  @note   Individual control for mapping out-of-bounds values to the four domain
+ *          limits, i.e. low and high values of source and target can be gained by
+ *          providing the @p options argument the #VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_LOW,
+ *          #VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_HIGH, #VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_LOW,
+ *          and #VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_HIGH flags.
+ *
+ *  The @p transform_options_p and @p transform_options_free pointers are used as additional
+ *  output to obtain the addresses of the transformation option data structure that has to
+ *  be provided to the vrna_data_lin_transform() function and a function pointer to release
+ *  the memory of the option data structure once it is not required anymore.
+ *  
+ *  @see  vrna_data_lin_transform(), #vrna_data_lin_trans_f, #vrna_data_lin_trans_opt_t, #vrna_data_lin_trans_opt_free_f,
+ *        #VRNA_TRANSFORM_LM_OPTION_DEFAULT, #VRNA_TRANSFORM_LM_OPTION_LOG, #VRNA_TRANSFORM_LM_OPTION_MAP,
+ *        #VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_SOURCE, #VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_TARGET, #VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAINS,
+ *        #VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_LOW, #VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_HIGH, #VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE,
+ *        #VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_LOW, #VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_HIGH, #VRNA_TRANSFORM_LM_OPTION_MAP_TARGET,
+ *        vrna_data_transform_method_bin(), vrna_data_transform_method_log()
+ *
+ *  @param  slope                   The slope of the linear function
+ *  @param  intercept               The intercept of the linear function
+ *  @param  domain                  The domain limits (maybe @c NULL)
+ *  @param  oob_value               Out-of-lower-bound value
+ *  @param  options                 Additional options that change the behavior of the callback function
+ *  @param  transform_options_p     A pointer to store the address of the options data structure
+ *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
+ *  @return                         A callback function that performs transformation through a linear model
+ */
 vrna_data_lin_trans_f
 vrna_data_transform_method_lm(double                          slope,
                               double                          intercept,
                               double                          domain[4],
                               double                          oob_value,
-                              unsigned char                   options,
+                              unsigned int                    options,
                               vrna_data_lin_trans_opt_t       *transform_options_p,
                               vrna_data_lin_trans_opt_free_f  *transform_options_free);
 

@@ -516,12 +516,16 @@ set_mapping_strategy(const char                     *conversion_string,
           }
         }
 
+        /*
+         * weird hack to maintain backward compatibility where the formula y = (f(x) - i) / s was
+         * misinterpreted and s being used as slope and i asintercept.
+         */
         slope = 1. / slope;
         intercept *= -slope;
 
         double domain[4] = { 0, max_value, 0, 1 };
         unsigned char options = (*conversion_string == 'L') ? 0 : VRNA_TRANSFORM_LM_OPTION_LOG;
-        options |= VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE;
+        options |= VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAINS | VRNA_TRANSFORM_LM_OPTION_MAP_TARGET;
         transform_function = vrna_data_transform_method_lm(slope,
                                                            intercept,
                                                            domain,
