@@ -15,6 +15,8 @@
 
 typedef struct {
   double        shift;
+  double        base;
+  unsigned int  options;
   double        out_of_bounds_value;
 } log_transform_param_t;
 
@@ -54,7 +56,9 @@ transform_log_option_free(vrna_data_lin_trans_opt_t options);
  */
 PUBLIC vrna_data_lin_trans_f
 vrna_data_transform_method_log(double                         value_shift,
+                               double                         base,
                                double                         oob_value,
+                               unsigned int                   options,
                                vrna_data_lin_trans_opt_t      *transform_options_p,
                                vrna_data_lin_trans_opt_free_f *transform_options_free)
 {
@@ -65,6 +69,8 @@ vrna_data_transform_method_log(double                         value_shift,
     log_transform_param_t *o = (log_transform_param_t *)vrna_alloc(sizeof(log_transform_param_t));
 
     o->shift                = value_shift;
+    o->base                 = base;
+    o->options              = options;
     o->out_of_bounds_value  = oob_value;
 
     cb                      = transform_log;
@@ -94,5 +100,16 @@ transform_log(double                    value,
 {
   log_transform_param_t *o = (log_transform_param_t *)options;
 
-  return ((o->shift + value) > 0) ? log(o->shift + value) : o->out_of_bounds_value;
+  value += o->shift;
+
+  if (value > 0) {
+    value = log(value);
+
+    if (o->options & VRNA_TRANSFORM_LOG_OPTION_NONDEFAULT_BASE)
+      value /= log(o->base);
+
+    return value;
+  }
+
+  return o->out_of_bounds_value;
 }

@@ -183,7 +183,9 @@ vrna_probing_strategy_eddy_options(double                         temperature,
   } else {
     /* default preprocessing of the probing data */
     opt->cb_preprocess          = vrna_data_transform_method_log(1,
+                                                                 0,
                                                                  VRNA_REACTIVITY_MISSING,
+                                                                 VRNA_TRANSFORM_LOG_OPTION_DEFAULT,
                                                                  &(opt->cb_preprocess_opt),
                                                                  &(opt->cb_preprocess_opt_free));
   }

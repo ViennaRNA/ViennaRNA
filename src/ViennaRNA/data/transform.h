@@ -295,7 +295,7 @@ vrna_data_transform_method_bin(double                         (*thresholds)[2],
  *  @param  slope                   The slope of the linear function
  *  @param  intercept               The intercept of the linear function
  *  @param  domain                  The domain limits (maybe @c NULL)
- *  @param  oob_value               Out-of-lower-bound value
+ *  @param  oob_value               Out-of-bound value
  *  @param  options                 Additional options that change the behavior of the callback function
  *  @param  transform_options_p     A pointer to store the address of the options data structure
  *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
@@ -311,9 +311,60 @@ vrna_data_transform_method_lm(double                          slope,
                               vrna_data_lin_trans_opt_free_f  *transform_options_free);
 
 
+/**
+ *  @brief  Options flag for transforming linear data using log transform to use a non-default base
+ *  @see vrna_data_transform_method_log()
+ */
+#define VRNA_TRANSFORM_LOG_OPTION_NONDEFAULT_BASE        (1 << 0)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using log transform that indicates default settings
+ *  @see vrna_data_transform_method_log()
+ */
+#define VRNA_TRANSFORM_LOG_OPTION_DEFAULT                0
+
+
+/**
+ *  @brief  Retrieve a linear data transform callback that applies a log transformation
+ *
+ *  This function yields a linear data transform callback and the associated transform options
+ *  data structure suitable for usage in vrna_data_lin_transform(). The callback applies
+ *  a log transform of the form
+ *  @f[ y = \log_b (x + c) @f]
+ *  where @f$ x @f$ is the input value (@c source), @f$ b @f$ is the base, @f$ c @f$
+ *  is a value to allow for shifting the source data, and @f$ y @f$ is the output value
+ *  (@c target). By default, the natural logarithm is used, i.e. @f$ b = \mathrm{e} @f$. The
+ *  @p base argument in combination with the #VRNA_TRANSFORM_LOG_OPTION_NONDEFAULT_BASE
+ *  flag supplied to the @p options argument can be used to change the base to any other
+ *  number.
+ *
+ *  The @p value_shift argument corresponds to @f$ c @f$ in the above formula and in
+ *  most cases should be @c 0. The callback returns the out-of-bounds value @p oob_value
+ *  if @f$ x + c \le 0 @f$.
+ *
+ *  The @p transform_options_p and @p transform_options_free pointers are used as additional
+ *  output to obtain the addresses of the transformation option data structure that has to
+ *  be provided to the vrna_data_lin_transform() function and a function pointer to release
+ *  the memory of the option data structure once it is not required anymore.
+ *  
+ *  @see  vrna_data_lin_transform(), #vrna_data_lin_trans_f, #vrna_data_lin_trans_opt_t, #vrna_data_lin_trans_opt_free_f,
+ *        #VRNA_TRANSFORM_LOG_OPTION_DEFAULT, #VRNA_TRANSFORM_LOG_OPTION_NONDEFAULT_BASE,
+ *        vrna_data_transform_method_bin(), vrna_data_transform_method_lm()
+ *
+ *  @param  value_shift             The shift value @f$ c @f$
+ *  @param  base                    The base @f$ b @f$ of the logarithm (only used if #VRNA_TRANSFORM_LOG_OPTION_NONDEFAULT_BASE is passed to @p options
+ *  @param  oob_value               Out-of-bound value
+ *  @param  options                 Additional options that change the behavior of the callback function
+ *  @param  transform_options_p     A pointer to store the address of the options data structure
+ *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
+ *  @return                         A callback function that performs transformation through a linear model
+ */
 vrna_data_lin_trans_f
 vrna_data_transform_method_log(double                         value_shift,
+                               double                         base,
                                double                         oob_value,
+                               unsigned int                   options,
                                vrna_data_lin_trans_opt_t      *transform_options_p,
                                vrna_data_lin_trans_opt_free_f *transform_options_free);
 
