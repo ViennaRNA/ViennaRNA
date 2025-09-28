@@ -113,25 +113,15 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 
 #define VRNA_PROBING_DATA_CHECK_SEQUENCE                          1U
 
-
-#define VRNA_REACTIVITY_TRANS_DEFAULT                             0U
-#define VRNA_REACTIVITY_TRANS_IDEN                                1U
-#define VRNA_REACTIVITY_TRANS_NEG_IGNORE                          2U
-#define VRNA_REACTIVITY_TRANS_NEG_ZERO                            3U
-#define VRNA_REACTIVITY_TRANS_LOG1P                               4U
-
-
 #define VRNA_REACTIVITY_MISSING                                   -999.
 
-#define VRNA_PROBING_DATA_DEFAULT                                 0U
-#define VRNA_PROBING_DATA_MULTI_STRATEGY                          1U
-#define VRNA_PROBING_DATA_SINGLE_STRATEGY                         2U
-#define VRNA_PROBING_DATA_MULTI_WEIGHT                            4U
-#define VRNA_PROBING_DATA_SINGLE_WEIGHT                           8U
+#define VRNA_PROBING_DATA_DEFAULT                                 0
+#define VRNA_PROBING_DATA_SINGLE_STRATEGY                         (1 << 0)
+#define VRNA_PROBING_DATA_SINGLE_WEIGHT                           (1 << 1)
 
-#define VRNA_PROBING_DATA_LINEAR_TARGET_STACK                     16U
-#define VRNA_PROBING_DATA_LINEAR_TARGET_UP                        32U
-#define VRNA_PROBING_DATA_LINEAR_TARGET_BP                        64U
+#define VRNA_PROBING_DATA_LINEAR_TARGET_STACK                     (1 << 4)
+#define VRNA_PROBING_DATA_LINEAR_TARGET_UP                        (1 << 5)
+#define VRNA_PROBING_DATA_LINEAR_TARGET_BP                        (1 << 6)
 
 /**
  *  @brief  Apply probing data (e.g. SHAPE) to guide the structure prediction
