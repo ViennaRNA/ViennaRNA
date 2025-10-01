@@ -528,7 +528,8 @@ libRNA_data_la_SOURCES = \
     data/transform.c \
     data/transform_bin.c \
     data/transform_linear.c \
-    data/transform_log.c
+    data/transform_log.c \
+    data/transform_logistic.c
 
 
 libRNA_structures_la_SOURCES = \

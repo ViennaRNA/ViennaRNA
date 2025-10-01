@@ -369,6 +369,105 @@ vrna_data_transform_method_log(double                         value_shift,
                                vrna_data_lin_trans_opt_free_f *transform_options_free);
 
 
+
+/**
+ *  @brief  Options flag for transforming linear data using a logistic function to enforce source domain limits
+ *  @see vrna_data_transform_method_logistic()
+ */
+#define VRNA_TRANSFORM_LOGISTIC_OPTION_ENFORCE_DOMAIN  (1 << 0)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a logistic functionl to map source values below the domain limit to the lower domain limit
+ *  @see vrna_data_transform_method_logistic()
+ */
+#define VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_LOW         (1 << 1)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a logistic function to map source values above the domain limit to the upper domain limit
+ *  @see vrna_data_transform_method_logistic()
+ */
+#define VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_HIGH        (1 << 2)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using a logistic function to map source values below and above the domain limits to the domain limits
+ *  @see vrna_data_transform_method_logistic()
+ */
+#define VRNA_TRANSFORM_LOGISTIC_OPTION_MAP             (VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_LOW | VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_HIGH)
+
+
+/**
+ *  @brief  Options flag for transforming linear data using logistic function that indicates default settings
+ *  @see vrna_data_transform_method_loogistic()
+ */
+#define VRNA_TRANSFORM_LOGISTIC_OPTION_DEFAULT         0U
+
+
+/**
+ *  @brief  Retrieve a linear data transform callback that applies a logistic function
+ *
+ *  This function yields a linear data transform callback and the associated transform options
+ *  data structure suitable for usage in vrna_data_lin_transform(). The callback applies
+ *  a logistic function of the form
+ *  @f[ y = \frac{L}{1 + e^{-k \cdot (x - x_0)}}  @f]
+ *  where @f$ x @f$ is the input value (@c source), @f$ x_0 @f$ is the mid point (@p mid_point)
+ *  of the function, @f$ k @f$ is the logistic growth rate (@p growth_rate), and @f$ L @f$
+ *  is the supremum (or carrying capacity) of the function (@p supremum). The standard logistic
+ *  function is defined as @f$ L = 1 @f$, @f$ k = 1 @f$. and @f$ x_0 = 0 @f$, i.e.
+ *  @f[ y = \frac{1}{1 + e^{-x}} @f]
+ *
+ *  Our implementation of the transformation callback can enforce source domain limits
+ *  if the corresponding flag (#VRNA_TRANSFORM_LOGISTIC_OPTION_ENFORCE_DOMAIN) is provided
+ *  to the @p options argument. This means that one has complete control over the
+ *  accepted values of the source domains. Limits are provided through the @p domain
+ *  argument, where the domain is a pair @f$ ( x_\text{min}, x_\text{max} ) @f$. If @c NULL
+ *  is passed instead of an actual domain array, the domain enforcement is deactivated and
+ *  any value will pass. In case a domain enforcing is active and a source value doesn't
+ *  meet the respective limits, the callback returns the out-of-bounds value @p oob_value.
+ *  This behavior can be changed to a mapping of out-of-bounds value to the respetive domain
+ *  limits. For that purpose, the @p options argument requires the flag
+ *  #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP.
+ *
+ *  @note   Individual control for mapping out-of-bounds values to the two source domain
+ *          limits can be gained by providing the @p options argument the 
+ *          #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_LOW and #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_HIGH
+ *          flags.
+ *
+ *  The @p transform_options_p and @p transform_options_free pointers are used as additional
+ *  output to obtain the addresses of the transformation option data structure that has to
+ *  be provided to the vrna_data_lin_transform() function and a function pointer to release
+ *  the memory of the option data structure once it is not required anymore.
+ *  
+ *  @see  vrna_data_lin_transform(), #vrna_data_lin_trans_f, #vrna_data_lin_trans_opt_t, #vrna_data_lin_trans_opt_free_f,
+ *        #VRNA_TRANSFORM_LOGISTIC_OPTION_DEFAULT, #VRNA_TRANSFORM_LOGISTIC_OPTION_ENFORCE_DOMAIN,
+ *        #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP, #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_LOW,
+ *        #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_HIGH,
+ *        vrna_data_transform_method_bin(), vrna_data_transform_method_log(),
+ *        vrna_data_transform_method_lm()
+ *
+ *  @param  mid_point               The midpoint of the function (default = 0)
+ *  @param  supremum                The supremum of the function (default = 1)
+ *  @param  growth_rate             The growth rate of the function (default = 1)
+ *  @param  domain                  The domain limits (maybe @c NULL)
+ *  @param  oob_value               Out-of-bound value
+ *  @param  options                 Additional options that change the behavior of the callback function
+ *  @param  transform_options_p     A pointer to store the address of the options data structure
+ *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
+ *  @return                         A callback function that performs transformation through a logistic function
+ */
+vrna_data_lin_trans_f
+vrna_data_transform_method_logistic(double                         mid_point,
+                                    double                         supremum,
+                                    double                         growth_rate,
+                                    double                         domain[2],
+                                    double                         oob_value,
+                                    unsigned int                   options,
+                                    vrna_data_lin_trans_opt_t      *transform_options_p,
+                                    vrna_data_lin_trans_opt_free_f *transform_options_free);
+
+
 /**
  *  @}
  */
