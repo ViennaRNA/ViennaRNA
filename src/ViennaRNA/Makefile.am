@@ -527,6 +527,8 @@ libRNA_probing_la_SOURCES = \
 libRNA_data_la_SOURCES = \
     data/transform.c \
     data/transform_bin.c \
+    data/transform_gaussian.c \
+    data/transform_kde.c \
     data/transform_linear.c \
     data/transform_log.c \
     data/transform_logistic.c
