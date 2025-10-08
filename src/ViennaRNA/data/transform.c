@@ -36,22 +36,71 @@
  #################################
  */
 PUBLIC double *
-vrna_data_lin_transform(const double              *data,
-                        size_t                    data_size,
-                        vrna_data_lin_trans_f     trans,
-                        vrna_data_lin_trans_opt_t options)
+vrna_data_lin_transform(const double                *data,
+                        size_t                      data_size,
+                        vrna_data_lin_trans_f       trans,
+                        vrna_data_lin_trans_opt_t   trans_options,
+                        double                      domain[4],
+                        double                      oob_value,
+                        unsigned int                options)
 {
   /* init the transformed reactivity array */
-  double *a = NULL;
+  double  *a  = NULL;
+  size_t  i, cnt, *vs = NULL;
 
   if ((data) &&
       (data_size > 0)) {
     a = (double *)vrna_alloc(sizeof(double) * data_size);
     a = memcpy(a, data, sizeof(double) * data_size);
 
-    if (trans)
+    if (options & VRNA_TRANSFORM_ENFORCE_DOMAIN_SOURCE) {
+      vs = (size_t *)vrna_alloc(sizeof(size_t) * data_size);
+
+      for (i = cnt = 0; i < data_size; ++i) {
+        if (a[i] < domain[0]) {
+          if (options & VRNA_TRANSFORM_MAP_SOURCE_LOW) {
+            a[i] = domain[0];
+            vs[cnt++] = i;
+          } else {
+            a[i] = oob_value;
+          }
+        } else if (a[i] > domain[1]) {
+          if (options & VRNA_TRANSFORM_MAP_SOURCE_HIGH) {
+            a[i] = domain[1];
+            vs[cnt++] = i;
+          } else {
+            a[i] = oob_value;
+          }
+        }
+      }
+
+      if (trans)
+        for (i = 0; i < cnt; ++i)
+          a[vs[i]] = trans(a[vs[i]], trans_options);
+
+      free(vs);
+    } else if (trans) {
       for (size_t i = 0; i < data_size; ++i)
-        a[i] = trans(a[i], options);
+        a[i] = trans(a[i], trans_options);
+    }
+
+    if (options & VRNA_TRANSFORM_ENFORCE_DOMAIN_TARGET) {
+      for (i = 0; i < data_size; ++i) {
+        if (a[i] != oob_value) {
+          if (a[i] < domain[2]) {
+            if (options & VRNA_TRANSFORM_MAP_TARGET_LOW)
+              a[i] = domain[2];
+            else
+              a[i] = oob_value;
+          } else if (a[i] > domain[3]) {
+            if (options & VRNA_TRANSFORM_MAP_TARGET_HIGH)
+              a[i] = domain[3];
+            else
+              a[i] = oob_value;
+          }
+        }
+      }
+    }
   }
 
   return a;

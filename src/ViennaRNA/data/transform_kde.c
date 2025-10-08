@@ -20,7 +20,6 @@ typedef struct {
   vrna_data_lin_trans_opt_t       kernel_data;
   vrna_data_lin_trans_opt_free_f  kernel_data_free;
   double                          bandwidth;
-  double                          domain[4];
   unsigned int                    options;
   double                          out_of_bounds_value;
 } kde_transform_param_t;
@@ -67,8 +66,6 @@ vrna_data_transform_method_kde(double                         *samples,
                                vrna_data_lin_trans_opt_t      kernel_data,
                                vrna_data_lin_trans_opt_free_f kernel_data_free,
                                double                         bandwidth,
-                               double                         domain[4],
-                               double                         oob_value,
                                unsigned int                   options,
                                vrna_data_lin_trans_opt_t      *transform_options_p,
                                vrna_data_lin_trans_opt_free_f *transform_options_free)
@@ -82,22 +79,12 @@ vrna_data_transform_method_kde(double                         *samples,
     kde_transform_param_t *o = (kde_transform_param_t *)vrna_alloc(sizeof(kde_transform_param_t));
 
     o->options              = options;
-    o->out_of_bounds_value  = oob_value;
-
-    if (domain) {
-      (void)memcpy(&(o->domain[0]), &(domain[0]), sizeof(double) * 4);
-    } else {
-      o->domain[0] = o->domain[1] = o->domain[4] = o->domain[3] = 0.;
-      o->options &= ~VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAINS;
-    }
 
     /* store the samples */
     vrna_array_init_size(o->samples, num_samples);
 
     for (size_t i = 0; i < num_samples; i++)
-      if ((!(o->options & VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAIN_SOURCE)) ||
-          ((o->domain[0] <= samples[i]) && (o->domain[1] >= samples[i])))
-        vrna_array_append(o->samples, samples[i]);
+      vrna_array_append(o->samples, samples[i]);
 
     if (kernel) {
       o->kernel           = kernel;
@@ -108,8 +95,6 @@ vrna_data_transform_method_kde(double                         *samples,
       o->kernel           = vrna_data_transform_method_gaussian(1. / sqrt(2 * PI),
                                                                 0,
                                                                 1.,
-                                                                NULL,
-                                                                oob_value,
                                                                 VRNA_TRANSFORM_GAUSSIAN_OPTION_DEFAULT,
                                                                 &(o->kernel_data),
                                                                 &(o->kernel_data_free));
@@ -156,39 +141,11 @@ transform_kde(double                    value,
   t         = 0;
   bandwidth = o->bandwidth;
 
-  if (o->options & VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAIN_SOURCE) {
-    if (value < o->domain[0]) {
-      if (o->options & VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_LOW)
-        value = o->domain[0];
-      else
-        return o->out_of_bounds_value;
-    } else if (value > o->domain[1]) {
-      if (o->options & VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_HIGH)
-        value = o->domain[1];
-      else
-        return o->out_of_bounds_value;
-    }
-  }
-
   for (size_t i = 0; i < n; i++)
     t += o->kernel((value - o->samples[i]) / bandwidth,
                     o->kernel_data);
 
   t /= (n * bandwidth);
-
-  if (o->options & VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAIN_TARGET) {
-    if (value < o->domain[2]) {
-      if (o->options & VRNA_TRANSFORM_KDE_OPTION_MAP_TARGET_LOW)
-        value = o->domain[2];
-      else
-        return o->out_of_bounds_value;
-    } else if (value > o->domain[3]) {
-      if (o->options & VRNA_TRANSFORM_KDE_OPTION_MAP_TARGET_HIGH)
-        value = o->domain[3];
-      else
-        return o->out_of_bounds_value;
-    }
-  }
 
   return t;
 }

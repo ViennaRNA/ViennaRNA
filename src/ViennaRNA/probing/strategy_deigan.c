@@ -88,7 +88,10 @@ vrna_probing_strategy_deigan(vrna_fold_compound_t *fc,
     pseudo_energies = vrna_data_lin_transform(data,
                                               data_size,
                                               opt->cb_preprocess,
-                                              opt->cb_preprocess_opt);
+                                              opt->cb_preprocess_opt,
+                                              NULL,
+                                              VRNA_REACTIVITY_MISSING,
+                                              VRNA_TRANSFORM_DEFAULT);
 
     /* transform data into actual pseudo-energies */
     for (size_t i = 0; i < data_size; i++) {

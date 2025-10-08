@@ -78,6 +78,10 @@ vrna_probing_strategy_zarringhalam(vrna_fold_compound_t *fc,
       (data) &&
       (data_size > 0)) {
 
+    double max_v = data[0];
+    for (size_t i = 1; i < data_size; ++i)
+      max_v = MAX2(max_v, data[i]);
+
     /* preprare (default) options */
     if (options) {
       opt = (zarringhalam_options_t *)options;
@@ -95,10 +99,14 @@ vrna_probing_strategy_zarringhalam(vrna_fold_compound_t *fc,
     }
 
     /* pre-process data */
+    double domain[4] = { 0., max_v, 0., 1. };
     pseudo_energies = vrna_data_lin_transform(data,
                                               data_size,
                                               opt->cb_preprocess,
-                                              opt->cb_preprocess_opt);
+                                              opt->cb_preprocess_opt,
+                                              domain,
+                                              VRNA_REACTIVITY_MISSING,
+                                              VRNA_TRANSFORM_ENFORCE_DOMAINS | VRNA_TRANSFORM_MAP_TARGET);
 
     /* transform data into actual pseudo-energies */
     for (size_t i = 0; i < data_size; i++) {
@@ -523,14 +531,11 @@ set_mapping_strategy(const char                     *conversion_string,
         slope = 1. / slope;
         intercept *= -slope;
 
-        double domain[4] = { 0, max_value, 0, 1 };
-        unsigned char options = (*conversion_string == 'L') ? 0 : VRNA_TRANSFORM_LM_OPTION_LOG;
-        options |= VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAINS | VRNA_TRANSFORM_LM_OPTION_MAP_TARGET;
         transform_function = vrna_data_transform_method_lm(slope,
                                                            intercept,
-                                                           domain,
-                                                           VRNA_REACTIVITY_MISSING,
-                                                           options,
+                                                           (*conversion_string == 'L') ?
+                                                              VRNA_TRANSFORM_LM_OPTION_DEFAULT :
+                                                              VRNA_TRANSFORM_LM_OPTION_LOG,
                                                            transform_data,
                                                            transform_data_free);
       }

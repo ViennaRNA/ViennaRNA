@@ -55,29 +55,138 @@ typedef double (*vrna_data_lin_trans_f) (double                    value,
 
 
 /**
+ *  @brief  Options flag for transforming linear data to enforce source domain limits
+ *  @see vrna_data_lin_transform()
+ */
+#define VRNA_TRANSFORM_ENFORCE_DOMAIN_SOURCE  (1 << 1)
+
+
+/**
+ *  @brief  Options flag for transforming linear data to enforce target domain limits
+ *  @see vrna_data_lin_transform()
+ */
+#define VRNA_TRANSFORM_ENFORCE_DOMAIN_TARGET  (1 << 2)
+
+
+/**
+ *  @brief  Options flag for transforming linear data to enforce source and target domain limits
+ *  @see vrna_data_lin_transform()
+ */
+#define VRNA_TRANSFORM_ENFORCE_DOMAINS        (VRNA_TRANSFORM_ENFORCE_DOMAIN_SOURCE | VRNA_TRANSFORM_ENFORCE_DOMAIN_TARGET)
+
+
+/**
+ *  @brief  Options flag for transforming linear data to map source values below the domain limit to the lower domain limit
+ *  @see vrna_data_lin_transform()
+ */
+#define VRNA_TRANSFORM_MAP_SOURCE_LOW         (1 << 3)
+
+
+/**
+ *  @brief  Options flag for transforming linear data to map source values above the domain limit to the upper domain limit
+ *  @see vrna_data_lin_transform()
+ */
+#define VRNA_TRANSFORM_MAP_SOURCE_HIGH        (1 << 4)
+
+
+/**
+ *  @brief  Options flag for transforming linear data to map source values below and above the domain limits to the domain limits
+ *  @see vrna_data_lin_transform()
+ */
+#define VRNA_TRANSFORM_MAP_SOURCE             (VRNA_TRANSFORM_MAP_SOURCE_LOW | VRNA_TRANSFORM_MAP_SOURCE_HIGH)
+
+
+/**
+ *  @brief  Options flag for transforming linear data to map target values below the domain limit to the lower domain limit
+ *  @see vrna_data_lin_transform()
+ */
+#define VRNA_TRANSFORM_MAP_TARGET_LOW         (1 << 5)
+
+
+/**
+ *  @brief  Options flag for transforming linear data to map target values above the domain limit to the upper domain limit
+ *  @see vrna_data_lin_transform()
+ */
+#define VRNA_TRANSFORM_MAP_TARGET_HIGH        (1 << 6)
+
+
+/**
+ *  @brief  Options flag for transforming linear data to map target values below and above the domain limits to the domain limits
+ *  @see vrna_data_lin_transform()
+ */
+#define VRNA_TRANSFORM_MAP_TARGET             (VRNA_TRANSFORM_MAP_TARGET_LOW | VRNA_TRANSFORM_MAP_TARGET_HIGH)
+
+
+/**
+ *  @brief  Options flag for transforming linear data to map source and target values below and above the domain limits to the respective domain limits
+ *  @see vrna_data_lin_transform()
+ */
+#define VRNA_TRANSFORM_MAP                    (VRNA_TRANSFORM_MAP_SOURCE_LOW | VRNA_TRANSFORM_MAP_SOURCE_HIGH | VRNA_TRANSFORM_MAP_TARGET_LOW | VRNA_TRANSFORM_MAP_TARGET_HIGH)
+
+
+/**
+ *  @brief  Options flag for transforming linear data that indicates default settings
+ *  @see vrna_data_lin_transform()
+ */
+#define VRNA_TRANSFORM_DEFAULT                (VRNA_TRANSFORM_ENFORCE_DOMAINS | VRNA_TRANSFORM_MAP)
+
+
+/**
  *  @brief  Transform an array of linear data
  *
- *  This function transforms an array of linear data into another array of linear data
- *  of the same size. For that purpose, it utilizes a callback mechanism that transforms
- *  each single value.
+ *  This function transforms an array of linear data (@c source) into another array of
+ *  linear data of the same size (@c target). For that purpose, it utilizes a callback
+ *  mechanism that transforms each single value.
  *
- *  @note When @p data is @c NULL or @p data_size equals @c 0, the function returns @c NULL.
- *        Moreover, the function simply provides a copy of the linear data if the transformation
- *        callback @p transform_cb is not provided, i.e. if it is @c NULL.
+ *  The transformation function may enforce source and target domain limits if the
+ *  corresponding flag (#VRNA_TRANSFORM_ENFORCE_DOMAINS) is provided to the @p options
+ *  argument. This means that one has complete control over the accepted values of the
+ *  source and target domains. The limits can be provided to this function through the
+ *  @p domain argument. Here, the order of the limits follows:
+ *  @f[ x_\text{min}, x_\text{max}, y_\text{min}, y_\text{max}. @f]
  *
- *  @see  #vrna_data_lin_trans_f, #vrna_data_lin_trans_opt_t,
- *        vrna_data_transform_method_bin(), vrna_data_transform_method_lm(), vrna_data_transform_method_log()
+ *  If @c NULL is passed instead of an actual domain array, domain enforcement is
+ *  deactivated and any value will pass. In case a domain enforcing is active and a
+ *  source or target value doesn't meet the respective limits, the function assigns
+ *  it the out-of-bounds value @p oob_value. This behavior can be changed to a mapping
+ *  of out-of-bounds values to the respetive domain limits. For that purpose, the
+ *  @p options argument requires the flag #VRNA_TRANSFORM_MAP.
+ *
+ *  @note   Individual control for mapping out-of-bounds values to the four domain
+ *          limits, i.e. low and high values of source and target can be gained by
+ *          providing the @p options argument the #VRNA_TRANSFORM_MAP_SOURCE_LOW,
+ *          #VRNA_TRANSFORM_MAP_SOURCE_HIGH, #VRNA_TRANSFORM_MAP_TARGET_LOW,
+ *          and #VRNA_TRANSFORM_MAP_TARGET_HIGH flags.
+ *  @note   When @p data is @c NULL or @p data_size equals @c 0, the function returns
+ *          @c NULL. Moreover, the function simply provides a copy of the linear data
+ *          if the transformation callback @p transform_cb is not provided, i.e. if
+ *          it is @c NULL. In this case, domain limits will still be enforced if the
+ *          corresponding options are set.
+ *
+ *  @see    #vrna_data_lin_trans_f, #vrna_data_lin_trans_opt_t,
+ *          #VRNA_TRANSFORM_DEFAULT, #VRNA_TRANSFORM_LM_OPTION_MAP, #VRNA_TRANSFORM_ENFORCE_DOMAINS,
+ *          #VRNA_TRANSFORM_ENFORCE_DOMAIN_SOURCE, #VRNA_TRANSFORM_ENFORCE_DOMAIN_TARGET,
+ *          #VRNA_TRANSFORM_MAP_SOURCE_LOW, #VRNA_TRANSFORM_MAP_SOURCE_HIGH, #VRNA_TRANSFORM_MAP_SOURCE,
+ *          #VRNA_TRANSFORM_MAP_TARGET_LOW, #VRNA_TRANSFORM_MAP_TARGET_HIGH, #VRNA_TRANSFORM_MAP_TARGET,
+ *          vrna_data_transform_method_bin(), vrna_data_transform_method_lm(), vrna_data_transform_method_log()
  *
  *  @param  data            A pointer to an array of linear data
  *  @param  data_size       The size of the array @p data is pointing to
  *  @param  transform_cb    The data transformation callback (maybe @c NULL)
  *  @param  transform_opt   The options that need to be passed through to the transformation callback @p transform_cb (maybe @c NULL)
+ *  @param  domain          The domain limits (maybe @c NULL)
+ *  @param  oob_value       Out-of-bound value
+ *  @param  options         Additional options that change the behavior of the transformation function
+ *  @return                 A pointer to an array of transformed linear data (or @c NULL on any error)
  */
 double *
-vrna_data_lin_transform(const double              *data,
-                        size_t                    data_size,
-                        vrna_data_lin_trans_f     transform_cb,
-                        vrna_data_lin_trans_opt_t transform_opt);
+vrna_data_lin_transform(const double                *data,
+                        size_t                      data_size,
+                        vrna_data_lin_trans_f       transform_cb,
+                        vrna_data_lin_trans_opt_t   transform_opt,
+                        double                      domain[4],
+                        double                      oob_value,
+                        unsigned int                options);
 
 
 /**
@@ -169,83 +278,7 @@ vrna_data_transform_method_bin(double                         (*thresholds)[2],
  */
 #define VRNA_TRANSFORM_LM_OPTION_LOG                    (1 << 0)
 
-
-/**
- *  @brief  Options flag for transforming linear data using a linear model to enforce source domain limits
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_SOURCE  (1 << 1)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a linear model to enforce target domain limits
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_TARGET  (1 << 2)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a linear model to enforce source and target domain limits
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAINS        (VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_SOURCE | VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_TARGET)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a linear model to map source values below the domain limit to the lower domain limit
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_LOW         (1 << 3)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a linear model to map source values above the domain limit to the upper domain limit
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_HIGH        (1 << 4)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a linear model to map source values below and above the domain limits to the domain limits
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE             (VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_LOW | VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_HIGH)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a linear model to map target values below the domain limit to the lower domain limit
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_LOW         (1 << 5)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a linear model to map target values above the domain limit to the upper domain limit
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_HIGH        (1 << 6)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a linear model to map target values below and above the domain limits to the domain limits
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_LM_OPTION_MAP_TARGET             (VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_LOW | VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_HIGH)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a linear model to map source and target values below and above the domain limits to the respective domain limits
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_LM_OPTION_MAP                    (VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_LOW | VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_HIGH | VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_LOW | VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_HIGH)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a linear model that indicates default settings
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_LM_OPTION_DEFAULT                (VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAINS | VRNA_TRANSFORM_LM_OPTION_MAP)
-
+#define VRNA_TRANSFORM_LM_OPTION_DEFAULT                0U
 
 /**
  *  @brief  Retrieve a linear data transform callback that applies a linear model
@@ -261,41 +294,17 @@ vrna_data_transform_method_bin(double                         (*thresholds)[2],
  *  of @f$ f(x) @f$ can be gained by providing a corresponding option flag to the
  *  @p options argument, e.g. #VRNA_TRANSFORM_LM_OPTION_LOG.
  *
- *  Moreover, the transformation callback may enforce source and target domain limits
- *  if the corresponding flag (#VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAINS) is provided
- *  to the @p options argument. This means that one has complete control over the
- *  accepted values of the source and target domains. The limits can be provided to
- *  this function through the @p domain argument. Here, the order of the limits follows:
- *  @f$ x_\text{min}, x_\text{max}, y_\text{min}, y_\text{max} @f$. If @c NULL is passed
- *  instead of an actual domain array, the domain enforcement is deactivated and any
- *  value will pass. In case a domain enforcing is active and a source or target value
- *  doesn't meet the respective limits, the callback returns the out-of-bounds value
- *  @p oob_value. This behavior can be changed to a mapping of out-of-bounds values
- *  to the respetive domain limits. For that purpose, the @p options argument requires
- *  the flag #VRNA_TRANSFORM_LM_OPTION_MAP.
- *
- *  @note   Individual control for mapping out-of-bounds values to the four domain
- *          limits, i.e. low and high values of source and target can be gained by
- *          providing the @p options argument the #VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_LOW,
- *          #VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_HIGH, #VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_LOW,
- *          and #VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_HIGH flags.
- *
  *  The @p transform_options_p and @p transform_options_free pointers are used as additional
  *  output to obtain the addresses of the transformation option data structure that has to
  *  be provided to the vrna_data_lin_transform() function and a function pointer to release
  *  the memory of the option data structure once it is not required anymore.
  *  
  *  @see  vrna_data_lin_transform(), #vrna_data_lin_trans_f, #vrna_data_lin_trans_opt_t, #vrna_data_lin_trans_opt_free_f,
- *        #VRNA_TRANSFORM_LM_OPTION_DEFAULT, #VRNA_TRANSFORM_LM_OPTION_LOG, #VRNA_TRANSFORM_LM_OPTION_MAP,
- *        #VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_SOURCE, #VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAIN_TARGET, #VRNA_TRANSFORM_LM_OPTION_ENFORCE_DOMAINS,
- *        #VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_LOW, #VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE_HIGH, #VRNA_TRANSFORM_LM_OPTION_MAP_SOURCE,
- *        #VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_LOW, #VRNA_TRANSFORM_LM_OPTION_MAP_TARGET_HIGH, #VRNA_TRANSFORM_LM_OPTION_MAP_TARGET,
+ *        #VRNA_TRANSFORM_LM_OPTION_DEFAULT, #VRNA_TRANSFORM_LM_OPTION_LOG,
  *        vrna_data_transform_method_bin(), vrna_data_transform_method_log()
  *
  *  @param  slope                   The slope of the linear function
  *  @param  intercept               The intercept of the linear function
- *  @param  domain                  The domain limits (maybe @c NULL)
- *  @param  oob_value               Out-of-bound value
  *  @param  options                 Additional options that change the behavior of the callback function
  *  @param  transform_options_p     A pointer to store the address of the options data structure
  *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
@@ -304,8 +313,6 @@ vrna_data_transform_method_bin(double                         (*thresholds)[2],
 vrna_data_lin_trans_f
 vrna_data_transform_method_lm(double                          slope,
                               double                          intercept,
-                              double                          domain[4],
-                              double                          oob_value,
                               unsigned int                    options,
                               vrna_data_lin_trans_opt_t       *transform_options_p,
                               vrna_data_lin_trans_opt_free_f  *transform_options_free);
@@ -369,35 +376,6 @@ vrna_data_transform_method_log(double                         value_shift,
                                vrna_data_lin_trans_opt_free_f *transform_options_free);
 
 
-
-/**
- *  @brief  Options flag for transforming linear data using a logistic function to enforce source domain limits
- *  @see vrna_data_transform_method_logistic()
- */
-#define VRNA_TRANSFORM_LOGISTIC_OPTION_ENFORCE_DOMAIN  (1 << 0)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a logistic functionl to map source values below the domain limit to the lower domain limit
- *  @see vrna_data_transform_method_logistic()
- */
-#define VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_LOW         (1 << 1)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a logistic function to map source values above the domain limit to the upper domain limit
- *  @see vrna_data_transform_method_logistic()
- */
-#define VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_HIGH        (1 << 2)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a logistic function to map source values below and above the domain limits to the domain limits
- *  @see vrna_data_transform_method_logistic()
- */
-#define VRNA_TRANSFORM_LOGISTIC_OPTION_MAP             (VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_LOW | VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_HIGH)
-
-
 /**
  *  @brief  Options flag for transforming linear data using logistic function that indicates default settings
  *  @see vrna_data_transform_method_loogistic()
@@ -418,40 +396,19 @@ vrna_data_transform_method_log(double                         value_shift,
  *  function is defined as @f$ L = 1 @f$, @f$ k = 1 @f$. and @f$ x_0 = 0 @f$, i.e.
  *  @f[ y = \frac{1}{1 + e^{-x}} @f]
  *
- *  Our implementation of the transformation callback can enforce source domain limits
- *  if the corresponding flag (#VRNA_TRANSFORM_LOGISTIC_OPTION_ENFORCE_DOMAIN) is provided
- *  to the @p options argument. This means that one has complete control over the
- *  accepted values of the source domains. Limits are provided through the @p domain
- *  argument, where the domain is a pair @f$ ( x_\text{min}, x_\text{max} ) @f$. If @c NULL
- *  is passed instead of an actual domain array, the domain enforcement is deactivated and
- *  any value will pass. In case a domain enforcing is active and a source value doesn't
- *  meet the respective limits, the callback returns the out-of-bounds value @p oob_value.
- *  This behavior can be changed to a mapping of out-of-bounds value to the respetive domain
- *  limits. For that purpose, the @p options argument requires the flag
- *  #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP.
- *
- *  @note   Individual control for mapping out-of-bounds values to the two source domain
- *          limits can be gained by providing the @p options argument the 
- *          #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_LOW and #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_HIGH
- *          flags.
- *
  *  The @p transform_options_p and @p transform_options_free pointers are used as additional
  *  output to obtain the addresses of the transformation option data structure that has to
  *  be provided to the vrna_data_lin_transform() function and a function pointer to release
  *  the memory of the option data structure once it is not required anymore.
  *  
  *  @see  vrna_data_lin_transform(), #vrna_data_lin_trans_f, #vrna_data_lin_trans_opt_t, #vrna_data_lin_trans_opt_free_f,
- *        #VRNA_TRANSFORM_LOGISTIC_OPTION_DEFAULT, #VRNA_TRANSFORM_LOGISTIC_OPTION_ENFORCE_DOMAIN,
- *        #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP, #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_LOW,
- *        #VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_HIGH,
+ *        #VRNA_TRANSFORM_LOGISTIC_OPTION_DEFAULT,
  *        vrna_data_transform_method_bin(), vrna_data_transform_method_log(),
  *        vrna_data_transform_method_lm()
  *
  *  @param  mid_point               The midpoint of the function (default = 0)
  *  @param  supremum                The supremum of the function (default = 1)
  *  @param  growth_rate             The growth rate of the function (default = 1)
- *  @param  domain                  The domain limits (maybe @c NULL)
- *  @param  oob_value               Out-of-bound value
  *  @param  options                 Additional options that change the behavior of the callback function
  *  @param  transform_options_p     A pointer to store the address of the options data structure
  *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
@@ -461,88 +418,16 @@ vrna_data_lin_trans_f
 vrna_data_transform_method_logistic(double                         mid_point,
                                     double                         supremum,
                                     double                         growth_rate,
-                                    double                         domain[2],
-                                    double                         oob_value,
                                     unsigned int                   options,
                                     vrna_data_lin_trans_opt_t      *transform_options_p,
                                     vrna_data_lin_trans_opt_free_f *transform_options_free);
 
 
 /**
- *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) to enforce source domain limits
- *  @see vrna_data_transform_method_kde()
- */
-#define VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAIN_SOURCE   (1 << 1)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) to enforce target domain limits
- *  @see vrna_data_transform_method_kde()
- */
-#define VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAIN_TARGET   (1 << 2)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) to enforce source and target domain limits
- *  @see vrna_data_transform_method_kde()
- */
-#define VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAINS         (VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAIN_SOURCE | VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAIN_TARGET)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) to map source values below the domain limit to the lower domain limit
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_LOW         (1 << 3)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) to map source values above the domain limit to the upper domain limit
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_HIGH        (1 << 4)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) to map source values below and above the domain limits to the domain limits
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE             (VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_LOW | VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_HIGH)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) to map target values below the domain limit to the lower domain limit
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_KDE_OPTION_MAP_TARGET_LOW         (1 << 5)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) to map target values above the domain limit to the upper domain limit
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_KDE_OPTION_MAP_TARGET_HIGH        (1 << 6)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) to map target values below and above the domain limits to the domain limits
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_KDE_OPTION_MAP_TARGET             (VRNA_TRANSFORM_KDE_OPTION_MAP_TARGET_LOW | VRNA_TRANSFORM_KDE_OPTION_MAP_TARGET_HIGH)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) to map source and target values below and above the domain limits to the respective domain limits
- *  @see vrna_data_transform_method_lm()
- */
-#define VRNA_TRANSFORM_KDE_OPTION_MAP                    (VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_LOW | VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_HIGH | VRNA_TRANSFORM_KDE_OPTION_MAP_TARGET_LOW | VRNA_TRANSFORM_KDE_OPTION_MAP_TARGET_HIGH)
-
-
-/**
  *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) that indicates default settings
  *  @see vrna_data_transform_method_lm()
  */
-#define VRNA_TRANSFORM_KDE_OPTION_DEFAULT                (VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAINS | VRNA_TRANSFORM_KDE_OPTION_MAP)
+#define VRNA_TRANSFORM_KDE_OPTION_DEFAULT   0U
 
 
 /**
@@ -556,24 +441,6 @@ vrna_data_transform_method_logistic(double                         mid_point,
  *  @f$ K @f$ (@p kernel) is a non-negative kernel function, @f$ h > 0 @f$ is the bandwidth
  *  (@p bandwidth), and @f$ x @f$ is the  input value (@c source).
  *
- *  Our implementation of the transformation callback can enforce source and target domain limits
- *  if the corresponding flag (#VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAINS) is provided
- *  to the @p options argument. This means that one has complete control over the
- *  accepted values of the source and target domains. Limits are provided through the @p domain
- *  argument, where the domain is of the order
- *  @f$ ( x_\text{min}, x_\text{max}, y_\text{min}, y_\text{max} ) @f$. If @c NULL
- *  is passed instead of an actual domain array, the domain enforcement is deactivated and
- *  any value will pass. In case a domain enforcing is active and a source or target value doesn't
- *  meet the respective limits, the callback returns the out-of-bounds value @p oob_value.
- *  This behavior can be changed to a mapping of out-of-bounds value to the respetive domain
- *  limits. For that purpose, the @p options argument requires the flag
- *  #VRNA_TRANSFORM_KDE_OPTION_MAP.
- *
- *  @note   Individual control for mapping out-of-bounds values to the two source and target domain
- *          limits can be gained by providing the @p options argument the 
- *          #VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_LOW, #VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_HIGH,
- *          #VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_LOW, and #VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_HIGH
- *          flags.
  *  @note   If no kernel is provided, i.e. @c NULL is passed to @p kernel, the KDE uses a
  *          standard Gaussian kernel by providing vrna_data_transform_method_Gaussian()
  *          with @f$ a = \frac{1}{\sqrt{2 \pi}}, b = 0, c = 1 @f$. In this case, the
@@ -589,12 +456,8 @@ vrna_data_transform_method_logistic(double                         mid_point,
  *  the memory of the option data structure once it is not required anymore.
  *  
  *  @see  vrna_data_lin_transform(), #vrna_data_lin_trans_f, #vrna_data_lin_trans_opt_t, #vrna_data_lin_trans_opt_free_f,
- *        #VRNA_TRANSFORM_KDE_OPTION_DEFAULT, #VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAINS,
- *        #VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAIN_SOURCE, #VRNA_TRANSFORM_KDE_OPTION_ENFORCE_DOMAIN_TARGET,
- *        #VRNA_TRANSFORM_KDE_OPTION_MAP, #VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE, #VRNA_TRANSFORM_KDE_OPTION_MAP_TARGET,
- *        #VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_LOW, #VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_HIGH,
- *        #VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_LOW, and #VRNA_TRANSFORM_KDE_OPTION_MAP_SOURCE_HIGH
- *        vrna_data_transform_method_Gaussian()
+ *        #VRNA_TRANSFORM_KDE_OPTION_DEFAULT, 
+ *        vrna_data_transform_method_gaussian()
  *
  *  @param  samples                 The samples of the distribution to estimate @f$ \{ x_1, x_2, \ldots, x_n \} @f$
  *  @param  num_samples             The number of samples (@f$ n @f$) provided by pointer @p samples
@@ -602,8 +465,6 @@ vrna_data_transform_method_logistic(double                         mid_point,
  *  @param  kernel_data             The data that should be passed-through to the kernel function (maybe @c NULL)
  *  @param  kernel_data_free        A function to free the memory occupied by the data for the kernel function (maybe @c NULL)
  *  @param  bandwidth               The bandwidth @f$ h @f$
- *  @param  domain                  The domain limits (maybe @c NULL)
- *  @param  oob_value               Out-of-bound value
  *  @param  options                 Additional options that change the behavior of the callback function
  *  @param  transform_options_p     A pointer to store the address of the options data structure
  *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
@@ -616,88 +477,16 @@ vrna_data_transform_method_kde(double                         *samples,
                                vrna_data_lin_trans_opt_t      kernel_data,
                                vrna_data_lin_trans_opt_free_f kernel_data_free,
                                double                         bandwidth,
-                               double                         domain[4],
-                               double                         oob_value,
                                unsigned int                   options,
                                vrna_data_lin_trans_opt_t      *transform_options_p,
                                vrna_data_lin_trans_opt_free_f *transform_options_free);
 
 
 /**
- *  @brief  Options flag for transforming linear data using a Gaussian function to enforce source domain limits
- *  @see vrna_data_transform_method_Gaussian()
- */
-#define VRNA_TRANSFORM_GAUSSIAN_OPTION_ENFORCE_DOMAIN_SOURCE  (1 << 1)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a Gaussian function to enforce target domain limits
- *  @see vrna_data_transform_method_Gaussian()
- */
-#define VRNA_TRANSFORM_GAUSSIAN_OPTION_ENFORCE_DOMAIN_TARGET  (1 << 2)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a Gaussian function to enforce source and target domain limits
- *  @see vrna_data_transform_method_Gaussian()
- */
-#define VRNA_TRANSFORM_GAUSSIAN_OPTION_ENFORCE_DOMAINS        (VRNA_TRANSFORM_GAUSSIAN_OPTION_ENFORCE_DOMAIN_SOURCE | VRNA_TRANSFORM_GAUSSIAN_OPTION_ENFORCE_DOMAIN_TARGET)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a Gaussian function to map source values below the domain limit to the lower domain limit
- *  @see vrna_data_transform_method_Gaussian()
- */
-#define VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_LOW         (1 << 3)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a Gaussian function to map source values above the domain limit to the upper domain limit
- *  @see vrna_data_transform_method_Gaussian()
- */
-#define VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_HIGH        (1 << 4)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a Gaussian function to map source values below and above the domain limits to the domain limits
- *  @see vrna_data_transform_method_Gaussian()
- */
-#define VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE             (VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_LOW | VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_HIGH)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a Gaussian function to map target values below the domain limit to the lower domain limit
- *  @see vrna_data_transform_method_Gaussian()
- */
-#define VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_TARGET_LOW         (1 << 5)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a Gaussian function to map target values above the domain limit to the upper domain limit
- *  @see vrna_data_transform_method_Gaussian()
- */
-#define VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_TARGET_HIGH        (1 << 6)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a Gaussian function to map target values below and above the domain limits to the domain limits
- *  @see vrna_data_transform_method_Gaussian()
- */
-#define VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_TARGET             (VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_TARGET_LOW | VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_TARGET_HIGH)
-
-
-/**
- *  @brief  Options flag for transforming linear data using a Gaussian function to map source and target values below and above the domain limits to the respective domain limits
- *  @see vrna_data_transform_method_Gaussian()
- */
-#define VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP                    (VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_LOW | VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_HIGH | VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_TARGET_LOW | VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_TARGET_HIGH)
-
-
-/**
  *  @brief  Options flag for transforming linear data using a Gaussian function that indicates default settings
- *  @see vrna_data_transform_method_Gaussian()
+ *  @see vrna_data_transform_method_gaussian()
  */
-#define VRNA_TRANSFORM_GAUSSIAN_OPTION_DEFAULT                (VRNA_TRANSFORM_GAUSSIAN_OPTION_ENFORCE_DOMAINS | VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP)
+#define VRNA_TRANSFORM_GAUSSIAN_OPTION_DEFAULT  0U
 
 
 /**
@@ -710,42 +499,17 @@ vrna_data_transform_method_kde(double                         *samples,
  *  with arbitrary constants @f$ a, b @f$ and non-zero @f$ c @f$ and @f$ x @f$ being the
  *  input value (@c source).
  *
- *  Our implementation of the transformation callback can enforce source and target domain limits
- *  if the corresponding flag (#VRNA_TRANSFORM_GAUSSIAN_OPTION_ENFORCE_DOMAINS) is provided
- *  to the @p options argument. This means that one has complete control over the
- *  accepted values of the source and target domains. Limits are provided through the @p domain
- *  argument, where the domain is of the order
- *  @f$ ( x_\text{min}, x_\text{max}, y_\text{min}, y_\text{max} ) @f$. If @c NULL
- *  is passed instead of an actual domain array, the domain enforcement is deactivated and
- *  any value will pass. In case a domain enforcing is active and a source or target value doesn't
- *  meet the respective limits, the callback returns the out-of-bounds value @p oob_value.
- *  This behavior can be changed to a mapping of out-of-bounds value to the respetive domain
- *  limits. For that purpose, the @p options argument requires the flag
- *  #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP.
- *
- *  @note   Individual control for mapping out-of-bounds values to the two source and target domain
- *          limits can be gained by providing the @p options argument the 
- *          #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_LOW, #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_HIGH,
- *          #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_LOW, and #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_HIGH
- *          flags.
- *
  *  The @p transform_options_p and @p transform_options_free pointers are used as additional
  *  output to obtain the addresses of the transformation option data structure that has to
  *  be provided to the vrna_data_lin_transform() function and a function pointer to release
  *  the memory of the option data structure once it is not required anymore.
  *  
  *  @see  vrna_data_lin_transform(), #vrna_data_lin_trans_f, #vrna_data_lin_trans_opt_t, #vrna_data_lin_trans_opt_free_f,
- *        #VRNA_TRANSFORM_GAUSSIAN_OPTION_DEFAULT, #VRNA_TRANSFORM_GAUSSIAN_OPTION_ENFORCE_DOMAINS,
- *        #VRNA_TRANSFORM_GAUSSIAN_OPTION_ENFORCE_DOMAIN_SOURCE, #VRNA_TRANSFORM_GAUSSIAN_OPTION_ENFORCE_DOMAIN_TARGET,
- *        #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP, #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE, #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_TARGET,
- *        #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_LOW, #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_HIGH,
- *        #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_LOW, and #VRNA_TRANSFORM_GAUSSIAN_OPTION_MAP_SOURCE_HIGH
+ *        #VRNA_TRANSFORM_GAUSSIAN_OPTION_DEFAULT
  *
  *  @param  a                       The arbitrary constant @f$ a @f$
  *  @param  b                       The arbitrary constant @f$ b @f$
  *  @param  c                       The arbitrary non-zero constant @f$ c @f$
- *  @param  domain                  The domain limits (maybe @c NULL)
- *  @param  oob_value               Out-of-bound value
  *  @param  options                 Additional options that change the behavior of the callback function
  *  @param  transform_options_p     A pointer to store the address of the options data structure
  *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
@@ -755,8 +519,6 @@ vrna_data_lin_trans_f
 vrna_data_transform_method_gaussian(double                          a,
                                     double                          b,
                                     double                          c,
-                                    double                          domain[4],
-                                    double                          oob_value,
                                     unsigned int                    options,
                                     vrna_data_lin_trans_opt_t       *transform_options_p,
                                     vrna_data_lin_trans_opt_free_f  *transform_options_free);

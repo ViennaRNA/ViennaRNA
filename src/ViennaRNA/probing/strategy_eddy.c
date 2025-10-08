@@ -131,7 +131,10 @@ vrna_probing_strategy_eddy(vrna_fold_compound_t *fc,
     pseudo_energies = vrna_data_lin_transform(data,
                                               data_size,
                                               opt->cb_preprocess,
-                                              opt->cb_preprocess_opt);
+                                              opt->cb_preprocess_opt,
+                                              NULL,
+                                              VRNA_REACTIVITY_MISSING,
+                                              VRNA_TRANSFORM_DEFAULT);
 
     if (!(opt->options & VRNA_PROBING_STRATEGY_EDDY_NO_TEMPERATURE_RESCALING)) {
       opt->temperature = fc->params->temperature;
@@ -203,7 +206,10 @@ vrna_probing_strategy_eddy_options(double                         temperature,
   ptr_transformed = vrna_data_lin_transform(ptr,
                                             ptr_size,
                                             opt->cb_preprocess,
-                                            opt->cb_preprocess_opt);
+                                            opt->cb_preprocess_opt,
+                                            NULL,
+                                            VRNA_REACTIVITY_MISSING,
+                                            VRNA_TRANSFORM_DEFAULT);
 
   vrna_array_init_size(opt->priors_unpaired, ptr_size);
 
@@ -226,7 +232,10 @@ vrna_probing_strategy_eddy_options(double                         temperature,
   ptr_transformed = vrna_data_lin_transform(ptr,
                                             ptr_size,
                                             opt->cb_preprocess,
-                                            opt->cb_preprocess_opt);
+                                            opt->cb_preprocess_opt,
+                                            NULL,
+                                            VRNA_REACTIVITY_MISSING,
+                                            VRNA_TRANSFORM_DEFAULT);
 
   vrna_array_init_size(opt->priors_paired, ptr_size);
 

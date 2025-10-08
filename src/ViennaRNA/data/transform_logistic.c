@@ -17,9 +17,7 @@ typedef struct {
   double        mid_point;
   double        supremum;
   double        growth_rate;
-  double        domain[2];
   unsigned int  options;
-  double        out_of_bounds_value;
 } logistic_transform_param_t;
 
 /*
@@ -60,8 +58,6 @@ PUBLIC vrna_data_lin_trans_f
 vrna_data_transform_method_logistic(double                         mid_point,
                                     double                         supremum,
                                     double                         growth_rate,
-                                    double                         domain[2],
-                                    double                         oob_value,
                                     unsigned int                   options,
                                     vrna_data_lin_trans_opt_t      *transform_options_p,
                                     vrna_data_lin_trans_opt_free_f *transform_options_free)
@@ -72,18 +68,10 @@ vrna_data_transform_method_logistic(double                         mid_point,
       (transform_options_free)) {
     logistic_transform_param_t *o = (logistic_transform_param_t *)vrna_alloc(sizeof(logistic_transform_param_t));
 
-    o->mid_point                = mid_point;
-    o->supremum                 = supremum;
-    o->growth_rate                 = growth_rate;
-    o->options              = options;
-    o->out_of_bounds_value  = oob_value;
-
-    if (domain) {
-      (void)memcpy(&(o->domain[0]), &(domain[0]), sizeof(double) * 2);
-    } else {
-      o->domain[0] = o->domain[1] = 0.;
-      o->options &= ~VRNA_TRANSFORM_LOGISTIC_OPTION_ENFORCE_DOMAIN;
-    }
+    o->mid_point    = mid_point;
+    o->supremum     = supremum;
+    o->growth_rate  = growth_rate;
+    o->options      = options;
 
     cb                      = transform_logistic;
     *transform_options_p    = (vrna_data_lin_trans_opt_t)o;
@@ -114,21 +102,6 @@ transform_logistic(double                    value,
   logistic_transform_param_t *o = (logistic_transform_param_t *)options;
 
   t = value - o->mid_point;
-
-  if (o->options & VRNA_TRANSFORM_LOGISTIC_OPTION_ENFORCE_DOMAIN) {
-    if (t < o->domain[0]) {
-      if (o->options & VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_LOW)
-        t = o->domain[0];
-      else
-        return o->out_of_bounds_value;
-    } else if (t > o->domain[1]) {
-      if (o->options & VRNA_TRANSFORM_LOGISTIC_OPTION_MAP_HIGH)
-        t = o->domain[1];
-      else
-        return o->out_of_bounds_value;
-    }
-  }
-
   t = 1. + exp(-o->growth_rate * t);
   t = o->supremum / t;
 
