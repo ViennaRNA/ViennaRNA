@@ -9,6 +9,7 @@
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/data/transform.h"
 
 #include "ViennaRNA/probing/strategies.h"
 
@@ -16,9 +17,9 @@ typedef struct {
   double                          m;
   double                          b;
   double                          max_value;
-  vrna_data_lin_trans_f           cb_preprocess;
-  vrna_data_lin_trans_opt_t       cb_preprocess_opt;
-  vrna_data_lin_trans_opt_free_f  cb_preprocess_opt_free;
+  vrna_math_fun_f           cb_preprocess;
+  vrna_math_fun_opt_t       cb_preprocess_opt;
+  vrna_math_fun_opt_free_f  cb_preprocess_opt_free;
 } deigan_options_t;
 
 /*
@@ -113,9 +114,9 @@ PUBLIC void *
 vrna_probing_strategy_deigan_options(double                         m,
                                      double                         b,
                                      double                         max_value,
-                                     vrna_data_lin_trans_f          cb_preprocess,
-                                     vrna_data_lin_trans_opt_t      cb_preprocess_opt,
-                                     vrna_data_lin_trans_opt_free_f cb_preprocess_opt_free)
+                                     vrna_math_fun_f          cb_preprocess,
+                                     vrna_math_fun_opt_t      cb_preprocess_opt,
+                                     vrna_math_fun_opt_free_f cb_preprocess_opt_free)
 {
   deigan_options_t  *opt = (deigan_options_t *)vrna_alloc(sizeof(deigan_options_t));
 
@@ -134,13 +135,13 @@ vrna_probing_strategy_deigan_options(double                         m,
 
     map[1][0] = map[1][1] = max_value;
 
-    opt->cb_preprocess = vrna_data_transform_method_bin(&(map[0]),
-                                                         2,
-                                                         VRNA_REACTIVITY_MISSING,
-                                                         VRNA_REACTIVITY_MISSING,
-                                                         VRNA_TRANSFORM_BIN_OPTION_PROJECT,
-                                                         &(opt->cb_preprocess_opt),
-                                                         &(opt->cb_preprocess_opt_free));
+    opt->cb_preprocess = vrna_math_fun_bin_opt(&(map[0]),
+                                               2,
+                                               VRNA_REACTIVITY_MISSING,
+                                               VRNA_REACTIVITY_MISSING,
+                                               VRNA_MATH_FUN_BIN_OPTION_PROJECT,
+                                               &(opt->cb_preprocess_opt),
+                                               &(opt->cb_preprocess_opt_free));
   }
 
   return (void *)opt;
@@ -180,9 +181,9 @@ vrna_probing_data_deigan_trans(const double             *reactivities,
                                unsigned int             n,
                                double                   m,
                                double                   b,
-                               vrna_data_lin_trans_f          trans,
-                               vrna_data_lin_trans_opt_t      trans_options,
-                               vrna_data_lin_trans_opt_free_f trans_options_free)
+                               vrna_math_fun_f          trans,
+                               vrna_math_fun_opt_t      trans_options,
+                               vrna_math_fun_opt_free_f trans_options_free)
 {
   if (reactivities) {
     double max = reactivities[0];
@@ -233,15 +234,15 @@ vrna_probing_data_deigan_trans_comparative(const double       **reactivities,
                                           double             *ms,
                                           double             *bs,
                                           unsigned int       multi_params,
-                                          vrna_data_lin_trans_f           *trans,
-                                          vrna_data_lin_trans_opt_t       *trans_options,
-                                          vrna_data_lin_trans_opt_free_f  *trans_options_free)
+                                          vrna_math_fun_f           *trans,
+                                          vrna_math_fun_opt_t       *trans_options,
+                                          vrna_math_fun_opt_free_f  *trans_options_free)
 {
   struct vrna_probing_data_s  *d = NULL;
   double                      m, b;
-  vrna_data_lin_trans_f                 cb_trans;
-  vrna_data_lin_trans_opt_t             cb_trans_options;
-  vrna_data_lin_trans_opt_free_f        cb_trans_options_free;
+  vrna_math_fun_f                 cb_trans;
+  vrna_math_fun_opt_t             cb_trans_options;
+  vrna_math_fun_opt_free_f        cb_trans_options_free;
   vrna_array(vrna_probing_strategy_f)   cbs_linear;
   vrna_array(void *)                    cbs_linear_options;
   vrna_array(vrna_auxdata_free_f)       cbs_linear_options_free;

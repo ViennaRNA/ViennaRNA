@@ -21,6 +21,7 @@ vrna_inversedir         = $(pkgincludedir)/inverse
 vrna_iodir              = $(pkgincludedir)/io
 vrna_landscapedir       = $(pkgincludedir)/landscape
 vrna_loopsdir           = $(pkgincludedir)/loops
+vrna_mathdir            = $(pkgincludedir)/math
 vrna_mfedir             = $(pkgincludedir)/mfe
 vrna_paramsdir          = $(pkgincludedir)/params
 vrna_partfuncdir        = $(pkgincludedir)/partfunc
@@ -52,6 +53,7 @@ noinst_LTLIBRARIES =  \
     libRNA_grammar.la \
     libRNA_inverse.la \
     libRNA_landscape.la \
+    libRNA_math.la \
     libRNA_mfe.la \
     libRNA_params.la \
     libRNA_partfunc.la \
@@ -91,6 +93,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_inverse.la \
     libRNA_landscape.la \
     libRNA_mfe.la \
+    libRNA_math.la \
     libRNA_params.la \
     libRNA_partfunc.la \
     libRNA_plotting.la \
@@ -279,6 +282,10 @@ vrna_probing_HEADERS = \
 
 vrna_data_HEADERS = \
     data/transform.h
+
+
+vrna_math_HEADERS = \
+    math/functions.h
 
 
 vrna_loops_HEADERS = \
@@ -525,13 +532,16 @@ libRNA_probing_la_SOURCES = \
 
 
 libRNA_data_la_SOURCES = \
-    data/transform.c \
-    data/transform_bin.c \
-    data/transform_gaussian.c \
-    data/transform_kde.c \
-    data/transform_linear.c \
-    data/transform_log.c \
-    data/transform_logistic.c
+    data/transform.c
+
+
+libRNA_math_la_SOURCES = \
+    math/fun_bin.c \
+    math/fun_gaussian.c \
+    math/fun_kde.c \
+    math/fun_linear.c \
+    math/fun_log.c \
+    math/fun_logistic.c
 
 
 libRNA_structures_la_SOURCES = \

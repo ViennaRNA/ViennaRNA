@@ -17,6 +17,7 @@ SOURCES = \
     constraints_soft.i \
     constraints_ligand.i \
     constraints_mod.i \
+    data.i \
     probing.i \
     probing_SHAPE.i \
     data_structures.i \
@@ -30,6 +31,7 @@ SOURCES = \
     inverse.i \
     loops.i \
     heat_capacity.i \
+    math.i \
     mfe.i \
     mfe_window.i \
     model_details.i \
@@ -93,6 +95,7 @@ EXTRA_DIST = \
     constraints_soft.i \
     constraints_ligand.i \
     constraints_mod.i \
+    data.i \
     probing.i \
     probing_SHAPE.i \
     data_structures.i \
@@ -105,6 +108,7 @@ EXTRA_DIST = \
     inverse.i \
     loops.i \
     heat_capacity.i \
+    math.i \
     mfe.i \
     mfe_window.i \
     model_details.i \

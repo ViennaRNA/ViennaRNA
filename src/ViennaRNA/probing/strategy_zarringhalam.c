@@ -9,15 +9,16 @@
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/data/transform.h"
 
 #include "ViennaRNA/probing/strategies.h"
 
 typedef struct {
-  double                          beta;
-  double                          default_probability;
-  vrna_data_lin_trans_f           cb_preprocess;
-  vrna_data_lin_trans_opt_t       cb_preprocess_opt;
-  vrna_data_lin_trans_opt_free_f  cb_preprocess_opt_free;
+  double                    beta;
+  double                    default_probability;
+  vrna_math_fun_f           cb_preprocess;
+  vrna_math_fun_opt_t       cb_preprocess_opt;
+  vrna_math_fun_opt_free_f  cb_preprocess_opt_free;
 } zarringhalam_options_t;
 
 /*
@@ -48,11 +49,11 @@ conversion_zarringhalam_bp(double       pr,
                            double       beta);
 
 
-PRIVATE vrna_data_lin_trans_f
-set_mapping_strategy(const char                     *conversion_string,
-                     double                         max_value,
-                     vrna_data_lin_trans_opt_t      *transform_data,
-                     vrna_data_lin_trans_opt_free_f *transform_data_free);
+PRIVATE vrna_math_fun_f
+set_mapping_strategy(const char               *conversion_string,
+                     double                   max_value,
+                     vrna_math_fun_opt_t      *transform_data,
+                     vrna_math_fun_opt_free_f *transform_data_free);
 
 
 /*
@@ -64,10 +65,10 @@ set_mapping_strategy(const char                     *conversion_string,
 
 PUBLIC double *
 vrna_probing_strategy_zarringhalam(vrna_fold_compound_t *fc,
-                                   const double *data,
-                                   size_t       data_size,
-                                   unsigned int target,
-                                   void         *options)
+                                   const double         *data,
+                                   size_t               data_size,
+                                   unsigned int         target,
+                                   void                 *options)
 {
   double                  *pseudo_energies;
   zarringhalam_options_t  *opt;
@@ -135,9 +136,9 @@ PUBLIC void *
 vrna_probing_strategy_zarringhalam_options(double                         beta,
                                            double                         default_probability,
                                            double                         max_value,
-                                           vrna_data_lin_trans_f          cb_preprocess,
-                                           vrna_data_lin_trans_opt_t      cb_preprocess_opt,
-                                           vrna_data_lin_trans_opt_free_f cb_preprocess_opt_free)
+                                           vrna_math_fun_f          cb_preprocess,
+                                           vrna_math_fun_opt_t      cb_preprocess_opt,
+                                           vrna_math_fun_opt_free_f cb_preprocess_opt_free)
 {
   zarringhalam_options_t  *opt = (zarringhalam_options_t *)vrna_alloc(sizeof(zarringhalam_options_t));
 
@@ -182,9 +183,9 @@ vrna_probing_data_zarringhalam(const double *reactivities,
                                double       pr_default)
 {
   
-  vrna_data_lin_trans_f          trans;
-  vrna_data_lin_trans_opt_t      trans_options;
-  vrna_data_lin_trans_opt_free_f trans_options_free;
+  vrna_math_fun_f          trans;
+  vrna_math_fun_opt_t      trans_options;
+  vrna_math_fun_opt_free_f trans_options_free;
 
   if (reactivities) {
     double max = reactivities[0];
@@ -220,9 +221,9 @@ vrna_probing_data_zarringhalam_trans(const double *reactivities,
                                      unsigned int n,
                                      double       beta,
                                      double       pr_default,
-                                     vrna_data_lin_trans_f          trans,
-                                     vrna_data_lin_trans_opt_t      trans_options,
-                                     vrna_data_lin_trans_opt_free_f trans_options_free)
+                                     vrna_math_fun_f          trans,
+                                     vrna_math_fun_opt_t      trans_options,
+                                     vrna_math_fun_opt_free_f trans_options_free)
 {
   if (reactivities) {
     double max = reactivities[0];
@@ -255,9 +256,9 @@ vrna_probing_data_zarringhalam_comparative(const double **reactivities,
                                            double       *pr_defaults,
                                            unsigned int multi_params)
 {
-  vrna_array(vrna_data_lin_trans_f)           trans;
-  vrna_array(vrna_data_lin_trans_opt_t)       trans_options;
-  vrna_array(vrna_data_lin_trans_opt_free_f)  trans_options_free;
+  vrna_array(vrna_math_fun_f)           trans;
+  vrna_array(vrna_math_fun_opt_t)       trans_options;
+  vrna_array(vrna_math_fun_opt_free_f)  trans_options_free;
   struct vrna_probing_data_s                  *d;
 
   if ((reactivities) &&
@@ -269,9 +270,9 @@ vrna_probing_data_zarringhalam_comparative(const double **reactivities,
 
     for (size_t s = 0; s < n_seq; s++) {
       if (reactivities[s]) {
-        vrna_data_lin_trans_f           cb_trans;
-        vrna_data_lin_trans_opt_t       cb_trans_options;
-        vrna_data_lin_trans_opt_free_f  cb_trans_options_free;
+        vrna_math_fun_f           cb_trans;
+        vrna_math_fun_opt_t       cb_trans_options;
+        vrna_math_fun_opt_free_f  cb_trans_options_free;
         double max = reactivities[s][0];
         for (size_t i = 1; i <= n[s]; i++)
           max = MAX2(max, reactivities[s][i]);
@@ -320,17 +321,17 @@ vrna_probing_data_zarringhalam_trans_comparative(const double                   
                                                  double                         *betas,
                                                  double                         *pr_defaults,
                                                  unsigned int                   multi_params,
-                                                 vrna_data_lin_trans_f          *trans,
-                                                 vrna_data_lin_trans_opt_t      *trans_options,
-                                                 vrna_data_lin_trans_opt_free_f *trans_options_free)
+                                                 vrna_math_fun_f          *trans,
+                                                 vrna_math_fun_opt_t      *trans_options,
+                                                 vrna_math_fun_opt_free_f *trans_options_free)
 {
   struct vrna_probing_data_s  *d = NULL;
   double                      beta;
   double                      pr_default;
 
-  vrna_data_lin_trans_f                 cb_trans;
-  vrna_data_lin_trans_opt_t             cb_trans_options;
-  vrna_data_lin_trans_opt_free_f        cb_trans_options_free;
+  vrna_math_fun_f                 cb_trans;
+  vrna_math_fun_opt_t             cb_trans_options;
+  vrna_math_fun_opt_free_f        cb_trans_options_free;
   vrna_array(vrna_probing_strategy_f)   cbs_linear;
   vrna_array(void *)                    cbs_linear_options;
   vrna_array(vrna_auxdata_free_f)       cbs_linear_options_free;
@@ -430,13 +431,13 @@ conversion_zarringhalam_bp(double       pr,
 }
 
 
-PRIVATE vrna_data_lin_trans_f
+PRIVATE vrna_math_fun_f
 set_mapping_strategy(const char                     *conversion_string,
                      double                         max_value,
-                     vrna_data_lin_trans_opt_t      *transform_data,
-                     vrna_data_lin_trans_opt_free_f *transform_data_free)
+                     vrna_math_fun_opt_t      *transform_data,
+                     vrna_math_fun_opt_free_f *transform_data_free)
 {
-  vrna_data_lin_trans_f  transform_function;
+  vrna_math_fun_f  transform_function;
 
   transform_function    = NULL;
   *transform_data       = NULL;
@@ -450,13 +451,13 @@ set_mapping_strategy(const char                     *conversion_string,
                            { 0., 1.0}};
         map[1][0] = map[1][1] = max_value;
 
-        transform_function = vrna_data_transform_method_bin(&(map[0]),
-                                                             2,
-                                                             VRNA_REACTIVITY_MISSING,
-                                                             VRNA_REACTIVITY_MISSING,
-                                                             VRNA_TRANSFORM_BIN_OPTION_PROJECT,
-                                                             transform_data,
-                                                             transform_data_free);
+        transform_function = vrna_math_fun_bin_opt(&(map[0]),
+                                                   2,
+                                                   VRNA_REACTIVITY_MISSING,
+                                                   VRNA_REACTIVITY_MISSING,
+                                                   VRNA_MATH_FUN_BIN_OPTION_PROJECT,
+                                                   transform_data,
+                                                   transform_data_free);
       }
       break;
 
@@ -470,13 +471,13 @@ set_mapping_strategy(const char                     *conversion_string,
                              { 0., 1.0}
                             };
         map[4][0] = max_value;
-        transform_function = vrna_data_transform_method_bin(&(map[0]),
-                                                            5,
-                                                            VRNA_REACTIVITY_MISSING,
-                                                            VRNA_REACTIVITY_MISSING,
-                                                            VRNA_TRANSFORM_BIN_OPTION_PROJECT,
-                                                            transform_data,
-                                                            transform_data_free);
+        transform_function = vrna_math_fun_bin_opt(&(map[0]),
+                                                   5,
+                                                   VRNA_REACTIVITY_MISSING,
+                                                   VRNA_REACTIVITY_MISSING,
+                                                   VRNA_MATH_FUN_BIN_OPTION_PROJECT,
+                                                   transform_data,
+                                                   transform_data_free);
       }
       break;
 
@@ -489,13 +490,13 @@ set_mapping_strategy(const char                     *conversion_string,
                              { 0., 1.0}
                             };
         map[1][0] = cutoff;
-        transform_function = vrna_data_transform_method_bin(&(map[0]),
-                                                            2,
-                                                            VRNA_REACTIVITY_MISSING,
-                                                            VRNA_REACTIVITY_MISSING,
-                                                            VRNA_TRANSFORM_BIN_OPTION_MAP_OUTOF_UPPERBOUND,
-                                                            transform_data,
-                                                            transform_data_free);
+        transform_function = vrna_math_fun_bin_opt(&(map[0]),
+                                                   2,
+                                                   VRNA_REACTIVITY_MISSING,
+                                                   VRNA_REACTIVITY_MISSING,
+                                                   VRNA_MATH_FUN_BIN_OPTION_MAP_OUTOF_UPPERBOUND,
+                                                   transform_data,
+                                                   transform_data_free);
 
       }
       break;
@@ -531,13 +532,13 @@ set_mapping_strategy(const char                     *conversion_string,
         slope = 1. / slope;
         intercept *= -slope;
 
-        transform_function = vrna_data_transform_method_lm(slope,
-                                                           intercept,
-                                                           (*conversion_string == 'L') ?
-                                                              VRNA_TRANSFORM_LM_OPTION_DEFAULT :
-                                                              VRNA_TRANSFORM_LM_OPTION_LOG,
-                                                           transform_data,
-                                                           transform_data_free);
+        transform_function = vrna_math_fun_linear_opt(slope,
+                                                      intercept,
+                                                      (*conversion_string == 'L') ?
+                                                         VRNA_MATH_FUN_LINEAR_OPTION_DEFAULT :
+                                                         VRNA_MATH_FUN_LINEAR_OPTION_LOG,
+                                                      transform_data,
+                                                      transform_data_free);
       }
       break;
 

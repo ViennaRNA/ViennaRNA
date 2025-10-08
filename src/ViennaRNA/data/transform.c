@@ -36,13 +36,13 @@
  #################################
  */
 PUBLIC double *
-vrna_data_lin_transform(const double                *data,
-                        size_t                      data_size,
-                        vrna_data_lin_trans_f       trans,
-                        vrna_data_lin_trans_opt_t   trans_options,
-                        double                      domain[4],
-                        double                      oob_value,
-                        unsigned int                options)
+vrna_data_lin_transform(const double        *data,
+                        size_t              data_size,
+                        vrna_math_fun_f     trans,
+                        vrna_math_fun_opt_t trans_options,
+                        double              domain[4],
+                        double              oob_value,
+                        unsigned int        options)
 {
   /* init the transformed reactivity array */
   double  *a  = NULL;
@@ -52,6 +52,9 @@ vrna_data_lin_transform(const double                *data,
       (data_size > 0)) {
     a = (double *)vrna_alloc(sizeof(double) * data_size);
     a = memcpy(a, data, sizeof(double) * data_size);
+
+    if (domain == NULL)
+      options &= ~VRNA_TRANSFORM_ENFORCE_DOMAINS;
 
     if (options & VRNA_TRANSFORM_ENFORCE_DOMAIN_SOURCE) {
       vs = (size_t *)vrna_alloc(sizeof(size_t) * data_size);

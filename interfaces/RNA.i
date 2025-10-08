@@ -67,6 +67,8 @@ extern "C" {
 
 #include  <ViennaRNA/data/transform.h>
 
+#include  <ViennaRNA/math/functions.h>
+
 #ifdef VRNA_WITH_NAVIEW_LAYOUT
 #include  <ViennaRNA/plotting/naview/naview.h>
 #endif
@@ -286,11 +288,13 @@ namespace std {
 %include constraints_soft.i
 %include constraints_ligand.i
 %include constraints_mod.i
+%include data.i
 %include probing.i
 %include probing_SHAPE.i
 %include eval.i
 %include loops.i
 %include basic_algorithms.i
+%include math.i
 %include mfe.i
 %include mfe_window.i
 %include backtrack.i
