@@ -9,8 +9,10 @@ data into another array of data of the same size. Our
 implementation utilizes a callback mechanism that is responsible
 to transform any source value to a specific target value.
 
-We already provide a handful of useful transformation functions,
-such as bining, log-transform and linear models. However, our
+We already provide a handful of useful transformation functions
+through our :ref:`utils/math:mathematical functions` API, e.g.
+linear functions, logarithms, logistic functions, but also
+bining and kernel density estimation (KDE). However, our
 choice to implement callback mechanism based transformation
 function(s) allows the users to implement any transformation function
 themselfs. This enables a wide range of possible adaptations

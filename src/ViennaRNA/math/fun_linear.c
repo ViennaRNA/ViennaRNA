@@ -44,7 +44,7 @@ typedef struct {
  */
 PRIVATE double
 fun_linear_opt(double               value,
-               vrna_math_fun_opt_t  options);
+               vrna_math_fun_dbl_opt_t  options);
 
 
 INLINE PRIVATE double
@@ -55,7 +55,7 @@ fun_linear(double       value,
 
 
 PRIVATE void
-linear_option_free(vrna_math_fun_opt_t options);
+linear_option_free(vrna_math_fun_dbl_opt_t options);
 
 
 /*
@@ -63,14 +63,14 @@ linear_option_free(vrna_math_fun_opt_t options);
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC vrna_math_fun_f
-vrna_math_fun_linear_opt(double                   slope,
+PUBLIC vrna_math_fun_dbl_f
+vrna_math_fun_dbl_linear_opt(double                   slope,
                          double                   intercept,
                          unsigned int             options,
-                         vrna_math_fun_opt_t      *fun_options_p,
-                         vrna_math_fun_opt_free_f *fun_options_free)
+                         vrna_math_fun_dbl_opt_t      *fun_options_p,
+                         vrna_math_fun_dbl_opt_free_f *fun_options_free)
 {
-  vrna_math_fun_f  cb = NULL;
+  vrna_math_fun_dbl_f  cb = NULL;
 
   if ((fun_options_p) &&
       (fun_options_free)) {
@@ -81,7 +81,7 @@ vrna_math_fun_linear_opt(double                   slope,
     o->options              = options;
 
     cb                = fun_linear_opt;
-    *fun_options_p    = (vrna_math_fun_opt_t)o;
+    *fun_options_p    = (vrna_math_fun_dbl_opt_t)o;
     *fun_options_free = linear_option_free;
   }
 
@@ -90,7 +90,7 @@ vrna_math_fun_linear_opt(double                   slope,
 
 
 PUBLIC double
-vrna_math_fun_linear(double       v,
+vrna_math_fun_dbl_linear(double       v,
                      double       slope,
                      double       intercept,
                      unsigned int options)
@@ -105,7 +105,7 @@ vrna_math_fun_linear(double       v,
  #####################################
  */
 PRIVATE void
-linear_option_free(vrna_math_fun_opt_t options)
+linear_option_free(vrna_math_fun_dbl_opt_t options)
 {
   free(options);
 }
@@ -113,7 +113,7 @@ linear_option_free(vrna_math_fun_opt_t options)
 
 PRIVATE double
 fun_linear_opt(double               value,
-               vrna_math_fun_opt_t  options)
+               vrna_math_fun_dbl_opt_t  options)
 {
   fun_linear_opt_t  *o = (fun_linear_opt_t *)options;
 

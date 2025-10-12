@@ -38,8 +38,8 @@
 PUBLIC double *
 vrna_data_lin_transform(const double        *data,
                         size_t              data_size,
-                        vrna_math_fun_f     trans,
-                        vrna_math_fun_opt_t trans_options,
+                        vrna_math_fun_dbl_f     trans,
+                        vrna_math_fun_dbl_opt_t trans_options,
                         double              domain[4],
                         double              oob_value,
                         unsigned int        options)

@@ -131,13 +131,13 @@
  *          it is @c NULL. In this case, domain limits will still be enforced if the
  *          corresponding options are set.
  *
- *  @see    #vrna_math_fun_f, #vrna_math_fun_opt_t,
+ *  @see    #vrna_math_fun_dbl_f, #vrna_math_fun_dbl_opt_t,
  *          #VRNA_TRANSFORM_DEFAULT, #VRNA_TRANSFORM_LM_OPTION_MAP, #VRNA_TRANSFORM_ENFORCE_DOMAINS,
  *          #VRNA_TRANSFORM_ENFORCE_DOMAIN_SOURCE, #VRNA_TRANSFORM_ENFORCE_DOMAIN_TARGET,
  *          #VRNA_TRANSFORM_MAP_SOURCE_LOW, #VRNA_TRANSFORM_MAP_SOURCE_HIGH, #VRNA_TRANSFORM_MAP_SOURCE,
  *          #VRNA_TRANSFORM_MAP_TARGET_LOW, #VRNA_TRANSFORM_MAP_TARGET_HIGH, #VRNA_TRANSFORM_MAP_TARGET,
- *          vrna_math_fun_bin_opt(), vrna_math_fun_linear_opt(), vrna_math_fun_log_opt(),
- *          vrna_math_fun_logistic_opt(), vrna_math_fun_gaussian_opt(), vrna_math_fun_kde_opt()
+ *          vrna_math_fun_dbl_bin_opt(), vrna_math_fun_dbl_linear_opt(), vrna_math_fun_dbl_log_opt(),
+ *          vrna_math_fun_dbl_logistic_opt(), vrna_math_fun_dbl_gaussian_opt(), vrna_math_fun_dbl_kde_opt()
  *
  *  @param  data            A pointer to an array of linear data
  *  @param  data_size       The size of the array @p data is pointing to
@@ -151,8 +151,8 @@
 double *
 vrna_data_lin_transform(const double        *data,
                         size_t              data_size,
-                        vrna_math_fun_f     transform_cb,
-                        vrna_math_fun_opt_t transform_opt,
+                        vrna_math_fun_dbl_f     transform_cb,
+                        vrna_math_fun_dbl_opt_t transform_opt,
                         double              domain[4],
                         double              oob_value,
                         unsigned int        options);

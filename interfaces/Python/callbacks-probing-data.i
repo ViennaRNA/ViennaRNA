@@ -24,8 +24,8 @@ bind_probing_data_trans_callback(PyObject *PyFunc,
 
 /* TODO: change wrapper */
 static double
-python_wrap_probing_data_trans_cb(double              reactivity,
-                                  vrna_math_fun_opt_t data);
+python_wrap_probing_data_trans_cb(double                  reactivity,
+                                  vrna_math_fun_dbl_opt_t data);
 
 static void
 delete_probing_data_trans(python_probing_data_trans_callback_t *cb)
@@ -89,7 +89,7 @@ bind_probing_data_trans_callback(PyObject *transform_f,
 }
 
 static void
-release_probing_data_trans_callback(vrna_math_fun_opt_t data)
+release_probing_data_trans_callback(vrna_math_fun_dbl_opt_t data)
 {
   python_probing_data_trans_callback_t *cb = (python_probing_data_trans_callback_t *)data;
   /* first delete user data */
@@ -105,7 +105,7 @@ release_probing_data_trans_callback(vrna_math_fun_opt_t data)
 
 static double
 python_wrap_probing_data_cb(double              reactivity,
-                            vrna_math_fun_opt_t data)
+                            vrna_math_fun_dbl_opt_t data)
 {
   double ret;
   PyObject                  *arglist, *func, *result, *err;
@@ -174,7 +174,7 @@ python_wrap_probing_data_cb(double              reactivity,
                                             m,
                                             b,
                                             python_wrap_probing_data_cb,
-                                            (vrna_math_fun_opt_t)cb,
+                                            (vrna_math_fun_dbl_opt_t)cb,
                                             release_probing_data_trans_callback);
     } else {
       return vrna_probing_data_deigan(&(reactivities[0]),
@@ -215,7 +215,7 @@ python_wrap_probing_data_cb(double              reactivity,
                                                   beta,
                                                   pr_default,
                                                   python_wrap_probing_data_cb,
-                                                  (vrna_math_fun_opt_t)cb,
+                                                  (vrna_math_fun_dbl_opt_t)cb,
                                                   release_probing_data_trans_callback);
     } else {
       return vrna_probing_data_zarringhalam(&(reactivities[0]),
@@ -251,7 +251,7 @@ python_wrap_probing_data_cb(double              reactivity,
                                           &(paired_data[0]),
                                           paired_data.size(),
                                           python_wrap_probing_data_cb,
-                                          (vrna_math_fun_opt_t) cb,
+                                          (vrna_math_fun_dbl_opt_t) cb,
                                           release_probing_data_trans_callback);
     } else {
       return vrna_probing_data_eddy(&(reactivities[0]),

@@ -48,7 +48,7 @@ typedef struct {
  */
 PRIVATE double
 fun_log_opt(double              v,
-            vrna_math_fun_opt_t options);
+            vrna_math_fun_dbl_opt_t options);
 
 
 INLINE PRIVATE double
@@ -59,7 +59,7 @@ fun_log(double              v,
 
 
 PRIVATE void
-log_option_free(vrna_math_fun_opt_t options);
+log_option_free(vrna_math_fun_dbl_opt_t options);
 
 
 /*
@@ -67,15 +67,15 @@ log_option_free(vrna_math_fun_opt_t options);
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC vrna_math_fun_f
-vrna_math_fun_log_opt(double                    value_shift,
+PUBLIC vrna_math_fun_dbl_f
+vrna_math_fun_dbl_log_opt(double                    value_shift,
                       double                    base,
                       double                    oob_value,
                       unsigned int              options,
-                      vrna_math_fun_opt_t       *fun_options_p,
-                      vrna_math_fun_opt_free_f  *fun_options_free)
+                      vrna_math_fun_dbl_opt_t       *fun_options_p,
+                      vrna_math_fun_dbl_opt_free_f  *fun_options_free)
 {
-  vrna_math_fun_f  cb = NULL;
+  vrna_math_fun_dbl_f  cb = NULL;
 
   if ((fun_options_p) &&
       (fun_options_free)) {
@@ -87,7 +87,7 @@ vrna_math_fun_log_opt(double                    value_shift,
     o->out_of_bounds_value  = oob_value;
 
     cb                = fun_log_opt;
-    *fun_options_p    = (vrna_math_fun_opt_t)o;
+    *fun_options_p    = (vrna_math_fun_dbl_opt_t)o;
     *fun_options_free = log_option_free;
   }
 
@@ -96,7 +96,7 @@ vrna_math_fun_log_opt(double                    value_shift,
 
 
 PUBLIC double
-vrna_math_fun_log(double        value,
+vrna_math_fun_dbl_log(double        value,
                   double        base,
                   double        oob_value,
                   unsigned int  options)
@@ -114,7 +114,7 @@ vrna_math_fun_log(double        value,
  #####################################
  */
 PRIVATE void
-log_option_free(vrna_math_fun_opt_t options)
+log_option_free(vrna_math_fun_dbl_opt_t options)
 {
   free(options);
 }
@@ -122,7 +122,7 @@ log_option_free(vrna_math_fun_opt_t options)
 
 PRIVATE double
 fun_log_opt(double              value,
-            vrna_math_fun_opt_t options)
+            vrna_math_fun_dbl_opt_t options)
 {
   fun_log_opt_t *o = (fun_log_opt_t *)options;
 

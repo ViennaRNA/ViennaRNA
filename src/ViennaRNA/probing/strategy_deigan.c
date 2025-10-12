@@ -17,9 +17,9 @@ typedef struct {
   double                          m;
   double                          b;
   double                          max_value;
-  vrna_math_fun_f           cb_preprocess;
-  vrna_math_fun_opt_t       cb_preprocess_opt;
-  vrna_math_fun_opt_free_f  cb_preprocess_opt_free;
+  vrna_math_fun_dbl_f           cb_preprocess;
+  vrna_math_fun_dbl_opt_t       cb_preprocess_opt;
+  vrna_math_fun_dbl_opt_free_f  cb_preprocess_opt_free;
 } deigan_options_t;
 
 /*
@@ -114,9 +114,9 @@ PUBLIC void *
 vrna_probing_strategy_deigan_options(double                         m,
                                      double                         b,
                                      double                         max_value,
-                                     vrna_math_fun_f          cb_preprocess,
-                                     vrna_math_fun_opt_t      cb_preprocess_opt,
-                                     vrna_math_fun_opt_free_f cb_preprocess_opt_free)
+                                     vrna_math_fun_dbl_f          cb_preprocess,
+                                     vrna_math_fun_dbl_opt_t      cb_preprocess_opt,
+                                     vrna_math_fun_dbl_opt_free_f cb_preprocess_opt_free)
 {
   deigan_options_t  *opt = (deigan_options_t *)vrna_alloc(sizeof(deigan_options_t));
 
@@ -135,7 +135,7 @@ vrna_probing_strategy_deigan_options(double                         m,
 
     map[1][0] = map[1][1] = max_value;
 
-    opt->cb_preprocess = vrna_math_fun_bin_opt(&(map[0]),
+    opt->cb_preprocess = vrna_math_fun_dbl_bin_opt(&(map[0]),
                                                2,
                                                VRNA_REACTIVITY_MISSING,
                                                VRNA_REACTIVITY_MISSING,
@@ -181,9 +181,9 @@ vrna_probing_data_deigan_trans(const double             *reactivities,
                                unsigned int             n,
                                double                   m,
                                double                   b,
-                               vrna_math_fun_f          trans,
-                               vrna_math_fun_opt_t      trans_options,
-                               vrna_math_fun_opt_free_f trans_options_free)
+                               vrna_math_fun_dbl_f          trans,
+                               vrna_math_fun_dbl_opt_t      trans_options,
+                               vrna_math_fun_dbl_opt_free_f trans_options_free)
 {
   if (reactivities) {
     double max = reactivities[0];
@@ -234,15 +234,15 @@ vrna_probing_data_deigan_trans_comparative(const double       **reactivities,
                                           double             *ms,
                                           double             *bs,
                                           unsigned int       multi_params,
-                                          vrna_math_fun_f           *trans,
-                                          vrna_math_fun_opt_t       *trans_options,
-                                          vrna_math_fun_opt_free_f  *trans_options_free)
+                                          vrna_math_fun_dbl_f           *trans,
+                                          vrna_math_fun_dbl_opt_t       *trans_options,
+                                          vrna_math_fun_dbl_opt_free_f  *trans_options_free)
 {
   struct vrna_probing_data_s  *d = NULL;
   double                      m, b;
-  vrna_math_fun_f                 cb_trans;
-  vrna_math_fun_opt_t             cb_trans_options;
-  vrna_math_fun_opt_free_f        cb_trans_options_free;
+  vrna_math_fun_dbl_f                 cb_trans;
+  vrna_math_fun_dbl_opt_t             cb_trans_options;
+  vrna_math_fun_dbl_opt_free_f        cb_trans_options_free;
   vrna_array(vrna_probing_strategy_f)   cbs_linear;
   vrna_array(void *)                    cbs_linear_options;
   vrna_array(vrna_auxdata_free_f)       cbs_linear_options_free;

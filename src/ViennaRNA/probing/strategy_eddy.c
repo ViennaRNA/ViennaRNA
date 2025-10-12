@@ -25,9 +25,9 @@ typedef struct {
   vrna_array(double)        priors_paired;
   double                    unpaired_h;
   double                    paired_h;
-  vrna_math_fun_f           cb_preprocess;
-  vrna_math_fun_opt_t       cb_preprocess_opt;
-  vrna_math_fun_opt_free_f  cb_preprocess_opt_free;
+  vrna_math_fun_dbl_f           cb_preprocess;
+  vrna_math_fun_dbl_opt_t       cb_preprocess_opt;
+  vrna_math_fun_dbl_opt_free_f  cb_preprocess_opt_free;
 } eddy_options_t;
 
 
@@ -166,9 +166,9 @@ vrna_probing_strategy_eddy_options(double                         temperature,
                                    size_t                         prior_unpaired_size,
                                    const double                   *prior_paired,
                                    size_t                         prior_paired_size,
-                                   vrna_math_fun_f          cb_preprocess,
-                                   vrna_math_fun_opt_t      cb_preprocess_opt,
-                                   vrna_math_fun_opt_free_f cb_preprocess_opt_free)
+                                   vrna_math_fun_dbl_f          cb_preprocess,
+                                   vrna_math_fun_dbl_opt_t      cb_preprocess_opt,
+                                   vrna_math_fun_dbl_opt_free_f cb_preprocess_opt_free)
 {
   const double  *ptr;
   double        *ptr_transformed;
@@ -186,7 +186,7 @@ vrna_probing_strategy_eddy_options(double                         temperature,
     opt->cb_preprocess_opt_free = cb_preprocess_opt_free;
   } else {
     /* default preprocessing of the probing data */
-    opt->cb_preprocess          = vrna_math_fun_log_opt(1,
+    opt->cb_preprocess          = vrna_math_fun_dbl_log_opt(1,
                                                         0,
                                                         VRNA_REACTIVITY_MISSING,
                                                         VRNA_MATH_FUN_LOG_OPTION_DEFAULT,
@@ -300,9 +300,9 @@ vrna_probing_data_eddy_trans(const double             *reactivities,
                              unsigned int             unpaired_len,
                              const double             *paired_data,
                              unsigned int             paired_len,
-                             vrna_math_fun_f          trans,
-                             vrna_math_fun_opt_t      trans_options,
-                             vrna_math_fun_opt_free_f trans_options_free)
+                             vrna_math_fun_dbl_f          trans,
+                             vrna_math_fun_dbl_opt_t      trans_options,
+                             vrna_math_fun_dbl_opt_free_f trans_options_free)
 {
   if (reactivities) {
     return vrna_probing_data_linear(reactivities,
@@ -365,16 +365,16 @@ vrna_probing_data_eddy_trans_comparative(const double **reactivities,
                                          const double **paired_datas,
                                          const unsigned int *paired_lens,
                                          unsigned int multi_params,
-                                         vrna_math_fun_f          *trans,
-                                         vrna_math_fun_opt_t      *trans_options,
-                                         vrna_math_fun_opt_free_f *trans_options_free)
+                                         vrna_math_fun_dbl_f          *trans,
+                                         vrna_math_fun_dbl_opt_t      *trans_options,
+                                         vrna_math_fun_dbl_opt_free_f *trans_options_free)
 {
   const double                          *priors_unpaired, *priors_paired;
   double                                priors_unpaired_size, priors_paired_size;
   struct vrna_probing_data_s            *d = NULL;
-  vrna_math_fun_f                 cb_trans;
-  vrna_math_fun_opt_t             cb_trans_options;
-  vrna_math_fun_opt_free_f        cb_trans_options_free;
+  vrna_math_fun_dbl_f                 cb_trans;
+  vrna_math_fun_dbl_opt_t             cb_trans_options;
+  vrna_math_fun_dbl_opt_free_f        cb_trans_options_free;
   vrna_array(vrna_probing_strategy_f)   cbs_linear;
   vrna_array(void *)                    cbs_linear_options;
   vrna_array(vrna_auxdata_free_f)       cbs_linear_options_free;

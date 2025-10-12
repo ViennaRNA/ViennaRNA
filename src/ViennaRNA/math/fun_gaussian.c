@@ -52,11 +52,11 @@ fun_gaussian(double x,
 
 PRIVATE double
 fun_gaussian_opt(double             v,
-                vrna_math_fun_opt_t options);
+                vrna_math_fun_dbl_opt_t options);
 
 
 PRIVATE void
-gaussian_option_free(vrna_math_fun_opt_t options);
+gaussian_option_free(vrna_math_fun_dbl_opt_t options);
 
 
 /*
@@ -64,15 +64,15 @@ gaussian_option_free(vrna_math_fun_opt_t options);
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC vrna_math_fun_f
-vrna_math_fun_gaussian_opt(double                    a,
+PUBLIC vrna_math_fun_dbl_f
+vrna_math_fun_dbl_gaussian_opt(double                    a,
                            double                    b,
                            double                    c,
                            unsigned int              options,
-                           vrna_math_fun_opt_t       *fun_options_p,
-                           vrna_math_fun_opt_free_f  *fun_options_free)
+                           vrna_math_fun_dbl_opt_t       *fun_options_p,
+                           vrna_math_fun_dbl_opt_free_f  *fun_options_free)
 {
-  vrna_math_fun_f  cb = NULL;
+  vrna_math_fun_dbl_f  cb = NULL;
 
   if ((fun_options_p) &&
       (fun_options_free)) {
@@ -84,7 +84,7 @@ vrna_math_fun_gaussian_opt(double                    a,
     o->options              = options;
 
     cb                = fun_gaussian_opt;
-    *fun_options_p    = (vrna_math_fun_opt_t)o;
+    *fun_options_p    = (vrna_math_fun_dbl_opt_t)o;
     *fun_options_free = gaussian_option_free;
   }
 
@@ -93,7 +93,7 @@ vrna_math_fun_gaussian_opt(double                    a,
 
 
 PUBLIC double
-vrna_math_fun_gaussian(double x,
+vrna_math_fun_dbl_gaussian(double x,
                        double a,
                        double b,
                        double c)
@@ -107,7 +107,7 @@ vrna_math_fun_gaussian(double x,
  #####################################
  */
 PRIVATE void
-gaussian_option_free(vrna_math_fun_opt_t options)
+gaussian_option_free(vrna_math_fun_dbl_opt_t options)
 {
   free(options);
 }
@@ -115,7 +115,7 @@ gaussian_option_free(vrna_math_fun_opt_t options)
 
 PRIVATE double
 fun_gaussian_opt(double               value,
-                 vrna_math_fun_opt_t  options)
+                 vrna_math_fun_dbl_opt_t  options)
 {
   fun_gaussian_opt_t  *o = (fun_gaussian_opt_t *)options;
 

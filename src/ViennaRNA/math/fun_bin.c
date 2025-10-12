@@ -34,12 +34,12 @@ typedef struct {
  #################################
  */
 PRIVATE void
-bin_option_free(vrna_math_fun_opt_t options);
+bin_option_free(vrna_math_fun_dbl_opt_t options);
 
 
 PRIVATE double
 fun_bin_opt(double              v,
-            vrna_math_fun_opt_t options);
+            vrna_math_fun_dbl_opt_t options);
 
 
 INLINE PRIVATE double
@@ -56,16 +56,16 @@ fun_bin(double        v,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC vrna_math_fun_f
-vrna_math_fun_bin_opt(double                    (*thresholds)[2],
+PUBLIC vrna_math_fun_dbl_f
+vrna_math_fun_dbl_bin_opt(double                    (*thresholds)[2],
                       unsigned int              thresholds_num,
                       double                    oolb_value,
                       double                    ooub_value,
                       unsigned int              options,
-                      vrna_math_fun_opt_t       *fun_options_p,
-                      vrna_math_fun_opt_free_f  *fun_options_free)
+                      vrna_math_fun_dbl_opt_t       *fun_options_p,
+                      vrna_math_fun_dbl_opt_free_f  *fun_options_free)
 {
-  vrna_math_fun_f  cb = NULL;
+  vrna_math_fun_dbl_f  cb = NULL;
 
   if ((thresholds) &&
       (thresholds_num > 1) &&
@@ -82,7 +82,7 @@ vrna_math_fun_bin_opt(double                    (*thresholds)[2],
     o->thresholds     = (double (*)[2])memcpy(o->thresholds, thresholds, thresholds_num * sizeof(o->thresholds));
 
     cb                = fun_bin_opt;
-    *fun_options_p    = (vrna_math_fun_opt_t)o;
+    *fun_options_p    = (vrna_math_fun_dbl_opt_t)o;
     *fun_options_free = bin_option_free;
   }
 
@@ -91,7 +91,7 @@ vrna_math_fun_bin_opt(double                    (*thresholds)[2],
 
 
 PUBLIC double
-vrna_math_fun_bin(double        v,
+vrna_math_fun_dbl_bin(double        v,
                   double        (*thresholds)[2],
                   size_t        num_thresholds,
                   double        oolb_value,
@@ -119,7 +119,7 @@ vrna_math_fun_bin(double        v,
  #####################################
  */
 PRIVATE void
-bin_option_free(vrna_math_fun_opt_t options)
+bin_option_free(vrna_math_fun_dbl_opt_t options)
 {
   fun_bin_opt_t *o = (fun_bin_opt_t *)options;
 
@@ -130,7 +130,7 @@ bin_option_free(vrna_math_fun_opt_t options)
 
 PRIVATE double
 fun_bin_opt(double              v,
-            vrna_math_fun_opt_t options)
+            vrna_math_fun_dbl_opt_t options)
 {
   fun_bin_opt_t *o = (fun_bin_opt_t *)options;
 

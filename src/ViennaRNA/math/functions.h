@@ -4,12 +4,12 @@
 
 /**
  *  @file     ViennaRNA/math/functions.h
- *  @ingroup  math
+ *  @ingroup  math_scalar
  *  @brief    This module provides mathematical functions
  */
 
 /**
- *  @addtogroup math Mathematical Functions
+ *  @addtogroup math_scalar Mathematical Functions operating on Scalar Values
  *  @{
  */
 
@@ -17,18 +17,18 @@
 /**
  *  @brief  Option data structure type for mathematical functions
  */
-typedef   void                  *vrna_math_fun_opt_t;
+typedef   void                  *vrna_math_fun_dbl_opt_t;
 
 /**
- *  @brief  Callback function to release any memory occupied by the mathematical function option #vrna_math_fun_opt_t
+ *  @brief  Callback function to release any memory occupied by the mathematical function option #vrna_math_fun_dbl_opt_t
  */
-typedef   vrna_auxdata_free_f   vrna_math_fun_opt_free_f;
+typedef   vrna_auxdata_free_f   vrna_math_fun_dbl_opt_free_f;
 
 
 /**
  *  @brief Callback function prototype for scalar mathematical functions of the form @f$ y = f(x) @f$
  *
- *  This is the prototype for callback functions used for (scalar) mathematical functions. Its
+ *  This is the prototype for callback functions used for scalar mathematical functions. Its
  *  main purpose is to encapsulate the options (arguments, such as constansts, etc.) for the
  *  mathematical function and can therefore be used in a more generalized way wherever different
  *  mathematical functions may be applied in the same manner. Functions of this type have to be
@@ -39,51 +39,51 @@ typedef   vrna_auxdata_free_f   vrna_math_fun_opt_free_f;
  *
  *  @callback
  *  @parblock
- *  This callback handles mathematical functions working on scalar values.
+ *  This callback handles mathematical functions working on scalar *double* values.
  *  @endparblock
  *
  *  @see  vrna_data_lin_transform(),
- *        vrna_math_fun_bin(), vrna_math_fun_linear(), vrna_math_fun_log(), vrna_math_fun_gaussian(),
- *        vrna_math_fun_logistic(), vrna_math_fun_kde()
+ *        vrna_math_fun_dbl_bin_opt(), vrna_math_fun_dbl_linear_opt(), vrna_math_fun_dbl_log_opt(),
+ *        vrna_math_fun_dbl_gaussian_opt(), vrna_math_fun_dbl_logistic_opt(), vrna_math_fun_dbl_kde_opt()
  *
  * @param value     The value @f$ x @f$ that is to be evaluated by the function @f$ f(x) @f$
  * @param options   A pointer to a data structure specific for the mathematical function
  * @return          The evaluated value @f$ y @f$
  */
-typedef double (*vrna_math_fun_f) (double               value,
-                                   vrna_math_fun_opt_t  options);
+typedef double (*vrna_math_fun_dbl_f) (double               value,
+                                   vrna_math_fun_dbl_opt_t  options);
 
 
 /**
  *  @brief  Options flag for linear data binning to activate data projection (mapping) instead of actual binning
- *  @see vrna_math_fun_bin(), vrna_math_fun_bin_opt()
+ *  @see vrna_math_fun_dbl_bin(), vrna_math_fun_dbl_bin_opt()
  */
 #define VRNA_MATH_FUN_BIN_OPTION_PROJECT              (1 << 0)
 
 
 /**
  *  @brief  Options flag for linear data binning to indicate that values out-of-upper-bound are to be mapped to the respective domain limit
- *  @see vrna_math_fun_bin(), vrna_math_fun_bin_opt()
+ *  @see vrna_math_fun_dbl_bin(), vrna_math_fun_dbl_bin_opt()
  */
 #define VRNA_MATH_FUN_BIN_OPTION_MAP_OUTOF_UPPERBOUND (1 << 1)
 
 
 /**
  *  @brief  Options flag for linear data binning to indicate that values out-of-lower-bound are to be mapped to the respective domain limit
- *  @see vrna_math_fun_bin(), vrna_math_fun_bin_opt()
+ *  @see vrna_math_fun_dbl_bin(), vrna_math_fun_dbl_bin_opt()
  */
 #define VRNA_MATH_FUN_BIN_OPTION_MAP_OUTOF_LOWERBOUND (1 << 2)
 
 
 /**
  *  @brief  Options flag for linear data binning to indicate default settings
- *  @see vrna_math_fun_bin(), vrna_math_fun_bin_opt()
+ *  @see vrna_math_fun_dbl_bin(), vrna_math_fun_dbl_bin_opt()
  */
 #define VRNA_MATH_FUN_BIN_OPTION_DEFAULT              0U
 
 
 double
-vrna_math_fun_bin(double              v,
+vrna_math_fun_dbl_bin(double              v,
                   double              (*thresholds)[2],
                   size_t              num_thresholds,
                   double              oolb_value,
@@ -125,7 +125,7 @@ vrna_math_fun_bin(double              v,
  *  @see  vrna_data_lin_transform(),
  *        #VRNA_MATH_FUN_BIN_OPTION_DEFAULT, #VRNA_MATH_FUN_BIN_OPTION_PROJECT,
  *        #VRNA_MATH_FUN_BIN_OPTION_MAP_OUTOF_UPPERBOUND, #VRNA_MATH_FUN_BIN_OPTION_MAP_OUTOF_LOWERBOUND,
- *        vrna_math_fun_linear(), vrna_math_fun_log(), vrna_math_fun_kde()
+ *        vrna_math_fun_dbl_linear(), vrna_math_fun_dbl_log(), vrna_math_fun_dbl_kde()
  *
  *  @param  thresholds              A pointer to an array of data pairs holding the source and target domain boundaries
  *  @param  thresholds_num          The number of domain boundary pairs available in @p thresholds
@@ -136,32 +136,32 @@ vrna_math_fun_bin(double              v,
  *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
  *  @return                         A callback function that performs (discrete) data binning
  */
-vrna_math_fun_f
-vrna_math_fun_bin_opt(double                    (*thresholds)[2],
+vrna_math_fun_dbl_f
+vrna_math_fun_dbl_bin_opt(double                    (*thresholds)[2],
                       unsigned int              thresholds_num,
                       double                    oolb_value,
                       double                    ooub_value,
                       unsigned int              options,
-                      vrna_math_fun_opt_t       *transform_options_p,
-                      vrna_math_fun_opt_free_f  *transform_options_free);
+                      vrna_math_fun_dbl_opt_t       *transform_options_p,
+                      vrna_math_fun_dbl_opt_free_f  *transform_options_free);
 
 
 
 /**
  *  @brief  Options flag for transforming linear data using a linear function that enables log-transform of the source value
- *  @see vrna_math_fun_linear()
+ *  @see vrna_math_fun_dbl_linear()
  */
 #define VRNA_MATH_FUN_LINEAR_OPTION_LOG         (1 << 0)
 
 /**
  *  @brief  Options flag for transforming linear data using linear function that indicates default settings
- *  @see vrna_math_fun_linear()
+ *  @see vrna_math_fun_dbl_linear()
  */
 #define VRNA_MATH_FUN_LINEAR_OPTION_DEFAULT     0U
 
 
 double
-vrna_math_fun_linear(double       v,
+vrna_math_fun_dbl_linear(double       v,
                      double       slope,
                      double       intercept,
                      unsigned int options);
@@ -186,9 +186,9 @@ vrna_math_fun_linear(double       v,
  *  be provided to the vrna_data_lin_transform() function and a function pointer to release
  *  the memory of the option data structure once it is not required anymore.
  *  
- *  @see  vrna_data_lin_transform(), #vrna_math_fun_f, #vrna_math_fun_opt_t, #vrna_math_fun_opt_free_f,
+ *  @see  vrna_data_lin_transform(), #vrna_math_fun_dbl_f, #vrna_math_fun_dbl_opt_t, #vrna_math_fun_dbl_opt_free_f,
  *        #VRNA_MATH_FUN_LINEAR_OPTION_DEFAULT, #VRNA_MATH_FUN_LINEAR_OPTION_LOG,
- *        vrna_math_fun_bin(), vrna_math_fun_log()
+ *        vrna_math_fun_dbl_bin(), vrna_math_fun_dbl_log()
  *
  *  @param  slope                   The slope of the linear function
  *  @param  intercept               The intercept of the linear function
@@ -197,30 +197,30 @@ vrna_math_fun_linear(double       v,
  *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
  *  @return                         A callback function that performs transformation through a linear model
  */
-vrna_math_fun_f
-vrna_math_fun_linear_opt(double                   slope,
+vrna_math_fun_dbl_f
+vrna_math_fun_dbl_linear_opt(double                   slope,
                          double                   intercept,
                          unsigned int             options,
-                         vrna_math_fun_opt_t      *transform_options_p,
-                         vrna_math_fun_opt_free_f *transform_options_free);
+                         vrna_math_fun_dbl_opt_t      *transform_options_p,
+                         vrna_math_fun_dbl_opt_free_f *transform_options_free);
 
 
 /**
  *  @brief  Options flag for transforming linear data using log transform to use a non-default base
- *  @see vrna_math_fun_log()
+ *  @see vrna_math_fun_dbl_log()
  */
 #define VRNA_MATH_FUN_LOG_OPTION_NONDEFAULT_BASE    (1 << 0)
 
 
 /**
  *  @brief  Options flag for transforming linear data using log transform that indicates default settings
- *  @see vrna_math_fun_log()
+ *  @see vrna_math_fun_dbl_log()
  */
 #define VRNA_MATH_FUN_LOG_OPTION_DEFAULT            0
 
 
 double
-vrna_math_fun_log(double        value,
+vrna_math_fun_dbl_log(double        value,
                   double        base,
                   double        oob_value,
                   unsigned int  options);
@@ -249,9 +249,9 @@ vrna_math_fun_log(double        value,
  *  be provided to the vrna_data_lin_transform() function and a function pointer to release
  *  the memory of the option data structure once it is not required anymore.
  *  
- *  @see  vrna_data_lin_transform(), #vrna_math_fun_f, #vrna_math_fun_opt_t, #vrna_math_fun_opt_free_f,
+ *  @see  vrna_data_lin_transform(), #vrna_math_fun_dbl_f, #vrna_math_fun_dbl_opt_t, #vrna_math_fun_dbl_opt_free_f,
  *        #VRNA_MATH_FUN_LOG_OPTION_DEFAULT, #VRNA_MATH_FUN_LOG_OPTION_NONDEFAULT_BASE,
- *        vrna_math_fun_bin(), vrna_math_fun_linear()
+ *        vrna_math_fun_dbl_bin(), vrna_math_fun_dbl_linear()
  *
  *  @param  value_shift             The shift value @f$ c @f$
  *  @param  base                    The base @f$ b @f$ of the logarithm (only used if #VRNA_MATH_FUN_LOG_OPTION_NONDEFAULT_BASE is passed to @p options
@@ -261,18 +261,18 @@ vrna_math_fun_log(double        value,
  *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
  *  @return                         A callback function that performs transformation through a linear model
  */
-vrna_math_fun_f
-vrna_math_fun_log_opt(double                    value_shift,
+vrna_math_fun_dbl_f
+vrna_math_fun_dbl_log_opt(double                    value_shift,
                       double                    base,
                       double                    oob_value,
                       unsigned int              options,
-                      vrna_math_fun_opt_t       *transform_options_p,
-                      vrna_math_fun_opt_free_f  *transform_options_free);
+                      vrna_math_fun_dbl_opt_t       *transform_options_p,
+                      vrna_math_fun_dbl_opt_free_f  *transform_options_free);
 
 
 /**
  *  @brief  Options flag for transforming linear data using logistic function that indicates default settings
- *  @see vrna_math_fun_loogistic()
+ *  @see vrna_math_fun_dbl_loogistic()
  */
 #define VRNA_MATH_FUN_LOGISTIC_OPTION_DEFAULT     0U
 
@@ -295,10 +295,10 @@ vrna_math_fun_log_opt(double                    value_shift,
  *  be provided to the vrna_data_lin_transform() function and a function pointer to release
  *  the memory of the option data structure once it is not required anymore.
  *  
- *  @see  vrna_data_lin_transform(), #vrna_math_fun_f, #vrna_math_fun_opt_t, #vrna_math_fun_opt_free_f,
+ *  @see  vrna_data_lin_transform(), #vrna_math_fun_dbl_f, #vrna_math_fun_dbl_opt_t, #vrna_math_fun_dbl_opt_free_f,
  *        #VRNA_MATH_FUN_LOGISTIC_OPTION_DEFAULT,
- *        vrna_math_fun_bin(), vrna_math_fun_log(),
- *        vrna_math_fun_linear()
+ *        vrna_math_fun_dbl_bin(), vrna_math_fun_dbl_log(),
+ *        vrna_math_fun_dbl_linear()
  *
  *  @param  mid_point               The midpoint of the function (default = 0)
  *  @param  supremum                The supremum of the function (default = 1)
@@ -308,28 +308,28 @@ vrna_math_fun_log_opt(double                    value_shift,
  *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
  *  @return                         A callback function that performs transformation through a logistic function
  */
-vrna_math_fun_f
-vrna_math_fun_logistic_opt(double                   mid_point,
+vrna_math_fun_dbl_f
+vrna_math_fun_dbl_logistic_opt(double                   mid_point,
                            double                   supremum,
                            double                   growth_rate,
                            unsigned int             options,
-                           vrna_math_fun_opt_t      *transform_options_p,
-                           vrna_math_fun_opt_free_f *transform_options_free);
+                           vrna_math_fun_dbl_opt_t      *transform_options_p,
+                           vrna_math_fun_dbl_opt_free_f *transform_options_free);
 
 
 /**
  *  @brief  Options flag for transforming linear data using a kernel density estimate (KDE) that indicates default settings
- *  @see vrna_math_fun_linear()
+ *  @see vrna_math_fun_dbl_linear()
  */
 #define VRNA_MATH_FUN_KDE_OPTION_DEFAULT      0U
 
 
 double
-vrna_math_fun_kde(double                    value,
+vrna_math_fun_dbl_kde(double                    value,
                   double                    *samples,
                   size_t                    num_samples,
-                  vrna_math_fun_f           kernel,
-                  vrna_math_fun_opt_t       kernel_data,
+                  vrna_math_fun_dbl_f           kernel,
+                  vrna_math_fun_dbl_opt_t       kernel_data,
                   double                    bandwidth,
                   unsigned int              options);
 
@@ -346,7 +346,7 @@ vrna_math_fun_kde(double                    value,
  *  (@p bandwidth), and @f$ x @f$ is the  input value (@c source).
  *
  *  @note   If no kernel is provided, i.e. @c NULL is passed to @p kernel, the KDE uses a
- *          standard Gaussian kernel by providing vrna_math_fun_Gaussian()
+ *          standard Gaussian kernel by providing vrna_math_fun_dbl_Gaussian()
  *          with @f$ a = \frac{1}{\sqrt{2 \pi}}, b = 0, c = 1 @f$. In this case, the
  *          bandwidth (@p bandwidth) will be automatically replaced by a rule-of-thumb bandwidth
  *          estimator @f$ h = ( \frac{4}{3n} )^{\frac{1}{5}} @f$
@@ -359,9 +359,9 @@ vrna_math_fun_kde(double                    value,
  *  be provided to the vrna_data_lin_transform() function and a function pointer to release
  *  the memory of the option data structure once it is not required anymore.
  *  
- *  @see  vrna_data_lin_transform(), #vrna_math_fun_f, #vrna_math_fun_opt_t, #vrna_math_fun_opt_free_f,
+ *  @see  vrna_data_lin_transform(), #vrna_math_fun_dbl_f, #vrna_math_fun_dbl_opt_t, #vrna_math_fun_dbl_opt_free_f,
  *        #VRNA_MATH_FUN_KDE_OPTION_DEFAULT, 
- *        vrna_math_fun_gaussian()
+ *        vrna_math_fun_dbl_gaussian()
  *
  *  @param  samples                 The samples of the distribution to estimate @f$ \{ x_1, x_2, \ldots, x_n \} @f$
  *  @param  num_samples             The number of samples (@f$ n @f$) provided by pointer @p samples
@@ -374,21 +374,21 @@ vrna_math_fun_kde(double                    value,
  *  @param  transform_options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
  *  @return                         A callback function that performs transformation through kernel density estimation
  */
-vrna_math_fun_f
-vrna_math_fun_kde_opt(double                    *samples,
+vrna_math_fun_dbl_f
+vrna_math_fun_dbl_kde_opt(double                    *samples,
                       size_t                    num_samples,
-                      vrna_math_fun_f           kernel,
-                      vrna_math_fun_opt_t       kernel_data,
-                      vrna_math_fun_opt_free_f  kernel_data_free,
+                      vrna_math_fun_dbl_f           kernel,
+                      vrna_math_fun_dbl_opt_t       kernel_data,
+                      vrna_math_fun_dbl_opt_free_f  kernel_data_free,
                       double                    bandwidth,
                       unsigned int              options,
-                      vrna_math_fun_opt_t       *transform_options_p,
-                      vrna_math_fun_opt_free_f  *transform_options_free);
+                      vrna_math_fun_dbl_opt_t       *transform_options_p,
+                      vrna_math_fun_dbl_opt_free_f  *transform_options_free);
 
 
 /**
  *  @brief  Options flag for transforming linear data using a Gaussian function that indicates default settings
- *  @see vrna_math_fun_gaussian()
+ *  @see vrna_math_fun_dbl_gaussian()
  */
 #define VRNA_MATH_FUN_GAUSSIAN_OPTION_DEFAULT     0U
 
@@ -401,7 +401,7 @@ vrna_math_fun_kde_opt(double                    *samples,
  *  with arbitrary constants @f$ a, b @f$ and non-zero @f$ c @f$ to a scalar input
  *  value @f$ x @f$.
  *
- *  @see  vrna_math_fun_gaussian_opt()
+ *  @see  vrna_math_fun_dbl_gaussian_opt()
  *
  *  @param  a                       The arbitrary constant @f$ a @f$
  *  @param  a                       The arbitrary constant @f$ a @f$
@@ -410,7 +410,7 @@ vrna_math_fun_kde_opt(double                    *samples,
  *  @return                         The evaluation for the Gaussian function @f$ y = f(x) @f$
  */
 double
-vrna_math_fun_gaussian(double x,
+vrna_math_fun_dbl_gaussian(double x,
                        double a,
                        double b,
                        double c);
@@ -430,8 +430,8 @@ vrna_math_fun_gaussian(double x,
  *  be provided to the vrna_data_lin_transform() function and a function pointer to release
  *  the memory of the option data structure once it is not required anymore.
  *  
- *  @see  vrna_math_fun_gaussian(),
- *        vrna_data_lin_transform(), #vrna_math_fun_f, #vrna_math_fun_opt_t, #vrna_math_fun_opt_free_f,
+ *  @see  vrna_math_fun_dbl_gaussian(),
+ *        vrna_data_lin_transform(), #vrna_math_fun_dbl_f, #vrna_math_fun_dbl_opt_t, #vrna_math_fun_dbl_opt_free_f,
  *        #VRNA_MATH_FUN_GAUSSIAN_OPTION_DEFAULT
  *
  *  @param  a             The arbitrary constant @f$ a @f$
@@ -442,13 +442,13 @@ vrna_math_fun_gaussian(double x,
  *  @param  options_free  A pointer to store the address of the @c free function that releases the memory of the options data structure
  *  @return               A callback function that performs transformation through a Gaussian function
  */
-vrna_math_fun_f
-vrna_math_fun_gaussian_opt(double                   a,
+vrna_math_fun_dbl_f
+vrna_math_fun_dbl_gaussian_opt(double                   a,
                            double                   b,
                            double                   c,
                            unsigned int             options,
-                           vrna_math_fun_opt_t      *options_p,
-                           vrna_math_fun_opt_free_f *options_free);
+                           vrna_math_fun_dbl_opt_t      *options_p,
+                           vrna_math_fun_dbl_opt_free_f *options_free);
 
 
 /**
