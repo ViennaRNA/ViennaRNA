@@ -13,6 +13,7 @@ Utilities
    utils/plots
    utils/data
    utils/search
+   utils/math
    utils/combinatorics
    utils/data_structures
    utils/messages
