@@ -41,9 +41,6 @@
 
 #include "ViennaRNA/probing/crosslink.h"
 
-#define USE_OVERLAP_MAP     1
-#define USE_OVERLAP_GROUPS  1
-
 /* re-definition of vrna_mx_mfe_aux_ml_s to use its internals, see also mfe_multibrnch.c  */
 struct vrna_mx_mfe_aux_ml_s {
   unsigned int  n;
@@ -63,20 +60,9 @@ typedef struct {
 } interact_region_s;
 
 
-typedef struct {
-  vrna_array(interact_region_s **) groups;  /* list of overlaps grouped by same properties, e.g. same endpoint of I */
-} interval_overlaps_s;
-
-
 struct vrna_crosslink_data_s {
   vrna_array(interact_region_s)   regions;  /* list of interacting regions */
-  vrna_array(interact_region_s **) overlap5;  /* for each nucleotide position i we store a list of interval pairs (I,I') where I.a <= i <= I.b */
-  vrna_array(interact_region_s **) overlap3;  /* for each nucleotide position j we store a list of interval pairs (I,I') where I'.c <= j <= I'.d */
-  vrna_array(unsigned int)         min_c;
-  vrna_array(interval_overlaps_s)    o5;
-
-  uint8_t                             **io; /* used as bitmask to store interval overlaps with any (i,j) pair */
-
+  vrna_array(interact_region_s *) overlap;  /* for each nucleotide position i we store the corresponding interval pair that overlaps with i either with I or I' */
   int *A;
   int *B;
 };
@@ -192,11 +178,7 @@ vrna_sc_xl_load(vrna_fold_compound_t  *fc,
       data = (struct vrna_crosslink_data_s *)vrna_alloc(sizeof(struct vrna_crosslink_data_s));
 
       data->regions       = regions;
-      data->overlap5      = NULL;
-      data->overlap3      = NULL;
-      data->min_c         = NULL;
-      data->o5            = NULL;
-      data->io            = NULL;
+      data->overlap       = NULL;
 
       fc->sc->xlink_data  = (void *)data;
       fc->params->model_details.uniq_ML = 1;
@@ -227,119 +209,23 @@ vrna_sc_xl_prepare(vrna_fold_compound_t  *fc)
     dat = (struct vrna_crosslink_data_s *)fc->sc->xlink_data;
 
     /* free previously allocated overlap entries */
-    if (dat->overlap5) {
-      for (unsigned int i = 1; i <= fc->length; i++)
-        vrna_array_free(dat->overlap5[i]);
-
-      vrna_array_free(dat->overlap5);
-    }
-
-    if (dat->overlap3) {
-      for (unsigned int i = 1; i <= fc->length; i++)
-        vrna_array_free(dat->overlap3[i]);
-
-      vrna_array_free(dat->overlap3);
-    }
-
-#if USE_OVERLAP_GROUPS
-    if (dat->o5) {
-      for (unsigned int i = 1; i <= fc->length; i++) {
-        if (dat->o5[i].groups) {
-          for (size_t cnt1 = 0; cnt1 < vrna_array_size(dat->o5[i].groups); cnt1++) {
-            vrna_array_free((dat->o5[i]).groups[cnt1]);
-          }
-
-          vrna_array_free(dat->o5[i].groups);
-        }
-      }
-      vrna_array_free(dat->o5);
-    }
-#endif
-
-    if (dat->min_c)
-      vrna_array_free(dat->min_c);
-
-    if (dat->io)
-      for (unsigned int i = 1; i <= fc->length; i++)
-        free(dat->io[i]);
-
+    vrna_array_free(dat->overlap);
 
     /* initialize memory for overlap entries */
-    vrna_array_init_size(dat->overlap5, fc->length + 1);
-    vrna_array_init_size(dat->overlap3, fc->length + 1);
-    vrna_array_init_size(dat->min_c, fc->length + 1);
-#if USE_OVERLAP_GROUPS
-    vrna_array_init_size(dat->o5, fc->length + 1);
-#endif
+    vrna_array_init_size(dat->overlap, fc->length + 1);
 
-#if USE_OVERLAP_MAP
-    dat->io = (uint8_t **)vrna_alloc(sizeof(uint8_t *) * (fc->length + 1));
-#endif
-
-    for (unsigned int i = 0; i <= fc->length; i++) {
-      dat->overlap5[i]    = NULL;
-      dat->overlap3[i]    = NULL;
-      dat->min_c[i]       = fc->length + 1;
-#if USE_OVERLAP_GROUPS
-      dat->o5[i].groups   = NULL;
-#endif
-#if USE_OVERLAP_MAP
-      dat->io[i]          = NULL;
-#endif
-    }
+    for (unsigned int i = 0; i <= fc->length; i++)
+      dat->overlap[i]     = NULL;
 
     /* ref-fill overlap entries */
     for (size_t cnt = 0; cnt < vrna_array_size(dat->regions); cnt++) {
       interact_region_s *r = &(dat->regions[cnt]);
-      
-      for (unsigned int i = r->a; i <= r->b; i++) {
-        if (dat->overlap5[i] == NULL)
-          vrna_array_init(dat->overlap5[i]);
 
-        vrna_array_append(dat->overlap5[i], r);
+      for (unsigned int i = r->a; i <= r->b; i++)
+        dat->overlap[i] = r;
 
-        /* collect minimal position for start of I' given that i overlaps with I */
-        dat->min_c[i] = MIN2(dat->min_c[i], r->c);
-
-        size_t cnt1, cnt2; 
-
-#if USE_OVERLAP_GROUPS
-        /* check, whether we already have another interval pair (I,I') where I.a <= i <= I.b and r->b === I.b */
-        if (dat->o5[i].groups == NULL)
-          vrna_array_init(dat->o5[i].groups);
-
-        for (cnt1 = 0; cnt1 < vrna_array_size(dat->o5[i].groups); cnt1++) {
-          if (r->b == dat->o5[i].groups[cnt1][0]->b) {
-            vrna_array_append(dat->o5[i].groups[cnt1], r);
-            break;
-          }
-        }
-
-        /* append as new group if it belongs to no other */
-        if (cnt1 == vrna_array_size(dat->o5[i].groups)) {
-          vrna_array_append(dat->o5[i].groups, NULL);
-          vrna_array_init(dat->o5[i].groups[cnt1]);
-          vrna_array_append(dat->o5[i].groups[cnt1], r);
-        }
-#endif
-
-#if USE_OVERLAP_MAP
-        if (dat->io[i] == NULL)
-          dat->io[i] = (uint8_t *)vrna_alloc(sizeof(uint8_t) * (((fc->length + 1) / 8) + 1));
-
-        for (unsigned int j = r->c; j <= r->d; j++) {
-          dat->io[i][j / 8] |= 1 << (j % 8); /* store here, that there is at least one interval pair (I,I') with I.a <= i <= I.b and I'.c <= j <= I'.d */
-        }
-#endif
-      }
-
-      for (unsigned int j = r->c; j <= r->d; j++) {
-        if (dat->overlap3[j] == NULL)
-          vrna_array_init(dat->overlap3[j]);
-
-        vrna_array_append(dat->overlap3[j], r);
-      }
-
+      for (unsigned int j = r->c; j <= r->d; j++)
+        dat->overlap[j] = r;
     }
 
     dat->A = (int *)vrna_alloc(sizeof(int) * (fc->length + 1));
@@ -379,10 +265,11 @@ vrna_mfe_multibranch_loop_xlink(vrna_fold_compound_t         *fc,
     e = decomp          = INF;
 
     /* first, check whether (i,j) connects two intervals of a segment */
-    if (dat->overlap5[i]) {
-#if USE_OVERLAP_MAP
-      if ((dat->io[i]) &&
-          (dat->io[i][j / 8] & (1 << (j % 8)))) {
+    if (dat->overlap[i]) {
+      interact_region_s *r = dat->overlap[i];
+      if ((r->c <= j) &&
+          (r->d >= j)) {
+
         init_sc_mb(fc, &sc_wrapper);
 
         switch (dangle_model) {
@@ -396,31 +283,6 @@ vrna_mfe_multibranch_loop_xlink(vrna_fold_compound_t         *fc,
 
         return decomp;
       }
-#else
-      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
-        interact_region_s *r = dat->overlap5[i][cnt];
-        if ((r->c <= j) &&
-            (r->d >= j)) {
-          connects_intervals = 1;
-          break;
-        }
-      }
-
-      if (connects_intervals) {
-        init_sc_mb(fc, &sc_wrapper);
-
-        switch (dangle_model) {
-          /* currently, only dangles = 2 implemented */
-          default:
-            decomp = ml_pair_d2(fc, i, j, helpers, &sc_wrapper);
-            break;
-        }
-
-        free_sc_mb(&sc_wrapper);
-
-        return decomp;
-      }
-#endif
     }
 
     /* hack using old API to prevent calling vrna_mfe_multibranch_loop_xlink in a loop */
@@ -578,44 +440,22 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
       e -= sc_wrapper.pair(i, j, &sc_wrapper);
 
     /* check, whether (i,j) can actually connect any pair of intervals */
-    if (dat->overlap5[i]) {
-#if USE_OVERLAP_MAP
-      if ((dat->io[i]) &&
-          (dat->io[i][j / 8] & (1 << (j % 8))))
-        connects_intervals = 1;
-#else
-      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
-        interact_region_s *r = dat->overlap5[i][cnt];
-        if ((r->c <= j) &&
-            (r->d >= j)) {
-          connects_intervals = 1;
-          break;
-        }
-      }
-#endif
-    }
+    if (dat->overlap[i]) {
+      interact_region_s *r = dat->overlap[i];
 
-    if (connects_intervals) {
-      /*  now, check for split point between the enclosed branches */
-#if USE_OVERLAP_GROUPS
-      for (size_t cnt = 0; cnt < vrna_array_size(dat->o5[i].groups); cnt++) { /* loop over all groups */
-        /* sum up total score if j overlaps with the respective I' */
-        int score = 0;
-        for (size_t cnt2 = 0; cnt2 < vrna_array_size(dat->o5[i].groups[cnt]); cnt2++) {
-          interact_region_s *r = dat->o5[i].groups[cnt][cnt2];
-          if ((r->c <= j) &&
-              (r->d >= j))
-            score += r->score;
-        }
+      if ((r->a <= i) &&
+          (r->b >= i) &&
+          (r->c <= j) &&
+          (r->d >= j)) {
 
-        k = dat->o5[i].groups[cnt][0]->b;
+        k = r->b;
 
         /* first 3 (obvious) cases: split point separates the intervals */
         if ((k > p) &&
             (evaluate(p, q, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
           tmp_en = my_fML[idx[k] + p] +
                    my_fML[idx[q] + k + 1] +
-                   score;
+                   r->score;
 
           if (sc_wrapper.decomp_ml)
             tmp_en += sc_wrapper.decomp_ml(p, q, k, k + 1, &sc_wrapper);
@@ -624,84 +464,36 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
             goto odd_dangles_exit;
         }
 
-        if (evaluate(p, q, p, k, VRNA_DECOMP_ML_ML, hc)) {
-          l = p;
+        if ((k > p) &&
+            (evaluate(p, q, p, k, VRNA_DECOMP_ML_ML, hc))) {
           tmp_en = my_fM2[idx[k] + p] +
                    (q - k) * P->MLbase +
-                   score;
+                   r->score;
 
           if (sc_wrapper.red_ml)
             tmp_en += sc_wrapper.red_ml(p, q, p, k, &sc_wrapper);
 
-          if (e == tmp_en)
+          if (e == tmp_en) {
+            l = p;
             goto odd_dangles_exit;
+          }
         }
 
-        if (evaluate(p, q, k + 1, q, VRNA_DECOMP_ML_ML, hc)) {
-          l = q;
+        if ((k + 1 < q) &&
+            (evaluate(p, q, k + 1, q, VRNA_DECOMP_ML_ML, hc))) {
           tmp_en = my_fM2[idx[q] + k + 1] +
                    (k + 1 - p) * P->MLbase +
-                   score;
+                   r->score;
 
           if (sc_wrapper.red_ml)
             tmp_en += sc_wrapper.red_ml(p, q, k + 1, q, &sc_wrapper);
 
-          if (e == tmp_en)
-            goto odd_dangles_exit;
-        }
-      }
-#else
-      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
-        interact_region_s *r = dat->overlap5[i][cnt];
-
-        /* only consider interval pairs (I,I') where I' overlaps with j */
-        if ((r->c <= j) &&
-            (r->d >= j)) {
-
-          k = r->b;
-
-          /* first 3 (obvious) cases: split point separates the intervals */
-          if ((k > p) &&
-              (evaluate(p, q, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
-            tmp_en = my_fML[idx[k] + p] +
-                     my_fML[idx[q] + k + 1] +
-                     r->score;
-
-            if (sc_wrapper.decomp_ml)
-              tmp_en += sc_wrapper.decomp_ml(p, q, k, k + 1, &sc_wrapper);
-
-            if (e == tmp_en)
-              goto odd_dangles_exit;
-          }
-
-          if (evaluate(p, q, p, k, VRNA_DECOMP_ML_ML, hc)) {
-            l = p;
-            tmp_en = my_fM2[idx[k] + p] +
-                     (q - k) * P->MLbase +
-                     r->score;
-
-            if (sc_wrapper.red_ml)
-              tmp_en += sc_wrapper.red_ml(p, q, p, k, &sc_wrapper);
-
-            if (e == tmp_en)
-              goto odd_dangles_exit;
-          }
-
-          if (evaluate(p, q, k + 1, q, VRNA_DECOMP_ML_ML, hc)) {
+          if (e == tmp_en) {
             l = q;
-            tmp_en = my_fM2[idx[q] + k + 1] +
-                     (k + 1 - p) * P->MLbase +
-                     r->score;
-
-            if (sc_wrapper.red_ml)
-              tmp_en += sc_wrapper.red_ml(p, q, k + 1, q, &sc_wrapper);
-
-            if (e == tmp_en)
-              goto odd_dangles_exit;
+            goto odd_dangles_exit;
           }
         }
       }
-#endif
 
       /* nothing found so far, let's fill A and B matrices to allow for search of non-obious configurations */
       int *A = NULL, *B = NULL;
@@ -741,15 +533,15 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
             decomp = 0;
 
             /* go through all intervals I' that cover l */
-            if (dat->overlap3[l]) {
-              for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l]); cnt++) {
-                interact_region_s *r = dat->overlap3[l][cnt];
+            if (dat->overlap[l]) {
+              interact_region_s *r = dat->overlap[l];
 
-                /* add up scores if pairing partner k doesn't connect both intervals */
-                if ((k < r->c) &&
-                    (k > r->b))
-                  decomp += r->score;
-              }
+              /* add up scores if pairing partner k doesn't connect both intervals */
+              if ((l >= r->c) &&
+                  (l <= r->d) &&
+                  (k < r->c) &&
+                  (k > r->b))
+                decomp += r->score;
             }
 
             decomp += stem;
@@ -784,67 +576,64 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
       }
 
 
+      r = dat->overlap[i];
 
-      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
-        interact_region_s *r = dat->overlap5[i][cnt];
+      /* only consider interval pairs (I,I') where I' overlaps with j */
+      if ((r->c <= j) &&
+          (r->d > q)) {
 
-        /* only consider interval pairs (I,I') where I' overlaps with j */
-        if ((r->c <= j) &&
-            (r->d > q)) {
+        /* now, for the cases where we can't tell yet whether (i,j) is the innermost pair connecting I and I' */
+        tmp_en = A[q];
 
-          /* now, for the cases where we can't tell yet whether (i,j) is the innermost pair connecting I and I' */
-          tmp_en = A[q];
+        if (e == tmp_en) {
+          free(tt);
+          free_sc_mb(&sc_wrapper);
+          return bt_A(fc, A, p, q, bp_stack, bt_stack);
+        }
 
-          if (e == tmp_en) {
-            free(tt);
-            free_sc_mb(&sc_wrapper);
-            return bt_A(fc, A, p, q, bp_stack, bt_stack);
+        for (k = r->c; k < q; k++) {
+          if ((evaluate(p, q, k, k + 1, VRNA_DECOMP_ML_ML, hc)) &&
+              (A[k] != INF)) {
+            tmp_en = A[k] +
+                     (q - k) * P->MLbase;
+
+            if (sc_wrapper.red_ml)
+              tmp_en += sc_wrapper.red_ml(p, q, k, k + 1, &sc_wrapper);
+
+            if (e == tmp_en) {
+              free(tt);
+              free_sc_mb(&sc_wrapper);
+              return bt_A(fc, A, p, k, bp_stack, bt_stack);
+            }
           }
 
-          for (k = r->c; k < q; k++) {
-            if ((evaluate(p, q, k, k + 1, VRNA_DECOMP_ML_ML, hc)) &&
-                (A[k] != INF)) {
-              tmp_en = A[k] +
-                       (q - k) * P->MLbase;
+          if ((evaluate(p, q, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc)) &&
+              (my_fML[idx[q] + k + 1] != INF)) {
+            tmp_en = my_fML[idx[q] + k + 1];
 
-              if (sc_wrapper.red_ml)
-                tmp_en += sc_wrapper.red_ml(p, q, k, k + 1, &sc_wrapper);
+            if (sc_wrapper.decomp_ml)
+              tmp_en += sc_wrapper.decomp_ml(p, q, k, k + 1, &sc_wrapper);
 
-              if (e == tmp_en) {
-                free(tt);
-                free_sc_mb(&sc_wrapper);
-                return bt_A(fc, A, p, k, bp_stack, bt_stack);
-              }
+            if (e == A[k] + tmp_en) {
+              free(tt);
+              free_sc_mb(&sc_wrapper);
+              vrna_bts_push(bt_stack,
+                  ((vrna_sect_t){
+                    .i = k + 1,
+                    .j = q,
+                    .ml = c1}));
+              return bt_A(fc, A, p, k, bp_stack, bt_stack);
             }
-
-            if ((evaluate(p, q, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc)) &&
-                (my_fML[idx[q] + k + 1] != INF)) {
-              tmp_en = my_fML[idx[q] + k + 1];
-
-              if (sc_wrapper.decomp_ml)
-                tmp_en += sc_wrapper.decomp_ml(p, q, k, k + 1, &sc_wrapper);
-
-              if (e == A[k] + tmp_en) {
-                free(tt);
-                free_sc_mb(&sc_wrapper);
-                vrna_bts_push(bt_stack,
-                    ((vrna_sect_t){
-                      .i = k + 1,
-                      .j = q,
-                      .ml = c1}));
-                return bt_A(fc, A, p, k, bp_stack, bt_stack);
-              }
-              
-              if (e == B[k] + tmp_en) {
-                free(tt);
-                free_sc_mb(&sc_wrapper);
-                vrna_bts_push(bt_stack,
-                    ((vrna_sect_t){
-                      .i = k + 1,
-                      .j = q,
-                      .ml = c1}));
-                return bt_B(fc, B, p, k, bp_stack, bt_stack);
-              }
+            
+            if (e == B[k] + tmp_en) {
+              free(tt);
+              free_sc_mb(&sc_wrapper);
+              vrna_bts_push(bt_stack,
+                  ((vrna_sect_t){
+                    .i = k + 1,
+                    .j = q,
+                    .ml = c1}));
+              return bt_B(fc, B, p, k, bp_stack, bt_stack);
             }
           }
         }
@@ -953,15 +742,13 @@ bt_A(vrna_fold_compound_t *fc,
 
       decomp = 0;
 
-      /* go through all intervals I' that cover l */
-      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[v]); cnt++) {
-        interact_region_s *r = dat->overlap3[v][cnt];
+      /* go through all intervals I' that cover v */
+      interact_region_s *r = dat->overlap[v];
 
-        /* add up scores if pairing partner k doesn't connect both intervals */
-        if ((u < r->c) &&
-            (u > r->b))
-          decomp += r->score;
-      }
+      /* add score if pairing partner u doesn't connect both intervals */
+      if ((u < r->c) &&
+          (u > r->b))
+        decomp += r->score;
 
       decomp += stem;
 
@@ -1050,15 +837,12 @@ bt_B(vrna_fold_compound_t *fc,
 
       decomp = 0;
 
-      /* go through all intervals I' that cover l */
-      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[v]); cnt++) {
-        interact_region_s *r = dat->overlap3[v][cnt];
+      interact_region_s *r = dat->overlap[v];
 
-        /* add up scores if pairing partner k doesn't connect both intervals */
-        if ((u < r->c) &&
-            (u > r->b))
-          decomp += r->score;
-      }
+      /* add score if pairing partner u doesn't connect both intervals */
+      if ((u < r->c) &&
+          (u > r->b))
+        decomp += r->score;
 
       decomp += stem;
 
@@ -1146,7 +930,7 @@ odd_dangles_exit2:
     return 1;
   }
 
-  vrna_log_error("bt fm2 failed");
+  vrna_log_error("bt fm2 failed, segment [%u, %u]", i, j);
   return 0;
 }
 
@@ -1254,163 +1038,96 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
   p   = i + 1;
   q   = j - 1;
 
-#if USE_OVERLAP_GROUPS
-  /* loop over all interval groups */
-  for (size_t cnt = 0; cnt < vrna_array_size(dat->o5[i].groups); cnt++) {
-    int total_score               = 0;  /* sum of scores for this group */
-    unsigned char consider_group  = 0;  /* flag telling us whether or not there is any relevant interval in this interval group */
+  interact_region_s *r = dat->overlap[i];
 
-    for (size_t cnt2 = 0; cnt2 < vrna_array_size(dat->o5[i].groups[cnt]); cnt2++) {
-      interact_region_s *r = dat->o5[i].groups[cnt][cnt2];
-      if ((r->c <= j) &&
-          (r->d >= j)) {
-        total_score     += r->score;
-        consider_group  = 1;
+  if ((r->a <= i) &&
+      (r->b >= i) &&
+      (r->c <= j) &&
+      (r->d >= j)) {
+
+    k = r->b;
+
+    if ((k > p) &&
+        (hc->eval_mb(p, q, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
+      if ((fML[idx[k] + p] != INF) &&
+          (fML[idx[q] + k + 1] != INF)) {
+        decomp =  fML[idx[k] + p] +
+                  fML[idx[q] + k + 1] +
+                  r->score;
+
+        if (sc_wrapper->decomp_ml)
+          decomp += sc_wrapper->decomp_ml(p, q, k, k + 1, sc_wrapper);
+
+        e = MIN2(e, decomp);
       }
     }
 
-    if (consider_group) {
-      k = dat->o5[i].groups[cnt][0]->b;
+    if ((k > p) &&
+        (hc->eval_mb(p, q, p, k, VRNA_DECOMP_ML_ML, hc))) {
+      if (fM2[idx[k] + p] != INF) {
+        decomp =  fM2[idx[k] + p] +
+                  (q - k) * P->MLbase +
+                  r->score;
 
-      if ((k > p) &&
-          (hc->eval_mb(p, q, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
-        if ((fML[idx[k] + p] != INF) &&
-            (fML[idx[q] + k + 1] != INF)) {
-          decomp =  fML[idx[k] + p] +
-                    fML[idx[q] + k + 1] +
-                    total_score;
+        if (sc_wrapper->red_ml)
+          decomp += sc_wrapper->red_ml(p, q, p, k, sc_wrapper);
+
+        e = MIN2(e, decomp);
+      }
+    }
+
+    if ((k + 1 < q) &&
+        (hc->eval_mb(p, q, k + 1, q, VRNA_DECOMP_ML_ML, hc))) {
+      if (fM2[idx[q] + k + 1] != INF) {
+        decomp =  fM2[idx[q] + k + 1] +
+                  (k + 1 - p) * P->MLbase +
+                  r->score;
+
+        if (sc_wrapper->red_ml)
+          decomp += sc_wrapper->red_ml(p, q, k + 1, q, sc_wrapper);
+
+        e = MIN2(e, decomp);
+      }
+    }
+
+    /* now, all cases where we allow for base pairs that cross the first interval boundary */
+    decomp = A[q];
+    e = MIN2(e, decomp);
+
+    for (v = r->c; v + 1 < j; v++) {
+      if (hc->eval_mb(i + 1, j - 1, v, v + 1, VRNA_DECOMP_ML_ML, hc)) {
+        decomp = A[v];
+        if (decomp != INF) {
+          decomp += (j - 1 - v) * P->MLbase;
+
+          if (sc_wrapper->red_ml)
+            decomp += sc_wrapper->red_ml(i + 1, j - 1, v, v + 1, sc_wrapper);
+
+          e = MIN2(e, decomp);
+        }
+      }
+
+      if (hc->eval_mb(i + 1, j - 1, v, v + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+        decomp = A[v];
+
+        if (decomp != INF) {
+          decomp += fML[idx[j - 1] + v + 1];
 
           if (sc_wrapper->decomp_ml)
-            decomp += sc_wrapper->decomp_ml(p, q, k, k + 1, sc_wrapper);
+            decomp += sc_wrapper->decomp_ml(i + 1, j - 1, v, v + 1, sc_wrapper);
 
           e = MIN2(e, decomp);
         }
-      }
 
-      if (hc->eval_mb(p, q, p, k, VRNA_DECOMP_ML_ML, hc)) {
-        if (fM2[idx[k] + p] != INF) {
-          decomp =  fM2[idx[k] + p] +
-                    (q - k) * P->MLbase +
-                    total_score;
+        decomp = B[v];
 
-          if (sc_wrapper->red_ml)
-            decomp += sc_wrapper->red_ml(p, q, p, k, sc_wrapper);
-
-          e = MIN2(e, decomp);
-        }
-      }
-
-      if (hc->eval_mb(p, q, k + 1, q, VRNA_DECOMP_ML_ML, hc)) {
-        if (fM2[idx[q] + k + 1] != INF) {
-          decomp =  fM2[idx[q] + k + 1] +
-                    (k + 1 - p) * P->MLbase +
-                    total_score;
-
-          if (sc_wrapper->red_ml)
-            decomp += sc_wrapper->red_ml(p, q, k + 1, q, sc_wrapper);
-
-          e = MIN2(e, decomp);
-        }
-      }
-    }
-  }
-#else
-  for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
-    interact_region_s *r = dat->overlap5[i][cnt];
-    if ((r->c <= j) &&
-        (r->d >= j)) {
-
-      k = r->b;
-
-      if ((k > p) &&
-          (hc->eval_mb(p, q, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
-        if ((fML[idx[k] + p] != INF) &&
-            (fML[idx[q] + k + 1] != INF)) {
-          decomp =  fML[idx[k] + p] +
-                    fML[idx[q] + k + 1] +
-                    r->score;
+        if (decomp != INF) {
+          decomp += fML[idx[j - 1] + v + 1];
 
           if (sc_wrapper->decomp_ml)
-            decomp += sc_wrapper->decomp_ml(p, q, k, k + 1, sc_wrapper);
+            decomp += sc_wrapper->decomp_ml(i + 1, j - 1, v, v + 1, sc_wrapper);
 
           e = MIN2(e, decomp);
-        }
-      }
-
-      if (hc->eval_mb(p, q, p, k, VRNA_DECOMP_ML_ML, hc)) {
-        if (fM2[idx[k] + p] != INF) {
-          decomp =  fM2[idx[k] + p] +
-                    (q - k) * P->MLbase +
-                    r->score;
-
-          if (sc_wrapper->red_ml)
-            decomp += sc_wrapper->red_ml(p, q, p, k, sc_wrapper);
-
-          e = MIN2(e, decomp);
-        }
-      }
-
-      if (hc->eval_mb(p, q, k + 1, q, VRNA_DECOMP_ML_ML, hc)) {
-        if (fM2[idx[q] + k + 1] != INF) {
-          decomp =  fM2[idx[q] + k + 1] +
-                    (k + 1 - p) * P->MLbase +
-                    r->score;
-
-          if (sc_wrapper->red_ml)
-            decomp += sc_wrapper->red_ml(p, q, k + 1, q, sc_wrapper);
-
-          e = MIN2(e, decomp);
-        }
-      }
-    }
-  }
-#endif
-
-  /* now, all cases where we allow for base pairs that cross the first interval boundary */
-  for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
-    interact_region_s *r = dat->overlap5[i][cnt];
-    if ((r->c <= j) &&
-        (r->d >= j)) {
-
-      k = r->b;
-      decomp = A[q];
-      e = MIN2(e, decomp);
-
-      for (v = r->c; v + 1 < j; v++) {
-        if (hc->eval_mb(i + 1, j - 1, v, v + 1, VRNA_DECOMP_ML_ML, hc)) {
-          decomp = A[v];
-          if (decomp != INF) {
-            decomp += (j - 1 - v) * P->MLbase;
-
-            if (sc_wrapper->red_ml)
-              decomp += sc_wrapper->red_ml(i + 1, j - 1, v, v + 1, sc_wrapper);
-
-            e = MIN2(e, decomp);
-          }
-        }
-
-        if (hc->eval_mb(i + 1, j - 1, v, v + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
-          decomp = A[v];
-
-          if (decomp != INF) {
-            decomp += fML[idx[j - 1] + v + 1];
-
-            if (sc_wrapper->decomp_ml)
-              decomp += sc_wrapper->decomp_ml(i + 1, j - 1, v, v + 1, sc_wrapper);
-
-            e = MIN2(e, decomp);
-          }
-
-          decomp = B[v];
-
-          if (decomp != INF) {
-            decomp += fML[idx[j - 1] + v + 1];
-
-            if (sc_wrapper->decomp_ml)
-              decomp += sc_wrapper->decomp_ml(i + 1, j - 1, v, v + 1, sc_wrapper);
-
-            e = MIN2(e, decomp);
-          }
         }
       }
     }
@@ -1470,32 +1187,17 @@ vrna_sc_xl_update_mfe(vrna_fold_compound_t *fc,
         decomp = 0;
 
         /* go through all intervals I' that cover v */
-#if USE_OVERLAP_MAP
-        if (dat->o5[i].groups)
-          for (size_t cnt = 0; cnt < vrna_array_size(dat->o5[i].groups); cnt++)
-            for (size_t cnt2 = 0; cnt2 < vrna_array_size(dat->o5[i].groups[cnt]); cnt2++) {
-              interact_region_s *r = dat->o5[i].groups[cnt][cnt2];
-              if ((u < r->c) &&
-                  (u > r->b) &&
-                  (v >= r->c) &&
-                  (v <= r->d))
-                decomp += r->score;
-            }
-            
-#else
-        if (dat->overlap3[v]) {
-          for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[v]); cnt++) {
-            interact_region_s *r = dat->overlap3[v][cnt];
+        if (dat->overlap[v]) {
+          interact_region_s *r = dat->overlap[v];
 
-            /* add up scores if pairing partner u doesn't connect both intervals */
-            if ((u < r->c) &&
-                (u > r->b) &&
-                (i <= r->b) &&
-                (i >= r->a))
-              decomp += r->score;
-          }
+          /* add score if pairing partner u doesn't connect both intervals */
+          if ((u < r->c) &&
+              (u > r->b) &&
+              (i <= r->b) &&
+              (i >= r->a))
+            decomp += r->score;
         }
-#endif
+
         decomp += stem;
 
         /* fill A */
@@ -1541,14 +1243,15 @@ xlink_hp_en(vrna_fold_compound_t  *fc,
   struct vrna_crosslink_data_s  *dat = (struct vrna_crosslink_data_s *)data;
 
   /* go through each interval that overlaps with position i to check whether j connects both segments */
-  if (dat->overlap5[i])
-    for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
-      interact_region_s *r = dat->overlap5[i][cnt];
-      if ((r->b < j) &&
-          (r->c <= j) &&
-          (r->d >= j))
+  if (dat->overlap[i]) {
+    interact_region_s *r = dat->overlap[i];
+    if ((r->a <= i) &&
+        (r->b >= i) &&
+        (r->b < j) &&
+        (r->c <= j) &&
+        (r->d >= j))
       energy += r->score;
-    }
+  }
 
   return energy;
 
@@ -1568,14 +1271,15 @@ xlink_il_en(vrna_fold_compound_t  *fc,
 
   /*  go through each interval that overlaps with position i to check whether
    *  k does not overlap with the 5' interval and j connects both segments */
-  if (dat->overlap5[i])
-    for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
-      interact_region_s *r = dat->overlap5[i][cnt];
-      if ((r->b < k) &&
-          (r->c <= j) &&
-          (r->d >= j))
+  if (dat->overlap[i]) {
+    interact_region_s *r = dat->overlap[i];
+    if ((r->a <= i) &&
+        (r->b >= i) &&
+        (r->b < k) &&
+        (r->c <= j) &&
+        (r->d >= j))
       energy += r->score;
-    }
+  }
 
   return energy;
 
