@@ -225,6 +225,7 @@ vrna_mfe(vrna_fold_compound_t *fc,
   if (fc) {
     length  = fc->length;
     ms_dat  = NULL;
+    fc->params->model_details.uniq_ML = 1;
 
     if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_MFE)) {
       vrna_log_warning("vrna_mfe@mfe.c: Failed to prepare vrna_fold_compound");
@@ -487,15 +488,21 @@ fill_arrays(vrna_fold_compound_t  *fc,
       /* decompose subsegment [i, j] with pair (i, j) */
       c[ij] = decompose_pair(fc, i, j, helper_arrays, ms_dat);
 
+//      vrna_log_error("C[%u,%u] = %d", i, j, c[ij]);
+
       /* decompose subsegment [i, j] that is multibranch loop part with at least two branches */
-      if (fM2_real)
+      if (fM2_real) {
         fM2_real[ij] = vrna_mfe_multibranch_m2_fast(fc,
                                                     i,
                                                     j,
                                                     helper_arrays->ml_helpers);
+//        vrna_log_error("fM2[%u,%u] = %d", i, j, fM2_real[ij]);
+
+      }
 
       /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
       fML[ij] = vrna_mfe_multibranch_stems_fast(fc, i, j, helper_arrays->ml_helpers);
+//      vrna_log_error("fML[%u,%u] = %d", i, j, fML[ij]);
 
 
       /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
@@ -4322,10 +4329,12 @@ decompose_pair(vrna_fold_compound_t *fc,
     /* check for hairpin loop */
     energy  = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_DEFAULT);
     new_c   = MIN2(new_c, energy);
+//    vrna_log_error("hp = %d", energy);
 
     /* check for multibranch loops */
     energy  = vrna_mfe_multibranch_loop_fast(fc, i, j, aux->ml_helpers);
     new_c   = MIN2(new_c, energy);
+//    vrna_log_error("mb = %d", energy);
 
     if (dangle_model == 3) {
       /* coaxial stacking */
@@ -4336,6 +4345,7 @@ decompose_pair(vrna_fold_compound_t *fc,
     /* check for internal loops */
     energy  = vrna_mfe_internal(fc, i, j);
     new_c   = MIN2(new_c, energy);
+//    vrna_log_error("int = %d", energy);
 
     /* multi-strand decomposition */
     if (fc->strands > 1) {
