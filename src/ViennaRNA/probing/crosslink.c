@@ -745,8 +745,8 @@ bt_A(vrna_fold_compound_t *fc,
 
   score = r->score;
 
-  for (u = i + 1; u < r->c; u++) {
-    if ((evaluate(i, v, u - 1, u, VRNA_DECOMP_ML_ML_STEM, hc)) &&
+  for (u = i + 2; u < r->c; u++) {
+    if ((evaluate(i + 1, v, u - 1, u, VRNA_DECOMP_ML_ML_STEM, hc)) &&
         (my_c[idx[v] + u] != INF)) {
       strands = fc->strands;
       sn      = fc->strand_number;
@@ -767,7 +767,7 @@ bt_A(vrna_fold_compound_t *fc,
 
       stem = vrna_E_multibranch_stem(tt, si1, sj1, P) +
              my_c[idx[v] + u] +
-             my_fML[idx[u - 1] + i];
+             my_fML[idx[u - 1] + i + 1];
 
       decomp = 0;
 
@@ -778,7 +778,7 @@ bt_A(vrna_fold_compound_t *fc,
       decomp += stem;
 
       if (sc_wrapper.decomp_ml)
-        decomp += sc_wrapper.decomp_ml(i, v, u - 1, u, &sc_wrapper);
+        decomp += sc_wrapper.decomp_ml(i + 1, v, u - 1, u, &sc_wrapper);
 
       if (A[v] == decomp)
         goto exit_bt_A;
@@ -795,7 +795,7 @@ exit_bt_A:
   if (u < v) {
     vrna_bts_push(bt_stack,
                   ((vrna_sect_t){
-                    .i = i,
+                    .i = i + 1,
                     .j = u - 1,
                     .ml = VRNA_MX_FLAG_M}));
     vrna_bts_push(bt_stack,
