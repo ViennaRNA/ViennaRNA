@@ -123,8 +123,15 @@ vrna_bt_multibranch_loop(vrna_fold_compound_t  *fc,
 {
   if ((fc) &&
       (bp_stack) &&
-      (bt_stack))
+      (bt_stack)) {
+
+    if ((fc->type == VRNA_FC_TYPE_SINGLE) &&
+        (fc->sc) &&
+        (fc->sc->xlink))
+      return vrna_bt_multibranch_loop_xlink(fc, i, j, en, bp_stack, bt_stack);
+
     return bt_mb_loop(fc, i, j, en, bp_stack, bt_stack);
+  }
 
   return 0;
 }
@@ -730,11 +737,6 @@ bt_mb_loop(vrna_fold_compound_t *fc,
   s3  = -1;
 
   c1 = c2 = VRNA_MX_FLAG_M;
-
-
-  if ((sc) &&
-      (sc->xlink))
-    return vrna_bt_multibranch_loop_xlink(fc, i, j, en, bp_stack, bt_stack);
 
   /* do two branches actually fit inside (i,j)? */
   if (i + 2 * (turn + 2) >= j)
