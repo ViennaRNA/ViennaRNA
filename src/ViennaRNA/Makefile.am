@@ -141,6 +141,8 @@ if VRNA_AM_SWITCH_SVM
 
   libRNA_svm_la_CPPFLAGS = $(CPPFLAGS)  -I$(top_srcdir)/src ${SVM_INC} -U_OPENMP ## disable OpenMP support for libSVM
   libRNA_utils_la_CPPFLAGS = $(AM_CPPFLAGS) ${SVM_INC}
+else
+  libRNA_utils_la_CPPFLAGS = $(AM_CPPFLAGS)
 endif
 
 JSON_SRC    = ../json/json.c
