@@ -3,9 +3,13 @@
 #
 #  More details.
 
+
 ## Documentation for a function.
 #
 #  More details.
+from __future__ import annotations
+
+
 def func():
     pass
 
@@ -14,7 +18,6 @@ def func():
 #
 #  More details.
 class PyClass:
-
     ## The constructor.
     def __init__(self):
         self._memVar = 0

@@ -1,14 +1,18 @@
-from breathe.directives.setup import setup as directive_setup
-from breathe.file_state_cache import setup as file_state_cache_setup
-from breathe.renderer.sphinxrenderer import setup as renderer_setup
+from __future__ import annotations
 
-from sphinx.application import Sphinx
+from typing import TYPE_CHECKING
 
-# Keep in sync with setup.py __version__
-__version__ = "4.35.0"
+if TYPE_CHECKING:
+    from sphinx.application import Sphinx
+
+__version__ = "5.0.0a5"
 
 
 def setup(app: Sphinx):
+    from breathe.directives.setup import setup as directive_setup
+    from breathe.file_state_cache import setup as file_state_cache_setup
+    from breathe.renderer.sphinxrenderer import setup as renderer_setup
+
     directive_setup(app)
     file_state_cache_setup(app)
     renderer_setup(app)

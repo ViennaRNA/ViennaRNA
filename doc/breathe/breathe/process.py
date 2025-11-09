@@ -1,9 +1,17 @@
-from breathe.project import AutoProjectInfo, ProjectInfoFactory
+from __future__ import annotations
 
 import os
+from pathlib import Path
 from shlex import quote
-from typing import Callable, Dict, List, Tuple
+from typing import TYPE_CHECKING
 
+from breathe.project import AutoProjectInfo, ProjectInfoFactory
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from typing import Callable
+
+    from breathe.project import AutoProjectInfo, ProjectInfoFactory
 
 AUTOCFG_TEMPLATE = r"""
 PROJECT_NAME     = "{project_name}"
@@ -29,7 +37,7 @@ ALIASES += inlinerst="\verbatim embed:rst:inline"
 class ProjectData:
     """Simple handler for the files and project_info for each project."""
 
-    def __init__(self, auto_project_info: AutoProjectInfo, files: List[str]) -> None:
+    def __init__(self, auto_project_info: AutoProjectInfo, files: list[str]) -> None:
         self.auto_project_info = auto_project_info
         self.files = files
 
@@ -38,7 +46,7 @@ class AutoDoxygenProcessHandle:
     def __init__(
         self,
         run_process: Callable,
-        write_file: Callable[[str, str, str], None],
+        write_file: Callable[[str | os.PathLike[str], str, str], None],
         project_info_factory: ProjectInfoFactory,
     ) -> None:
         self.run_process = run_process
@@ -47,11 +55,11 @@ class AutoDoxygenProcessHandle:
 
     def generate_xml(
         self,
-        projects_source: Dict[str, Tuple[str, List[str]]],
-        doxygen_options: Dict[str, str],
-        doxygen_aliases: Dict[str, str],
+        projects_source: Mapping[str, tuple[str, list[str]]],
+        doxygen_options: Mapping[str, str],
+        doxygen_aliases: Mapping[str, str],
     ) -> None:
-        project_files: Dict[str, ProjectData] = {}
+        project_files: dict[str, ProjectData] = {}
 
         # First collect together all the files which need to be doxygen processed for each project
         for project_name, file_structure in projects_source.items():
@@ -73,12 +81,12 @@ class AutoDoxygenProcessHandle:
     def process(
         self,
         auto_project_info: AutoProjectInfo,
-        files: List[str],
-        doxygen_options: Dict[str, str],
-        doxygen_aliases: Dict[str, str],
+        files: list[str],
+        doxygen_options: Mapping[str, str],
+        doxygen_aliases: Mapping[str, str],
     ) -> str:
         name = auto_project_info.name()
-        full_paths = [auto_project_info.abs_path_to_source_file(f) for f in files]
+        full_paths = [str(auto_project_info.abs_path_to_source_file(f)) for f in files]
 
         options = "\n".join("%s=%s" % pair for pair in doxygen_options.items())
         aliases = "\n".join(
@@ -92,13 +100,13 @@ class AutoDoxygenProcessHandle:
             extra=f"{options}\n{aliases}",
         )
 
-        build_dir = os.path.join(auto_project_info.build_dir(), "breathe", "doxygen")
-        cfgfile = "%s.cfg" % name
+        build_dir = Path(auto_project_info.build_dir(), "breathe", "doxygen")
+        cfgfile = f"{name}.cfg"
         self.write_file(build_dir, cfgfile, cfg)
 
         # Shell-escape the cfg file name to try to avoid any issue where the name might include
         # malicious shell character - We have to use the shell=True option to make it work on
         # Windows. See issue #271
-        self.run_process("doxygen %s" % quote(cfgfile), cwd=build_dir, shell=True)
+        self.run_process(f"doxygen {quote(cfgfile)}", cwd=build_dir, shell=True)
 
         return os.path.join(build_dir, name, "xml")

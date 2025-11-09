@@ -1,5 +1,127 @@
-[tool.black]
-line-length = 100
-extend-exclude = '''
-^/breathe/parser/.*
-'''
+[build-system]
+requires = ["flit_core>=3.7"]
+build-backend = "flit_core.buildapi"
+
+# project metadata
+[project]
+name = "breathe"
+description = "Sphinx Doxygen renderer"
+readme = "README.rst"
+license.text = "BSD-3-Clause"
+requires-python = ">=3.9"
+
+# Classifiers list: https://pypi.org/classifiers/
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Framework :: Sphinx",
+    "Framework :: Sphinx :: Extension",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Documentation",
+    "Topic :: Documentation :: Sphinx",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Text Processing",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "Sphinx>=7.2",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+build = [
+    "setuptools>=80.9.0"
+]
+docs = [
+    "furo",
+    "sphinx-copybutton",
+    "sphinxcontrib-spelling",
+]
+lint = [
+    "ruff==0.9.2",
+    "mypy>=1",
+    "types-docutils",
+    "types-Pygments",
+    "pytest>=8.0",  # for mypy
+    "sphinxcontrib-phpdomain",  # for mypy
+    # The API that we depend on is only implemented in rogerbarton's fork of sphinx-csharp
+    # and not in the one that is published to PyPI. But we can't publish Breathe to PyPI with
+    # a listed git dependency so we comment it out for the moment
+    # "sphinx-csharp @ git+https://github.com/rogerbarton/sphinx-csharp.git",  # for mypy
+]
+test = [
+    "pytest>=8.0",
+    "Sphinx[test]"
+]
+
+[project.urls]
+Changelog = "https://github.com/breathe-doc/breathe/blob/main/CHANGELOG.rst"
+Code = "https://github.com/breathe-doc/breathe/"
+Download = "https://pypi.org/project/breathe/"
+Documentation = "https://breathe.readthedocs.io/"
+Homepage = "https://www.breathe-doc.org/"
+"Issue tracker" = "https://github.com/breathe-doc/breathe/issues"
+
+[[project.authors]]
+name = "Michael Jones"
+email = "m.pricejones@gmail.com"
+
+[project.scripts]
+breathe-apidoc = "breathe.apidoc:main"
+
+[tool.flit.module]
+name = "breathe"
+
+[tool.flit.sdist]
+include = [
+    "LICENSE",
+    "CHANGELOG.rst",
+    "CONTRIBUTING.rst",
+    "CONTRIBUTORS.rst",
+    # Documentation
+    "documentation/",
+    # Tests
+    "tests/",
+    # Utilities
+    "Makefile",
+    "mkrelease",
+]
+exclude = [
+    "documentation/build",
+]
+
+[tool.mypy]
+files = [
+    "breathe",
+    "examples",
+    "tests",
+]
+show_column_numbers = true
+show_error_context = true
+python_version = "3.9"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+# TODO: Remove if possible
+[[tool.mypy.overrides]]
+module = [
+    "breathe.parser.compound",
+    "breathe.parser.compoundsuper",
+    "breathe.parser.index",
+    "breathe.parser.indexsuper",
+]
+ignore_errors = true

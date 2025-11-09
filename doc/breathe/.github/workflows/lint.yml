@@ -1,33 +1,99 @@
-name: lint
-on: [push, pull_request]
-jobs:
-  build:
+name: Lint source code
 
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  ruff:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v1
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/*.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      - name: set up python
-        uses: actions/setup-python@v1
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
-      - name: install dependencies
-        run: |
-          pip install -r requirements/development.txt
+    - name: Install Ruff
+      uses: astral-sh/ruff-action@v3
+      with:
+        args: --version
+        version: 0.9.2
 
-      - name: lint the source code
-        run: make flake8
+    - name: Install dependencies
+      # "--editable" is needed so that _parser.py is placed in the local folder
+      # where pytest will import from
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --editable ".[build]"
 
-      - name: check source code formatting
-        run: make black
+    - name: Generate parser
+      run: |
+        make parser
+        make format-parser
 
-      - name: type check the source code
-        run: make type-check
+    - name: Lint with Ruff
+      run: ruff check --output-format=github
 
-      - name: check version numbers are in sync
-        run: make version-check
+    - name: Format with Ruff
+      run: ruff format --diff
+
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3"
+
+    - name: Install dependencies
+      # "--editable" is needed so that _parser.py is placed in the local folder
+      # where pytest will import from
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --editable ".[build]"
+        python -m pip install --editable ".[lint]"
+
+    - name: Generate parser
+      run: make parser
+
+    - name: Type check with mypy
+      run: mypy --warn-redundant-casts --warn-unused-ignores breathe tests
+
+  twine:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3"
+
+    - name: Install dependencies
+      # "--editable" is needed so that _parser.py is placed in the local folder
+      # where pytest will import from
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade twine build
+        python -m pip install --editable ".[build]"
+
+    - name: Generate parser
+      run: make parser
+
+    - name: Lint with twine
+      run: |
+        python -m build .
+        twine check dist/*
