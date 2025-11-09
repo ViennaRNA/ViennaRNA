@@ -1,112 +1,28 @@
-import os
-import pytest
+from __future__ import annotations
 
+import os
+from typing import TYPE_CHECKING
+
+import docutils.parsers.rst
 import sphinx.addnodes
 import sphinx.environment
-from breathe.parser.compound import (
-    compounddefTypeSub,
-    linkedTextTypeSub,
-    memberdefTypeSub,
-    paramTypeSub,
-    refTypeSub,
-    MixedContainer,
-)
-from breathe.renderer.sphinxrenderer import SphinxRenderer
-from breathe.renderer.filter import OpenFilter
-from docutils import frontend, nodes, parsers, utils
+import sphinx.locale
+from docutils import frontend, nodes, utils
 
-from sphinx.testing.fixtures import (
-    test_params,
-    app_params,
-    make_app,
-    shared_result,
-    sphinx_test_tempdir,
-    rootdir,
-)
-from sphinx.testing.path import path
+from breathe import parser, renderer
+from breathe.renderer.sphinxrenderer import SphinxRenderer
+
+if TYPE_CHECKING:
+    from breathe.renderer import filter
+
 
 sphinx.locale.init([], "")
-
-
-@pytest.fixture(scope="function")
-def app(test_params, app_params, make_app, shared_result):
-    """
-    Based on sphinx.testing.fixtures.app
-    """
-    args, kwargs = app_params
-    assert "srcdir" in kwargs
-    kwargs["srcdir"].makedirs(exist_ok=True)
-    (kwargs["srcdir"] / "conf.py").write_text("")
-    app_ = make_app(*args, **kwargs)
-    yield app_
-
-    print("# testroot:", kwargs.get("testroot", "root"))
-    print("# builder:", app_.builder.name)
-    print("# srcdir:", app_.srcdir)
-    print("# outdir:", app_.outdir)
-    print("# status:", "\n" + app_._status.getvalue())
-    print("# warning:", "\n" + app_._warning.getvalue())
-
-    if test_params["shared_result"]:
-        shared_result.store(test_params["shared_result"], app_)
-
-
-class WrappedDoxygenNode:
-    """
-    A base class for test wrappers of Doxygen nodes. It allows setting all attributes via keyword arguments
-    in the constructor.
-    """
-
-    def __init__(self, cls, *args, **kwargs):
-        if cls:
-            cls.__init__(self, args)
-        for name, value in kwargs.items():
-            if not hasattr(self, name):
-                raise AttributeError("invalid attribute " + name)
-            setattr(self, name, value)
-
-
-class WrappedMixedContainer(MixedContainer, WrappedDoxygenNode):
-    """A test wrapper of Doxygen mixed container."""
-
-    def __init__(self, **kwargs):
-        MixedContainer.__init__(self, None, None, None, None)
-        WrappedDoxygenNode.__init__(self, None, **kwargs)
-
-
-class WrappedLinkedText(linkedTextTypeSub, WrappedDoxygenNode):
-    """A test wrapper of Doxygen linked text."""
-
-    def __init__(self, **kwargs):
-        WrappedDoxygenNode.__init__(self, linkedTextTypeSub, **kwargs)
-
-
-class WrappedMemberDef(memberdefTypeSub, WrappedDoxygenNode):
-    """A test wrapper of Doxygen class/file/namespace member symbol such as a function declaration."""
-
-    def __init__(self, **kwargs):
-        WrappedDoxygenNode.__init__(self, memberdefTypeSub, **kwargs)
-
-
-class WrappedParam(paramTypeSub, WrappedDoxygenNode):
-    """A test wrapper of Doxygen parameter."""
-
-    def __init__(self, **kwargs):
-        WrappedDoxygenNode.__init__(self, paramTypeSub, **kwargs)
-
-
-class WrappedRef(refTypeSub, WrappedDoxygenNode):
-    """A test wrapper of Doxygen ref."""
-
-    def __init__(self, node_name, **kwargs):
-        WrappedDoxygenNode.__init__(self, refTypeSub, node_name, **kwargs)
-
-
-class WrappedCompoundDef(compounddefTypeSub, WrappedDoxygenNode):
-    """A test wrapper of Doxygen compound definition."""
-
-    def __init__(self, **kwargs):
-        WrappedDoxygenNode.__init__(self, compounddefTypeSub, **kwargs)
+COMMON_ARGS_memberdefType = {
+    "id": "",
+    "prot": parser.DoxProtectionKind.public,
+    "static": False,
+    "location": parser.Node_locationType(file="", line=0),
+}
 
 
 class MockMemo:
@@ -117,20 +33,25 @@ class MockMemo:
 
 class MockState:
     def __init__(self, app):
+        from breathe.parser import DoxygenParser
         from breathe.project import ProjectInfoFactory
-        from breathe.parser import DoxygenParserFactory
 
         env = sphinx.environment.BuildEnvironment(app)
         env.setup(app)
         env.temp_data["docname"] = "mock-doc"
         env.temp_data["breathe_project_info_factory"] = ProjectInfoFactory(app)
-        env.temp_data["breathe_parser_factory"] = DoxygenParserFactory(app)
-        settings = frontend.OptionParser(components=(parsers.rst.Parser,)).get_default_values()
+        env.temp_data["breathe_dox_parser"] = DoxygenParser(app)
+        if hasattr(frontend, "get_default_settings"):
+            settings = frontend.get_default_settings(docutils.parsers.rst.Parser)
+        else:
+            settings = frontend.OptionParser(
+                components=(docutils.parsers.rst.Parser,)
+            ).get_default_values()
         settings.env = env
         self.document = utils.new_document("", settings)
 
         # In sphinx 5.3.0 the method state.nested_parse is not called directly
-        # so this memo object should exists here
+        # so this memo object should exist here
         self.memo = MockMemo()
 
     def nested_parse(self, content, content_offset, contentnode, match_titles=1):
@@ -174,7 +95,7 @@ class MockContext:
             None,  # name
             None,  # arguments
             options,  # options
-            None,  # content
+            "",  # content
             None,  # lineno
             None,  # content_offset
             None,  # block_text
@@ -184,7 +105,7 @@ class MockContext:
         self.child = None
         self.mask_factory = MockMaskFactory()
 
-    def create_child_context(self, attribute):
+    def create_child_context(self, attribute, tag):
         return self
 
 
@@ -192,8 +113,8 @@ class MockTargetHandler:
     def __init__(self):
         pass
 
-    def create_target(self, refid):
-        pass
+    def __call__(self, document, refid):
+        return []
 
 
 class MockDocument:
@@ -212,11 +133,15 @@ class MockCompoundParser:
 
     class MockFileData:
         def __init__(self, compounddef):
-            self.compounddef = compounddef
+            self.compounddef = [compounddef]
 
-    def parse(self, compoundname):
+    class MockCompound:
+        def __init__(self, root):
+            self.root = root
+
+    def parse_compound(self, compoundname, project_info):
         compounddef = self.compound_dict[compoundname]
-        return self.MockFileData(compounddef)
+        return self.MockCompound(self.MockFileData(compounddef))
 
 
 class NodeFinder(nodes.NodeVisitor):
@@ -247,7 +172,7 @@ def find_node(nodes, name):
     """
     found_nodes = find_nodes(nodes, name)
     if len(found_nodes) != 1:
-        raise Exception("the number of nodes {0} is {1}".format(name, len(found_nodes)))
+        raise Exception(f"the number of nodes {name} is {len(found_nodes)}")
     return found_nodes[0]
 
 
@@ -272,7 +197,8 @@ def check_exception(func, message):
     except Exception as e:
         exception = e
     print(str(exception))
-    assert exception and str(exception) == message
+    assert exception
+    assert str(exception) == message
 
 
 def test_find_node():
@@ -291,7 +217,7 @@ def test_find_node():
 
 
 def render(
-    app, member_def, domain=None, show_define_initializer=False, compound_parser=None, options=[]
+    app, member_def, domain=None, show_define_initializer=False, dox_parser=None, options=[]
 ):
     """Render Doxygen *member_def* with *renderer_class*."""
 
@@ -302,195 +228,202 @@ def render(
     app.config.breathe_debug_trace_directives = False
     app.config.breathe_debug_trace_doxygen_ids = False
     app.config.breathe_debug_trace_qualification = False
-    renderer = SphinxRenderer(
+    r = SphinxRenderer(
         app,
         None,  # project_info
         [],  # node_stack
         None,  # state
         None,  # document
         MockTargetHandler(),
-        compound_parser,
-        OpenFilter(),
+        dox_parser,
+        (lambda nstack: True),
     )
-    renderer.context = MockContext(app, [member_def], domain, options)
-    return renderer.render(member_def)
+    r.context = MockContext(app, [renderer.TaggedNode(None, member_def)], domain, options)
+    return r.render(member_def)
 
 
 def test_render_func(app):
-    member_def = WrappedMemberDef(
-        kind="function",
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.function,
         definition="void foo",
-        type_="void",
+        type=parser.Node_linkedTextType(["void"]),
         name="foo",
         argsstring="(int)",
-        virt="non-virtual",
-        param=[
-            WrappedParam(type_=WrappedLinkedText(content_=[WrappedMixedContainer(value="int")]))
-        ],
+        virt=parser.DoxVirtualKind.non_virtual,
+        param=[parser.Node_paramType(type=parser.Node_linkedTextType(["int"]))],
+        **COMMON_ARGS_memberdefType,
     )
     signature = find_node(render(app, member_def), "desc_signature")
     assert signature.astext().startswith("void")
-    if sphinx.version_info[0] < 4:
-        assert find_node(signature, "desc_name")[0] == "foo"
-    else:
-        n = find_node(signature, "desc_name")[0]
-        assert isinstance(n, sphinx.addnodes.desc_sig_name)
-        assert len(n) == 1
-        assert n[0] == "foo"
+    n = find_node(signature, "desc_name")[0]
+    assert isinstance(n, sphinx.addnodes.desc_sig_name)
+    assert len(n) == 1
+    assert n[0] == "foo"
     params = find_node(signature, "desc_parameterlist")
     assert len(params) == 1
     param = params[0]
-    if sphinx.version_info[0] < 4:
-        assert param[0] == "int"
-    else:
-        assert isinstance(param[0], sphinx.addnodes.desc_sig_keyword_type)
-        assert param[0][0] == "int"
+    assert isinstance(param[0], sphinx.addnodes.desc_sig_keyword_type)
+    assert param[0][0] == "int"
 
 
 def test_render_typedef(app):
-    member_def = WrappedMemberDef(
-        kind="typedef", definition="typedef int foo", type_="int", name="foo"
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.typedef,
+        definition="typedef int foo",
+        type=parser.Node_linkedTextType(["int"]),
+        name="foo",
+        **COMMON_ARGS_memberdefType,
     )
     signature = find_node(render(app, member_def), "desc_signature")
     assert signature.astext() == "typedef int foo"
 
 
 def test_render_c_typedef(app):
-    member_def = WrappedMemberDef(
-        kind="typedef", definition="typedef unsigned int bar", type_="unsigned int", name="bar"
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.typedef,
+        definition="typedef unsigned int bar",
+        type=parser.Node_linkedTextType(["unsigned int"]),
+        name="bar",
+        **COMMON_ARGS_memberdefType,
     )
     signature = find_node(render(app, member_def, domain="c"), "desc_signature")
     assert signature.astext() == "typedef unsigned int bar"
 
 
 def test_render_c_function_typedef(app):
-    member_def = WrappedMemberDef(
-        kind="typedef",
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.typedef,
         definition="typedef void* (*voidFuncPtr)(float, int)",
-        type_="void* (*",
+        type=parser.Node_linkedTextType(["void* (*"]),
         name="voidFuncPtr",
         argsstring=")(float, int)",
+        **COMMON_ARGS_memberdefType,
     )
     signature = find_node(render(app, member_def, domain="c"), "desc_signature")
     assert signature.astext().startswith("typedef void *")
-    if sphinx.version_info[0] < 4:
-        params = find_node(signature, "desc_parameterlist")
-        assert len(params) == 2
-        assert params[0].astext() == "float"
-        assert params[1].astext() == "int"
-    else:
-        # the use of desc_parameterlist in this case was not correct,
-        # it should only be used for a top-level function
-        pass
+    # the use of desc_parameterlist in this case was not correct,
+    # it should only be used for a top-level function
 
 
 def test_render_using_alias(app):
-    member_def = WrappedMemberDef(
-        kind="typedef", definition="using foo = int", type_="int", name="foo"
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.typedef,
+        definition="using foo = int",
+        type=parser.Node_linkedTextType(["int"]),
+        name="foo",
+        **COMMON_ARGS_memberdefType,
     )
     signature = find_node(render(app, member_def), "desc_signature")
     assert signature.astext() == "using foo = int"
 
 
 def test_render_const_func(app):
-    member_def = WrappedMemberDef(
-        kind="function",
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.function,
         definition="void f",
-        type_="void",
+        type=parser.Node_linkedTextType(["void"]),
         name="f",
         argsstring="() const",
-        virt="non-virtual",
-        const="yes",
+        virt=parser.DoxVirtualKind.non_virtual,
+        const=True,
+        **COMMON_ARGS_memberdefType,
     )
     signature = find_node(render(app, member_def), "desc_signature")
     assert "_CPPv2NK1fEv" in signature["ids"]
 
 
 def test_render_lvalue_func(app):
-    member_def = WrappedMemberDef(
-        kind="function",
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.function,
         definition="void f",
-        type_="void",
+        type=parser.Node_linkedTextType(["void"]),
         name="f",
         argsstring="() &",
-        virt="non-virtual",
-        refqual="lvalue",
+        virt=parser.DoxVirtualKind.non_virtual,
+        refqual=parser.DoxRefQualifierKind.lvalue,
+        **COMMON_ARGS_memberdefType,
     )
     signature = find_node(render(app, member_def), "desc_signature")
     assert signature.astext().endswith("&")
 
 
 def test_render_rvalue_func(app):
-    member_def = WrappedMemberDef(
-        kind="function",
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.function,
         definition="void f",
-        type_="void",
+        type=parser.Node_linkedTextType(["void"]),
         name="f",
         argsstring="() &&",
-        virt="non-virtual",
-        refqual="rvalue",
+        virt=parser.DoxVirtualKind.non_virtual,
+        refqual=parser.DoxRefQualifierKind.rvalue,
+        **COMMON_ARGS_memberdefType,
     )
     signature = find_node(render(app, member_def), "desc_signature")
     assert signature.astext().endswith("&&")
 
 
 def test_render_const_lvalue_func(app):
-    member_def = WrappedMemberDef(
-        kind="function",
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.function,
         definition="void f",
-        type_="void",
+        type=parser.Node_linkedTextType(["void"]),
         name="f",
         argsstring="() const &",
-        virt="non-virtual",
-        const="yes",
-        refqual="lvalue",
+        virt=parser.DoxVirtualKind.non_virtual,
+        const=True,
+        refqual=parser.DoxRefQualifierKind.lvalue,
+        **COMMON_ARGS_memberdefType,
     )
     signature = find_node(render(app, member_def), "desc_signature")
     assert signature.astext().endswith("const &")
 
 
 def test_render_const_rvalue_func(app):
-    member_def = WrappedMemberDef(
-        kind="function",
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.function,
         definition="void f",
-        type_="void",
+        type=parser.Node_linkedTextType(["void"]),
         name="f",
         argsstring="() const &&",
-        virt="non-virtual",
-        const="yes",
-        refqual="rvalue",
+        virt=parser.DoxVirtualKind.non_virtual,
+        const=True,
+        refqual=parser.DoxRefQualifierKind.rvalue,
+        **COMMON_ARGS_memberdefType,
     )
     signature = find_node(render(app, member_def), "desc_signature")
     assert signature.astext().endswith("const &&")
 
 
 def test_render_variable_initializer(app):
-    member_def = WrappedMemberDef(
-        kind="variable",
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.variable,
         definition="const int EOF",
-        type_="const int",
+        type=parser.Node_linkedTextType(["const int"]),
         name="EOF",
-        initializer=WrappedMixedContainer(value="= -1"),
+        initializer=parser.Node_linkedTextType(["= -1"]),
+        **COMMON_ARGS_memberdefType,
     )
     signature = find_node(render(app, member_def), "desc_signature")
     assert signature.astext() == "const int EOF = -1"
 
 
 def test_render_define_initializer(app):
-    member_def = WrappedMemberDef(
-        kind="define",
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.define,
         name="MAX_LENGTH",
-        initializer=WrappedLinkedText(content_=[WrappedMixedContainer(value="100")]),
+        initializer=parser.Node_linkedTextType(["100"]),
+        **COMMON_ARGS_memberdefType,
     )
     signature_w_initializer = find_node(
         render(app, member_def, show_define_initializer=True), "desc_signature"
     )
     assert signature_w_initializer.astext() == "MAX_LENGTH 100"
 
-    member_def_no_show = WrappedMemberDef(
-        kind="define",
+    member_def_no_show = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.define,
         name="MAX_LENGTH_NO_INITIALIZER",
-        initializer=WrappedLinkedText(content_=[WrappedMixedContainer(value="100")]),
+        initializer=parser.Node_linkedTextType(["100"]),
+        **COMMON_ARGS_memberdefType,
     )
 
     signature_wo_initializer = find_node(
@@ -501,37 +434,47 @@ def test_render_define_initializer(app):
 
 def test_render_define_no_initializer(app):
     sphinx.addnodes.setup(app)
-    member_def = WrappedMemberDef(kind="define", name="USE_MILK")
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.define, name="USE_MILK", **COMMON_ARGS_memberdefType
+    )
     signature = find_node(render(app, member_def), "desc_signature")
     assert signature.astext() == "USE_MILK"
 
 
 def test_render_innergroup(app):
     refid = "group__innergroup"
-    mock_compound_parser = MockCompoundParser(
-        {
-            refid: WrappedCompoundDef(
-                kind="group", compoundname="InnerGroup", briefdescription="InnerGroup"
-            )
-        }
-    )
-    ref = WrappedRef("InnerGroup", refid=refid)
-    compound_def = WrappedCompoundDef(
-        kind="group", compoundname="OuterGroup", briefdescription="OuterGroup", innergroup=[ref]
+    mock_compound_parser = MockCompoundParser({
+        refid: parser.Node_compounddefType(
+            kind=parser.DoxCompoundKind.group,
+            compoundname="InnerGroup",
+            briefdescription=parser.Node_descriptionType(["InnerGroup"]),
+            id="",
+            prot=parser.DoxProtectionKind.public,
+        )
+    })
+    ref = parser.Node_refType(["InnerGroup"], refid=refid)
+    compound_def = parser.Node_compounddefType(
+        kind=parser.DoxCompoundKind.group,
+        compoundname="OuterGroup",
+        briefdescription=parser.Node_descriptionType(["OuterGroup"]),
+        innergroup=[ref],
+        id="",
+        prot=parser.DoxProtectionKind.public,
     )
     assert all(
         el.astext() != "InnerGroup"
-        for el in render(app, compound_def, compound_parser=mock_compound_parser)
+        for el in render(app, compound_def, dox_parser=mock_compound_parser)
     )
     assert any(
         el.astext() == "InnerGroup"
-        for el in render(app, compound_def, compound_parser=mock_compound_parser, options=["inner"])
+        for el in render(app, compound_def, dox_parser=mock_compound_parser, options=["inner"])
     )
 
 
 def get_directive(app):
-    from breathe.directives.function import DoxygenFunctionDirective
     from docutils.statemachine import StringList
+
+    from breathe.directives.function import DoxygenFunctionDirective
 
     app.config.breathe_separate_member_pages = False
     app.config.breathe_default_project = "test_project"
@@ -551,26 +494,21 @@ def get_directive(app):
         ),
         MockState(app),
         MockStateMachine(),
-    )
+    )  # fmt: skip
     return DoxygenFunctionDirective(*cls_args)
 
 
-def get_matches(datafile):
-    from breathe.parser.compoundsuper import sectiondefType
-    from xml.dom import minidom
+def get_matches(datafile) -> tuple[list[str], list[filter.FinderMatch]]:
+    with open(os.path.join(os.path.dirname(__file__), "data", datafile), "rb") as fid:
+        doc = parser.parse_file(fid)
+    assert isinstance(doc.value, parser.Node_DoxygenType)
 
-    argsstrings = []
-    with open(os.path.join(os.path.dirname(__file__), "data", datafile)) as fid:
-        xml = fid.read()
-    doc = minidom.parseString(xml)
-
-    sectiondef = sectiondefType.factory()
-    for child in doc.documentElement.childNodes:
-        sectiondef.buildChildren(child, "memberdef")
-        if getattr(child, "tagName", None) == "memberdef":
-            # Get the argsstring function declaration
-            argsstrings.append(child.getElementsByTagName("argsstring")[0].childNodes[0].data)
-    matches = [[m, sectiondef] for m in sectiondef.memberdef]
+    sectiondef = doc.value.compounddef[0].sectiondef[0]
+    argsstrings = [child.argsstring for child in sectiondef.memberdef if child.argsstring]
+    matches = [
+        [renderer.TaggedNode(None, m), renderer.TaggedNode(None, sectiondef)]
+        for m in sectiondef.memberdef
+    ]
     return argsstrings, matches
 
 
@@ -582,7 +520,7 @@ def test_resolve_overrides(app):
     # Verify that the exact arguments returns one override
     for args in argsstrings:
         ast_param = cls._parse_args(args)
-        ret = cls._resolve_function(matches, ast_param, None)
+        _ = cls._resolve_function(matches, ast_param, None)
 
 
 def test_ellipsis(app):
@@ -591,4 +529,4 @@ def test_ellipsis(app):
 
     # Verify that parsing an ellipsis works
     ast_param = cls._parse_args(argsstrings[0])
-    ret = cls._resolve_function(matches, ast_param, None)
+    _ = cls._resolve_function(matches, ast_param, None)

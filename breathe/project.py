@@ -1,12 +1,21 @@
-from .exception import BreatheError
+from __future__ import annotations
 
-from sphinx.application import Sphinx
-
-import os
 import fnmatch
+import os
+import os.path
+from pathlib import Path
+from typing import TYPE_CHECKING
 
+from breathe.exception import BreatheError
 
-from typing import Dict
+if TYPE_CHECKING:
+    from collections import UserDict
+
+    from sphinx.application import Sphinx
+
+    class ProjectOptions(UserDict):
+        path: str
+        project: str
 
 
 class ProjectError(BreatheError):
@@ -40,8 +49,7 @@ class AutoProjectInfo:
         projects conf.py directory as specified in the breathe_projects_source config variable.
         """
 
-        # os.path.join does the appropriate handling if _source_path is an absolute path
-        return os.path.join(self.app.confdir, self._source_path, file_)
+        return Path(self.app.confdir, self._source_path, file_).resolve()
 
     def create_project_info(self, project_path):
         """Creates a proper ProjectInfo object based on the information in this AutoProjectInfo"""
@@ -106,18 +114,19 @@ class ProjectInfo:
 
 
 class ProjectInfoFactory:
+    _default_build_dir: str
+
     def __init__(self, app: Sphinx):
         self.app = app
         # note: don't access self.app.config now, as we are instantiated at setup-time.
 
-        # Assume general build directory is the doctree directory without the last component.
-        # We strip off any trailing slashes so that dirname correctly drops the last part.
+        # Assume general build directory is the parent of the doctree directory.
         # This can be overridden with the breathe_build_directory config variable
-        self._default_build_dir = os.path.dirname(app.doctreedir.rstrip(os.sep))
+        self._default_build_dir = os.path.dirname(os.path.normpath(app.doctreedir))
         self.project_count = 0
-        self.project_info_store: Dict[str, ProjectInfo] = {}
-        self.project_info_for_auto_store: Dict[str, AutoProjectInfo] = {}
-        self.auto_project_info_store: Dict[str, AutoProjectInfo] = {}
+        self.project_info_store: dict[str, ProjectInfo] = {}
+        self.project_info_for_auto_store: dict[str, ProjectInfo] = {}
+        self.auto_project_info_store: dict[str, AutoProjectInfo] = {}
 
     @property
     def build_dir(self) -> str:
@@ -146,7 +155,7 @@ class ProjectInfoFactory:
                 % config.breathe_default_project
             )
 
-    def create_project_info(self, options) -> ProjectInfo:
+    def create_project_info(self, options: ProjectOptions) -> ProjectInfo:
         config = self.app.config
         name = config.breathe_default_project
 
@@ -177,7 +186,7 @@ class ProjectInfoFactory:
             self.project_info_store[path] = project_info
             return project_info
 
-    def store_project_info_for_auto(self, name: str, project_info: AutoProjectInfo) -> None:
+    def store_project_info_for_auto(self, name: str, project_info: ProjectInfo) -> None:
         """Stores the project info by name for later extraction by the auto directives.
 
         Stored separately to the non-auto project info objects as they should never overlap.
@@ -185,7 +194,7 @@ class ProjectInfoFactory:
 
         self.project_info_for_auto_store[name] = project_info
 
-    def retrieve_project_info_for_auto(self, options) -> AutoProjectInfo:
+    def retrieve_project_info_for_auto(self, options) -> ProjectInfo:
         """Retrieves the project info by name for later extraction by the auto directives.
 
         Looks for the 'project' entry in the options dictionary. This is a less than ideal API but

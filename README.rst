@@ -1,35 +1,28 @@
-.. raw:: html
+.. image:: https://www.breathe-doc.org/img/logo.svg
+   :align: center
+   :alt: Breathe logo
+   :width: 200
+   :height: 200
+   :target: https://www.breathe-doc.org
 
-   <div align="center">
-     <a href="https://www.breathe-doc.org">
-       <img width="200" height="200" src="https://www.breathe-doc.org/img/logo.svg">
-     </a>
-   </div>
+Breathe
+=======
 
-   <h1 align="center">
-     Breathe
-   </h1>
+**Your technical docs, beautifully integrated**
 
-   <p align="center">
-      Your technical docs, beautifully integrated
-   </p>
+.. image:: https://github.com/breathe-doc/breathe/actions/workflows/unit_tests.yml/badge.svg
+   :target: https://github.com/breathe-doc/breathe/actions/workflows/unit_tests.yml
+   :alt: Build Status
 
-   <p align="center">
-        <a href="https://www.breathe-doc.org/">Website</a>
-      • <a href="https://breathe.readthedocs.io/en/latest/">Documentation</a>
-      • <a href="https://opencollective.com/breathe">Sponsor</a>
-   </p>
-
-   <p align="center">
-      <a href="https://github.com/michaeljones/breathe/actions?query=workflow%3A%22unit+tests%22">
-         <img src="https://github.com/michaeljones/breathe/workflows/unit%20tests/badge.svg">
-      </a>
-   </p>
-
+Website_ • Documentation_ • Sponsor_
 
 **Sponsor**: If you benefit from using Breathe as a company or an individual, you
 can financially support the Breathe project with recurring or one off
 contributions via `Open Collective <https://opencollective.com/breathe>`_.
+
+.. _Website: https://www.breathe-doc.org/
+.. _Documentation: https://breathe.readthedocs.io/en/latest/
+.. _Sponsor: https://opencollective.com/breathe
 
 ----
 
@@ -48,15 +41,15 @@ Download
 --------
 
 Breathe is available from github and `PyPI, the Python Package Index
-<http://pypi.python.org/pypi/breathe>`_. It can be installed with::
+<https://pypi.org/project/breathe/>`_. It can be installed with::
 
     pip install breathe
 
 Documentation
 -------------
 
-The documentation is available `here <http://breathe.readthedocs.org/>`__. Thank
-you to the people running `Read the Docs <http://readthedocs.org>`_ for such an
+The documentation is available `here <https://breathe.readthedocs.io/>`__. Thank
+you to the people running `Read the Docs <https://readthedocs.org>`_ for such an
 excellent service.
 
 The source for the documentation is in the ``documentation`` folder if you want
@@ -98,7 +91,7 @@ branch.
 Requirements
 ------------
 
-Breathe requires Python 3.6+, Sphinx 4.0+ and Doxygen 1.8+.
+Breathe requires Python 3.9+, Sphinx 7.2+, and Doxygen 1.9.2+.
 
 Mailing List Archives
 ---------------------
@@ -106,8 +99,8 @@ Mailing List Archives
 The archive for the Google groups list can be found
 `here <https://groups.google.com/forum/#!forum/sphinx-breathe>`__.
 
-The previous mailing list was on `librelist.com <http://librelist.com>`__ and the
-archives are available `here <http://librelist.com/browser/breathe/>`__.
+The previous mailing list was on `librelist.com <https://librelist.com>`__ and the
+archives are available `here <https://librelist.com/browser/breathe/>`__.
 
 Please post new questions as GitHub issues.
 
@@ -130,15 +123,16 @@ Examples of projects that use Breathe:
 - `Zephyr Project <https://github.com/zephyrproject-rtos/zephyr>`_
 - `Plaid ML <https://github.com/plaidml/plaidml>`_
 - `Sony's Neural Network Libraries <https://github.com/sony/nnabla>`_
-- `fmt <http://fmtlib.net/latest>`_
+- `fmt <https://fmt.dev/latest/>`_
 
 Release
 -------
 
-See the ``mkrelease`` utility in the root of the repository.
-
-Useful vim command for changelog conversion to the git tag format:
-``%s/\v`(#[0-9]+) \<[^`]*`__/\1/g``.
+1. Update `CHANGELOG.rst` and create the git tag (`vX.Y.Z`).
+2. Push the tag to GitHub.
+3. The `create-release.yml` workflow will publish the release to PyPI.
+4. Go to https://github.com/breathe-doc/breathe/tags, select the new tag,
+   and click the "Create release from tag" button to publish a GitHub release.
 
 Maintainers
 -----------
@@ -152,12 +146,12 @@ See `CONTRIBUTORS </CONTRIBUTORS.rst>`_ for the full list.
 Acknowledgements
 ----------------
 
-- Dimitri van Heesch for `Doxygen <http://www.stack.nl/~dimitri/doxygen/>`_.
-- Georg Brandl for `Sphinx <http://sphinx-doc.org>`_.
-- David Goodger for `Docutils <http://docutils.sourceforge.net/>`_ and reStructuredText.
+- Dimitri van Heesch for `Doxygen <https://www.doxygen.nl/>`_.
+- Georg Brandl for `Sphinx <https://www.sphinx-doc.org/>`_.
+- David Goodger for `Docutils <https://docutils.sourceforge.io/>`_ and reStructuredText.
 
 Changelog
 ---------
 
 See the `CHANGELOG.rst
-<https://github.com/michaeljones/breathe/blob/master/CHANGELOG.rst>`_
+<https://github.com/breathe-doc/breathe/blob/master/CHANGELOG.rst>`_
