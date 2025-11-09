@@ -78,8 +78,8 @@ vrna_math_fun_dbl_bin_opt(double                    (*thresholds)[2],
     o->v_max    = ooub_value;
 
     o->num_thresholds = thresholds_num;
-    o->thresholds     = (double (*)[2])vrna_alloc(thresholds_num * sizeof(o->thresholds));
-    o->thresholds     = (double (*)[2])memcpy(o->thresholds, thresholds, thresholds_num * sizeof(o->thresholds));
+    o->thresholds     = (double (*)[2])vrna_alloc(thresholds_num * sizeof(*(o->thresholds)));
+    o->thresholds     = (double (*)[2])memcpy(o->thresholds, thresholds, thresholds_num * sizeof(*(o->thresholds)));
 
     cb                = fun_bin_opt;
     *fun_options_p    = (vrna_math_fun_dbl_opt_t)o;

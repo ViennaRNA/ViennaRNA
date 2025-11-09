@@ -87,10 +87,6 @@ vrna_probing_strategy_zarringhalam(vrna_fold_compound_t *fc,
     if (options) {
       opt = (zarringhalam_options_t *)options;
     } else {
-      double max_v = data[0];
-      for (size_t i = 1; i < data_size; ++i)
-        max_v = MAX2(max_v, data[i]);
-
       opt = vrna_probing_strategy_zarringhalam_options(VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta,
                                                        VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability,
                                                        max_v,
@@ -101,6 +97,7 @@ vrna_probing_strategy_zarringhalam(vrna_fold_compound_t *fc,
 
     /* pre-process data */
     double domain[4] = { 0., max_v, 0., 1. };
+
     pseudo_energies = vrna_data_lin_transform(data,
                                               data_size,
                                               opt->cb_preprocess,

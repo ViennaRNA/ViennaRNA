@@ -74,6 +74,8 @@ vrna_data_lin_transform(const double        *data,
           } else {
             a[i] = oob_value;
           }
+        } else {
+          vs[cnt++] = i;
         }
       }
 
