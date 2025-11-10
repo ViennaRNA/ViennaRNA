@@ -15,7 +15,6 @@
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/params/constants.h" /* defines MINPSCORE */
 #include "ViennaRNA/datastructures/array.h"
-#include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/sequences/alignments.h"
@@ -28,6 +27,11 @@
 #include "ViennaRNA/data/transform.h"
 #include "ViennaRNA/probing/strategies.h"
 
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
 
 
 struct vrna_probing_data_s {
@@ -58,6 +62,13 @@ struct vrna_probing_data_s {
  */
 PRIVATE void
 nullify_probing_data_s(struct vrna_probing_data_s *data);
+
+
+INLINE PRIVATE double *
+prepare_linear_data(vrna_fold_compound_t        *fc,
+                    struct vrna_probing_data_s  *data,
+                    size_t                      index,
+                    unsigned int                target);
 
 
 PRIVATE int
@@ -373,15 +384,6 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
     for (i = 0; indices[i]; ++i) {
       double v;
       index = indices[i];
-
-
-
-
-
-
-
-
-
       v             = (*shape_conversion == 'L') ? values[index] : log(values[index]);
       values[index] = MAX2(MIN2((v - intercept) / slope, 1), 0);
     }
@@ -402,6 +404,20 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
  # BEGIN OF STATIC HELPER FUNCTIONS  #
  #####################################
  */
+INLINE PRIVATE double *
+prepare_linear_data(vrna_fold_compound_t        *fc,
+                    struct vrna_probing_data_s  *data,
+                    size_t                      index,
+                    unsigned int                target)
+{
+  return data->cbs_linear[index](fc,
+                                 data->data_linear[index],
+                                 vrna_array_size(data->data_linear[index]),
+                                 target,
+                                 data->cbs_linear_options[index]);
+}
+
+
 PRIVATE int
 apply_probing_data(vrna_fold_compound_t        *fc,
                    struct vrna_probing_data_s  *data)
@@ -432,11 +448,7 @@ apply_probing_data(vrna_fold_compound_t        *fc,
                              fc->length);
 
           /* convert for nucleotides within a stack */
-          e = data->cbs_linear[0](fc,
-                                  data->data_linear[0],
-                                  vrna_array_size(data->data_linear[0]),
-                                  VRNA_PROBING_DATA_LINEAR_TARGET_STACK,
-                                  data->cbs_linear_options[0]);
+          e = prepare_linear_data(fc, data, 0, VRNA_PROBING_DATA_LINEAR_TARGET_STACK);
 
           if (e) {
             n = MIN2(n, vrna_array_size(data->data_linear[0]) - 1);
@@ -451,11 +463,7 @@ apply_probing_data(vrna_fold_compound_t        *fc,
           }
 
 
-          e = data->cbs_linear[0](fc,
-                                  data->data_linear[0],
-                                  vrna_array_size(data->data_linear[0]),
-                                  VRNA_PROBING_DATA_LINEAR_TARGET_UP,
-                                  data->cbs_linear_options[0]);
+          e = prepare_linear_data(fc, data, 0, VRNA_PROBING_DATA_LINEAR_TARGET_UP);
 
           if (e) {
             n = MIN2(n, vrna_array_size(data->data_linear[0]) - 1);
@@ -470,11 +478,7 @@ apply_probing_data(vrna_fold_compound_t        *fc,
             free(e);
           }
 
-          e = data->cbs_linear[0](fc,
-                                  data->data_linear[0],
-                                  vrna_array_size(data->data_linear[0]),
-                                  VRNA_PROBING_DATA_LINEAR_TARGET_BP,
-                                  data->cbs_linear_options[0]);
+          e = prepare_linear_data(fc, data, 0, VRNA_PROBING_DATA_LINEAR_TARGET_BP);
 
           if (e) {
             n = MIN2(n, vrna_array_size(data->data_linear[0]) - 1);
@@ -514,12 +518,7 @@ apply_probing_data(vrna_fold_compound_t        *fc,
                                s,
                                n);
 
-            e = data->cbs_linear[s](fc,
-                                    data->data_linear[s],
-                                    vrna_array_size(data->data_linear[s]) - 1,
-                                    VRNA_PROBING_DATA_LINEAR_TARGET_STACK,
-                                    data->cbs_linear_options[s]);
-
+            e = prepare_linear_data(fc, data, s, VRNA_PROBING_DATA_LINEAR_TARGET_STACK);
 
             if (e) {
               for (i = 1; i <= n; ++i)
@@ -532,11 +531,7 @@ apply_probing_data(vrna_fold_compound_t        *fc,
               free(e);
             }
 
-            e = data->cbs_linear[s](fc,
-                                    data->data_linear[s],
-                                    vrna_array_size(data->data_linear[s]) - 1,
-                                    VRNA_PROBING_DATA_LINEAR_TARGET_UP,
-                                    data->cbs_linear_options[s]);
+            e = prepare_linear_data(fc, data, s, VRNA_PROBING_DATA_LINEAR_TARGET_UP);
 
             if (e) {
               for (i = 1; i <= n; ++i)
@@ -549,11 +544,7 @@ apply_probing_data(vrna_fold_compound_t        *fc,
               free(e);
             }
 
-            e = data->cbs_linear[s](fc,
-                                    data->data_linear[s],
-                                    vrna_array_size(data->data_linear[s]),
-                                    VRNA_PROBING_DATA_LINEAR_TARGET_BP,
-                                    data->cbs_linear_options[s]);
+            e = prepare_linear_data(fc, data, s, VRNA_PROBING_DATA_LINEAR_TARGET_BP);
 
             if (e) {
               for (i = 1; i <= n; ++i)
