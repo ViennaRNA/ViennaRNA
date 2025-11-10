@@ -402,27 +402,31 @@ main(int  argc,
 
         /* collect strand-wise constraints */
         if (constraints) {
-          unsigned int  i = 0, strand_cnt = 1;
+          unsigned int  i = 0, strand_cnt = 0;
           vrna_string_t constraint;
           
           constraint = vrna_string_make(NULL);
 
-          for (char **ptr = constraints; *ptr != NULL; ptr++, strand_cnt) {
-            if (strand_cnt > vc->strands) {
+          for (char **ptr = constraints; *ptr != NULL; ptr++, strand_cnt++) {
+            if (strand_cnt >= vc->strands) {
               vrna_log_error("Structure constraint contains too many strands (expected %u, got at least %u)\n",
                                  vc->strands,
-                                 strand_cnt);
+                                 strand_cnt + 1);
               goto exit_fail;
             }
+
             unsigned int l = strlen(*ptr);
+
             if (vc->strand_end[strand_cnt] != i + l) {
               vrna_log_error("Length of structure constraint for strand %u differs from sequence (expected %u, got %u)\n",
-                                 strand_cnt,
+                                 strand_cnt + 1,
                                  vc->strand_end[strand_cnt] - i,
                                  l);
               goto exit_fail;
             }
             vrna_string_append_cstring(constraint, *ptr);
+
+            i += l;
           }
 
           /* convert pseudo-dot-bracket to actual hard constraints */
