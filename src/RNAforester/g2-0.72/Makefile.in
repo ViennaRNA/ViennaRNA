@@ -22,7 +22,7 @@ INCDIR = @prefix@/include
 SHELL = /bin/sh
 
 CC           = @CC@
-CFLAGS       = -I./src @CFLAGS@ @DEFS@
+CFLAGS       = -std=c99 -I./src @CFLAGS@ @DEFS@
 INSTALL      = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 FIND         = @FIND@
