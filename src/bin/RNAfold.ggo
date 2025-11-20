@@ -406,8 +406,23 @@ optional
 
 option  "probing-strategy" -
 "Select the strategy how the probing data is used to guide the structure predictions.\n\n"
+details="The following strategies (methods) are available to convert structure probing data into\
+ pseudo energy contributions:\n\n\
+ 'D': Deigan et al 2009 strategy.\n\n\
+ Here, probing data is converted into pseudo energy terms\
+ using a linear model. The derived energies are then applied for every nucleotide involved in a\
+ stacked pair. The default slope and intercept variables of the linear model are 'm=1.8' and\
+ 'b=-0.6', respectively. To change these parameters, e.g. to 'm=1.9' and 'b=-0.7', use a parameter\
+ string like this: --shapeMethod=\"Dm1.9b-0.7\". Note the precedence of 'm' over 'b'. You may also\
+ provide only one of the two variables like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".\n\n\
+ 'Z': Zarringhalam et al 2012 strategy.\n\n\
+ Here, the probing data is first converted into pairing probabilities and aberration from the\
+ observed pairing probabilities will be penalized during the folding recursion. The magnitude of\
+ the penalties can affected by adjusting the factor beta (e.g. --shapeMethod=\"Zb0.8\").\n\n\
+ 'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012.\
+ Perturbation vectors can be calculated by using RNApvmin.\n\n"
 string
-typestr="method"
+typestr="strategy"
 dependon="probing-data"
 multiple
 default="D"
