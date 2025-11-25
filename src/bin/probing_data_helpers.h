@@ -15,23 +15,23 @@ typedef struct {
 #define ggo_get_probing_data(ggostruct, \
                              probing_data_p)  { \
     probing_data_p = NULL; \
-    if (ggostruct.probing_data_given) { \
+    if (ggostruct.sp_data_given) { \
       probing_data_p = (probing_data_t *)vrna_alloc(sizeof(probing_data_t)); \
       probing_data_p->count = 0; \
       vrna_array_init(probing_data_p->files); \
       vrna_array_init(probing_data_p->strategies); \
       vrna_array_init(probing_data_p->preprocessing); \
       /* collect probing data input files */ \
-      for (size_t i = 0; i < ggostruct.probing_data_given; ++i) { \
+      for (size_t i = 0; i < ggostruct.sp_data_given; ++i) { \
         probing_data_p->count++; \
-        vrna_array_append(probing_data_p->files, strdup(ggostruct.probing_data_arg[i])); \
+        vrna_array_append(probing_data_p->files, strdup(ggostruct.sp_data_arg[i])); \
       } \
       /* collect probing data integration strategies (if not default) */ \
-      for (size_t i = 0; i < ggostruct.probing_strategy_given; ++i) \
-        vrna_array_append(probing_data_p->strategies, strdup(ggostruct.probing_strategy_arg[i])); \
+      for (size_t i = 0; i < ggostruct.sp_strategy_given; ++i) \
+        vrna_array_append(probing_data_p->strategies, strdup(ggostruct.sp_strategy_arg[i])); \
       /* collect probing data preprocessing (if not default) */ \
-      for (size_t i = 0; i < ggostruct.probing_preprocess_given; ++i) \
-        vrna_array_append(probing_data_p->preprocessing, strdup(ggostruct.probing_preprocess_arg[i])); \
+      for (size_t i = 0; i < ggostruct.sp_preprocess_given; ++i) \
+        vrna_array_append(probing_data_p->preprocessing, strdup(ggostruct.sp_preprocess_arg[i])); \
     } \
     /* backward compatibility/convenience wrapper */ \
     if (ggostruct.shape_given) { \

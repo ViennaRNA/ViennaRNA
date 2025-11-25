@@ -391,12 +391,13 @@ optional
 hidden
 
 
-section "Structure Probing Data"
-sectiondesc="Various implementations to guide the structure prediction with the help of additional\
- (experimental) RNA structure probing data, such as SHAPE, DMS, etc.\n\n"
+section "Experimental Structure Probing Data"
+sectiondesc="The following arguments and siwtches control various implementations that allow for\
+ guiding the structure prediction with the help of additional (experimental) RNA structure probing\
+ data, such as SHAPE, DMS, etc.\n\n"
 
 
-option  "probing-data"   -
+option  "sp-data"   -
 "Read structure probing data from an input file and guide the predictions accordingly.\n\n"
 string
 typestr="filename"
@@ -404,7 +405,7 @@ multiple
 optional
 
 
-option  "probing-strategy" -
+option  "sp-strategy" -
 "Select the strategy how the probing data is used to guide the structure predictions.\n\n"
 details="The following strategies (methods) are available to convert structure probing data into\
  pseudo energy contributions:\n\n\
@@ -415,6 +416,11 @@ details="The following strategies (methods) are available to convert structure p
  'b=-0.6', respectively. To change these parameters, e.g. to 'm=1.9' and 'b=-0.7', use a parameter\
  string like this: --shapeMethod=\"Dm1.9b-0.7\". Note the precedence of 'm' over 'b'. You may also\
  provide only one of the two variables like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".\n\n\
+ 'E': Eddy 2014 strategy.\n\n
+ This strategy distinguishes two structural states (classes) for each base, paired and unpaired.\
+ Based on a list of prior distributions for each of the classes, the posterior probability for\
+ observing a probing reactivity of a base is estimated and then converted into a respective\
+ pseudo energy contribution.\
  'Z': Zarringhalam et al 2012 strategy.\n\n\
  Here, the probing data is first converted into pairing probabilities and aberration from the\
  observed pairing probabilities will be penalized during the folding recursion. The magnitude of\
@@ -423,18 +429,18 @@ details="The following strategies (methods) are available to convert structure p
  Perturbation vectors can be calculated by using RNApvmin.\n\n"
 string
 typestr="strategy"
-dependon="probing-data"
+dependon="sp-data"
 multiple
 default="D"
 optional
 hidden
 
 
-option  "probing-preprocess"  -
-"Specify if and how probing data should be pre-processed before it is integrated by the selected probing strategy.\n\n"
+option  "sp-preprocess"  -
+"Select a method to pre-process the structure probing data before it undergoes conversion by a strategy.\n\n"
 string
-typestr="conversion"
-dependon="probing-data"
+typestr="method"
+dependon="sp-data"
 multiple
 default="I"
 optional
