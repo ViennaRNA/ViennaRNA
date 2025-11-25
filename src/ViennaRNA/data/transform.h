@@ -132,10 +132,12 @@
  *          corresponding options are set.
  *
  *  @see    #vrna_math_fun_dbl_f, #vrna_math_fun_dbl_opt_t,
- *          #VRNA_TRANSFORM_DEFAULT, #VRNA_TRANSFORM_LM_OPTION_MAP, #VRNA_TRANSFORM_ENFORCE_DOMAINS,
+ *          #VRNA_TRANSFORM_DEFAULT,
+ *          #VRNA_TRANSFORM_ENFORCE_DOMAINS,
  *          #VRNA_TRANSFORM_ENFORCE_DOMAIN_SOURCE, #VRNA_TRANSFORM_ENFORCE_DOMAIN_TARGET,
- *          #VRNA_TRANSFORM_MAP_SOURCE_LOW, #VRNA_TRANSFORM_MAP_SOURCE_HIGH, #VRNA_TRANSFORM_MAP_SOURCE,
- *          #VRNA_TRANSFORM_MAP_TARGET_LOW, #VRNA_TRANSFORM_MAP_TARGET_HIGH, #VRNA_TRANSFORM_MAP_TARGET,
+ *          #VRNA_TRANSFORM_MAP, #VRNA_TRANSFORM_MAP_SOURCE, #VRNA_TRANSFORM_MAP_TARGET,
+ *          #VRNA_TRANSFORM_MAP_SOURCE_LOW, #VRNA_TRANSFORM_MAP_SOURCE_HIGH,
+ *          #VRNA_TRANSFORM_MAP_TARGET_LOW, #VRNA_TRANSFORM_MAP_TARGET_HIGH,
  *          vrna_math_fun_dbl_bin_opt(), vrna_math_fun_dbl_linear_opt(), vrna_math_fun_dbl_log_opt(),
  *          vrna_math_fun_dbl_logistic_opt(), vrna_math_fun_dbl_gaussian_opt(), vrna_math_fun_dbl_kde_opt()
  *

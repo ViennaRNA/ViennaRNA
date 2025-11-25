@@ -100,7 +100,7 @@ DEPRECATED(void free_alifold_arrays(void),
 /**
  *  @brief Calculate the free energy of a consensus structure given a set of aligned sequences
  * 
- *  @ingroup consensus_fold
+ *  @ingroup eval_deprecated
  *
  *  @deprecated Usage of this function is discouraged! Use vrna_eval_structure(), and vrna_eval_covar_structure() instead!
  *
@@ -122,7 +122,7 @@ DEPRECATED(float energy_of_ali_gquad_structure(const char **sequences, const cha
  *  @brief This variable controls the weight of the covariance term in the
  *  energy function of alignment folding algorithms
  * 
- *  @ingroup consensus_fold
+ *  @ingroup model_details
  *
  *  @deprecated See #vrna_md_t.cv_fact, and vrna_mfe() to avoid using global variables
  *
@@ -134,7 +134,7 @@ DEPRECATED(extern  double  cv_fact,
  *  @brief This variable controls the magnitude of the penalty for non-compatible sequences in
  *  the covariance term of alignment folding algorithms.
  * 
- *  @ingroup consensus_fold
+ *  @ingroup model_details
  * 
  *  @deprecated See #vrna_md_t.nc_fact, and vrna_mfe() to avoid using global variables
  *
@@ -292,7 +292,7 @@ DEPRECATED(int get_alipf_arrays(short ***S_p,
  *  Call this to recalculate the pair matrix and energy parameters after a
  *  change in folding parameters like #temperature
  *
- *  @ingroup  consensus_fold
+ *  @ingroup  mfe_global_deprecated
  *  @deprecated Usage of this function is discouraged! The new API uses #vrna_fold_compound_t
  *  to lump all folding related necessities together, including the energy parameters. Use
  *  vrna_update_fold_params() to update the energy parameters within a #vrna_fold_compound_t.

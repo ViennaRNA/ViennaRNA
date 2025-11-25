@@ -27,6 +27,59 @@ typedef double *(*vrna_probing_strategy_f)(vrna_fold_compound_t *fc,
 
 
 /**
+ *  @brief probing data conversion flag for comparative structure predictions indicating no parameter to be sequence specific
+ *
+ *  @see  vrna_probing_data_Deigan2009_comparative(), vrna_probing_data_Zarringhalam2012_comparative(),
+ *        #VRNA_PROBING_METHOD_MULTI_PARAMS_1, #VRNA_PROBING_METHOD_MULTI_PARAMS_2, #VRNA_PROBING_METHOD_MULTI_PARAMS_3,
+ *        #VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT
+ */
+#define VRNA_PROBING_METHOD_MULTI_PARAMS_0                        0U
+
+
+/**
+ *  @brief probing data conversion flag for comparative structure predictions indicating 1st parameter to be sequence specific
+ *
+ *  @see  vrna_probing_data_Deigan2009_comparative(), vrna_probing_data_Zarringhalam2012_comparative(),
+ *        #VRNA_PROBING_METHOD_MULTI_PARAMS_0, #VRNA_PROBING_METHOD_MULTI_PARAMS_2, #VRNA_PROBING_METHOD_MULTI_PARAMS_3,
+ *        #VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT
+ */
+#define VRNA_PROBING_METHOD_MULTI_PARAMS_1                        1U
+
+
+/**
+ *  @brief probing data conversion flag for comparative structure predictions indicating 2nd parameter to be sequence specific
+ *
+ *  @see  vrna_probing_data_Deigan2009_comparative(), vrna_probing_data_Zarringhalam2012_comparative(),
+ *        #VRNA_PROBING_METHOD_MULTI_PARAMS_0, #VRNA_PROBING_METHOD_MULTI_PARAMS_1, #VRNA_PROBING_METHOD_MULTI_PARAMS_3,
+ *        #VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT
+ */
+#define VRNA_PROBING_METHOD_MULTI_PARAMS_2                        2U
+
+
+/**
+ *  @brief probing data conversion flag for comparative structure predictions indicating 3rd parameter to be sequence specific
+ *
+ *  @see  vrna_probing_data_Deigan2009_comparative(), vrna_probing_data_Zarringhalam2012_comparative(),
+ *        #VRNA_PROBING_METHOD_MULTI_PARAMS_0, #VRNA_PROBING_METHOD_MULTI_PARAMS_1, #VRNA_PROBING_METHOD_MULTI_PARAMS_2,
+ *        #VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT
+ */
+#define VRNA_PROBING_METHOD_MULTI_PARAMS_3                        4U
+
+
+/**
+ *  @brief probing data conversion flag for comparative structure predictions indicating default parameter settings
+ *
+ *  Essentially, this setting indicates that all probing data is to be converted using the same
+ *  parameters. Use any combination of #VRNA_PROBING_METHOD_MULTI_PARAMS_1, #VRNA_PROBING_METHOD_MULTI_PARAMS_2,
+ *  #VRNA_PROBING_METHOD_MULTI_PARAMS_3, and so on to indicate that the first, second, third, or other
+ *  parameter is sequence specific.
+ *
+ *  @see vrna_probing_data_Deigan2009_comparative(), vrna_probing_data_Zarringhalam2012_comparative()
+ */
+#define VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT                  VRNA_PROBING_METHOD_MULTI_PARAMS_0
+
+
+/**
  *  @brief  Default parameter for slope `m` as used in method of @rstinline :cite:t:`deigan:2009` @endrst
  *
  *  @see    vrna_probing_data_deigan(), vrna_probing_data_deigan_comparative(),
@@ -75,7 +128,7 @@ vrna_probing_strategy_deigan_options_free(void *options);
  *  to convert probing data, e.g. SHAPE reactivity values, to pseudo energies whenever a
  *  nucleotide @f$ i @f$ contributes to a stacked pair. A positive slope @f$ m @f$
  *  penalizes high reactivities in paired regions, while a negative intercept @f$ b @f$
- *  results in a confirmatory ``bonus'' free energy for correctly predicted base pairs.
+ *  results in a confirmatory *bonus* free energy for correctly predicted base pairs.
  *  Since the energy evaluation of a base pair stack involves two pairs, the pseudo
  *  energies are added for all four contributing nucleotides. Consequently, the
  *  energy term is applied twice for pairs inside a helix and only once for pairs
@@ -340,8 +393,25 @@ vrna_probing_data_zarringhalam_trans_comparative(const double             **reac
                                                  vrna_math_fun_dbl_opt_free_f *cb_preprocess_opt_free);
 
 
+/**
+ *  @brief  Default options for the @rstinline :cite:t:`eddy:2014` @endrst: probing data conversion strategy
+ *
+ *  @see  vrna_probing_strategy_eddy_options(), vrna_probing_data_eddy(), vrna_probing_data_eddy_trans(),
+ *        vrna_probing_data_eddy_comparative(), vrna_probing_data_eddy_trans_comparative()
+ */
 #define VRNA_PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT              0
-#define VRNA_PROBING_STRATEGY_EDDY_NO_TEMPERATURE_RESCALING     (1<<0)
+
+
+/**
+ *  @brief  Prevent temperature dependent energy rescaling in @rstinline :cite:t:`eddy:2014` @endrst strategy
+ *
+ *  This option flag forces the probing data conversion strategy to always use the same thermodynamic
+ *  temperature @f$ T @f$, no matter what temperature the predictions are made for.
+ *
+ *  @see  vrna_probing_strategy_eddy_options(), vrna_probing_data_eddy(), vrna_probing_data_eddy_trans(),
+ *        vrna_probing_data_eddy_comparative(), vrna_probing_data_eddy_trans_comparative()
+ */
+#define VRNA_PROBING_STRATEGY_EDDY_NO_TEMPERATURE_RESCALING     (1<<5)
 
 
 double *
@@ -397,9 +467,13 @@ vrna_probing_strategy_eddy_options_free(void *options);
  *        vrna_probing_data_Eddy2014_2_comparative(),
  *        vrna_probing_data_Deigan2009(), vrna_probing_data_Deigan2009_comparative(),
  *        vrna_probing_data_Zarringhalam2012(), vrna_probing_data_Zarringhalam2012_comparative(),
+ *        #VRNA_PROBING_STRATEGY_EDDY_NO_TEMPERATURE_RESCALING,
+ *        #VRNA_PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT
  *
  *  @param  reactivities  A 1-based vector of probing data, e.g. normalized SHAPE reactivities
  *  @param  n             Length of @p reactivities
+ *  @param  temperature   The thermodynamic temperature @f$ T @f$
+ *  @param  options       Options bit flags to change the behavior of the strategy
  *  @param  unpaired_data Pointer to an array of probing data for unpaired nucleotides
  *  @param  unpaired_len  Length of @p unpaired_data
  *  @param  paired_data   Pointer to an array of probing data for paired nucleotides
@@ -473,6 +547,8 @@ vrna_probing_data_eddy_trans(const double             *reactivities,
  *  @param  reactivities    0-based array of 1-based arrays of per-nucleotide probing data, e.g. SHAPE reactivities
  *  @param  n               0-based array of lengths of the @p reactivities lists
  *  @param  n_seq           The number of sequences in the MSA
+ *  @param  temperature   The thermodynamic temperature @f$ T @f$
+ *  @param  options       Options bit flags to change the behavior of the strategy
  *  @param  unpaired_datas  0-based array of 0-based arrays with probing data for unpaired nucleotides or address of a single array of such data
  *  @param  unpaired_lens   0-based array of lengths for each probing data array in @p unpaired_datas
  *  @param  paired_datas    0-based array of 0-based arrays with probing data for paired nucleotides or address of a single array of such data
@@ -488,10 +564,10 @@ vrna_probing_data_eddy_comparative(const double       **reactivities,
                                    unsigned int       n_seq,
                                    double             temperature,
                                    unsigned char      options,
-                                   const double       **unpaired_data,
-                                   const unsigned int *unpaired_len,
-                                   const double       **paired_data,
-                                   const unsigned int *paired_len,
+                                   const double       **unpaired_datas,
+                                   const unsigned int *unpaired_lens,
+                                   const double       **paired_datas,
+                                   const unsigned int *paired_lens,
                                    unsigned int       multi_params);
 
 

@@ -15,7 +15,7 @@
  */
 
 /**
- *  @brief Inefficient `cp'
+ *  @brief Inefficient 'cp'
  */
 void vrna_file_copy(FILE  *from,
                     FILE  *to);
@@ -60,7 +60,7 @@ char *vrna_dirname(const char *path);
  *  character is supplied, invalid characters are simply removed
  *  from the filename. File names may also never exceed a length
  *  of 255 characters. Longer file names will undergo a 'smart'
- *  truncation process, where the filenames` suffix, i.e. everything
+ *  truncation process, where the filenames' suffix, i.e. everything
  *  after the last dot '.', is attempted to be kept intact. Hence,
  *  only the filename part before the suffix is reduced in such a
  *  way that the total filename complies to the length restriction

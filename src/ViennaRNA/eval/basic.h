@@ -27,10 +27,26 @@
 #define VRNA_VERBOSITY_DEFAULT    1
 
 
+/**
+ *  @brief  Default options for loop evaluation
+ */
 #define VRNA_EVAL_LOOP_DEFAULT          0U
+
+
+/**
+ *  @brief  Do not acknowledge hard constraints in loop evaluation
+ */
 #define VRNA_EVAL_LOOP_NO_HC            1U
+
+
+/**
+ *  @brief  Do not acknowledge soft constraints in loop evaluation
+ */
 #define VRNA_EVAL_LOOP_NO_SC            2U
 
+/**
+ *  @brief  Do not acknowledge any constraints in loop evaluation
+ */
 #define VRNA_EVAL_LOOP_NO_CONSTRAINTS   (VRNA_EVAL_LOOP_NO_HC | VRNA_EVAL_LOOP_NO_SC)
 
 

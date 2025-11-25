@@ -516,15 +516,11 @@ probing_data_eddy_comparative(std::vector< std::vector<double> > reactivities,
 
 
 
-%constant unsigned int  PROBING_METHOD_DEIGAN2009                           = VRNA_PROBING_METHOD_DEIGAN2009;
 %constant double        PROBING_METHOD_DEIGAN2009_DEFAULT_m                 = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m;
 %constant double        PROBING_METHOD_DEIGAN2009_DEFAULT_b                 = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b;
-%constant unsigned int  PROBING_METHOD_ZARRINGHALAM2012                     = VRNA_PROBING_METHOD_ZARRINGHALAM2012;
 %constant double        PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta        = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta;
 %constant char *        PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion  = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion;
 %constant double        PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability;
-%constant unsigned int  PROBING_METHOD_WASHIETL2012                         = VRNA_PROBING_METHOD_WASHIETL2012;
-%constant unsigned int  PROBING_METHOD_EDDY2014_2                           = VRNA_PROBING_METHOD_EDDY2014_2;
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_0                       = VRNA_PROBING_METHOD_MULTI_PARAMS_0;
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_1                       = VRNA_PROBING_METHOD_MULTI_PARAMS_1;
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_2                       = VRNA_PROBING_METHOD_MULTI_PARAMS_2;

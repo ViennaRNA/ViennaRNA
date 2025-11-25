@@ -14,6 +14,14 @@
 
 
 /**
+ *  @addtogroup SHAPE_reactivities
+ *  @{
+ */
+
+
+#define VRNA_PROBING_DATA_CHECK_SEQUENCE                          1U
+
+/**
  *  @brief  Add SHAPE reactivity data as soft constraints (Deigan et al. method)
  *
  *  This approach of SHAPE directed RNA folding uses the simple linear ansatz
@@ -23,7 +31,7 @@
  *  to convert SHAPE reactivity values to pseudo energies whenever a
  *  nucleotide @f$ i @f$ contributes to a stacked pair. A positive slope @f$ m @f$
  *  penalizes high reactivities in paired regions, while a negative intercept @f$ b @f$
- *  results in a confirmatory ``bonus'' free energy for correctly predicted base pairs.
+ *  results in a confirmatory *bonus* free energy for correctly predicted base pairs.
  *  Since the energy evaluation of a base pair stack involves two pairs, the pseudo
  *  energies are added for all four contributing nucleotides. Consequently, the
  *  energy term is applied twice for pairs inside a helix and only once for pairs
@@ -34,7 +42,6 @@
  *
  *  @see  vrna_sc_remove(), vrna_sc_add_SHAPE_zarringhalam(), vrna_sc_minimize_pertubation()
  *
- *  @ingroup SHAPE_reactivities
  *  @param  fc            The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  reactivities  A vector of normalized SHAPE reactivities
  *  @param  m             The slope of the conversion function
@@ -53,7 +60,6 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *fc,
 /**
  *  @brief  Add SHAPE reactivity data from files as soft constraints for consensus structure prediction (Deigan et al. method)
  *
- *  @ingroup SHAPE_reactivities
  *  @param  fc            The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  shape_files   A set of filenames that contain normalized SHAPE reactivity data
  *  @param  shape_file_association  An array of integers that associate the files with sequences in the alignment
@@ -89,7 +95,6 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *fc,
  *
  *  @see  vrna_sc_remove(), vrna_sc_add_SHAPE_deigan(), vrna_sc_minimize_pertubation()
  *
- *  @ingroup SHAPE_reactivities
  *  @param  fc                The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  reactivities      A vector of normalized SHAPE reactivities
  *  @param  b                 The scaling factor @f$ \beta @f$ of the conversion function
@@ -125,8 +130,6 @@ vrna_sc_add_SHAPE_zarringhalam(vrna_fold_compound_t *fc,
  *
  * where @f$ n @f$ is the number of data points.
  *
- *
- *  @ingroup SHAPE_reactivities
  *  @param  fc            The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  reactivities  A vector of normalized SHAPE reactivities
  *  @param  unpaired_nb   Length of the array of unpaired SHAPE reactivities
@@ -143,4 +146,8 @@ vrna_sc_add_SHAPE_eddy_2(vrna_fold_compound_t *fc,
                          int                  paired_nb,
                          const double         *paired_data);
 
+
+/**
+ *  @}
+ */
 #endif

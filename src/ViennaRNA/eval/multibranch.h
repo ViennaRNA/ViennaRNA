@@ -67,7 +67,7 @@
  *  @param  type  The base pair encoding
  *  @param  si1   The encoded nucleotide directly adjacent at the 5' side of the base pair (may be -1)
  *  @param  sj1   The encoded nucleotide directly adjacent at the 3' side of the base pair (may be -1)
- *  @param  p     The pre-computed energy parameters
+ *  @param  P     The pre-computed energy parameters
  *  @return       The energy contribution of the introduced mutlibranch loop stem
  */
 int
@@ -107,7 +107,7 @@ vrna_E_multibranch_stem(unsigned int  type,
  *  @param  type  The base pair encoding
  *  @param  si1   The encoded nucleotide directly adjacent at the 5' side of the base pair (may be -1)
  *  @param  sj1   The encoded nucleotide directly adjacent at the 3' side of the base pair (may be -1)
- *  @param  p     The pre-computed energy parameters (Boltzmann factor version)
+ *  @param  P     The pre-computed energy parameters (Boltzmann factor version)
  *  @return       The Boltzmann factor of the energy contribution for the introduced mutlibranch loop stem
  */
 FLT_OR_DBL

@@ -528,6 +528,13 @@ vrna_bps_size(vrna_bps_t bps);
  *  @}
  */
 
+
+/**
+ *  @addtogroup   data_structures
+ *  @{
+ */
+
+
 /**
  *  @brief  Dummy symbol to check whether the library was build using C11/C++11 features
  *

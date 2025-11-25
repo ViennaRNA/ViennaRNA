@@ -110,6 +110,7 @@ typedef double (*vrna_math_fun_dbl_f) (double                   value,
  *        vrna_math_fun_dbl_linear(), vrna_math_fun_dbl_log(), vrna_math_fun_dbl_kde(),
  *        vrna_math_fun_dbl_gaussian()
  *
+ *  @param  value             The input value
  *  @param  thresholds        A pointer to an array of data pairs holding the source and target domain boundaries
  *  @param  thresholds_num    The number of domain boundary pairs available in @p thresholds
  *  @param  oolb_value        Out-of-lower-bound value
@@ -118,9 +119,9 @@ typedef double (*vrna_math_fun_dbl_f) (double                   value,
  *  @return                   The projection of the input value into the target domain
  */
 double
-vrna_math_fun_dbl_bin(double              v,
+vrna_math_fun_dbl_bin(double              value,
                       double              (*thresholds)[2],
-                      size_t              num_thresholds,
+                      size_t              thresholds_num,
                       double              oolb_value,
                       double              ooub_value,
                       unsigned int        options);
@@ -514,7 +515,7 @@ vrna_math_fun_dbl_kde_opt(double                        *samples,
  *
  *  @see  vrna_math_fun_dbl_gaussian_opt()
  *
- *  @param  a   The arbitrary constant @f$ a @f$
+ *  @param  x   The input value @f$ x @f$
  *  @param  a   The arbitrary constant @f$ a @f$
  *  @param  b   The arbitrary constant @f$ b @f$
  *  @param  c   The arbitrary non-zero constant @f$ c @f$

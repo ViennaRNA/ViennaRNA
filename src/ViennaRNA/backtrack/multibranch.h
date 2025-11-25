@@ -49,11 +49,9 @@ vrna_bt_m(vrna_fold_compound_t  *fc,
  *                        of leftmost decomposed block upon successful backtracking)
  *  @param    j           3' position of base pair closing the loop (will be set to 3' position
  *                        of rightmost decomposed block upon successful backtracking)
- *  @param    k           Split position that delimits leftmost from rightmost block, [i,k] and
- *                        [k+1, j], respectively. (Will be set upon successful backtracking)
  *  @param    en          The energy contribution of the substructure enclosed by @f$ (i,j) @f$
- *  @param    component1  Type of leftmost block (1 = ML, 2 = C)
- *  @param    component2  Type of rightmost block (1 = ML, 2 = C)
+ *  @param    bp_stack    The base pair stack
+ *  @param    bt_stack    The backtrack stack
  *  @returns              1, if backtracking succeeded, 0 otherwise.
  */
 unsigned int
@@ -83,6 +81,23 @@ vrna_bt_multibranch_split(vrna_fold_compound_t  *fc,
 /**
  *  @addtogroup global_deprecated
  *  @{
+ */
+
+
+/**
+ *  @brief  Backtrack the decomposition of a multi branch loop closed by @f$ (i,j) @f$
+ *
+ *  @param    fc          The #vrna_fold_compound_t filled with all relevant data for backtracking
+ *  @param    i           5' position of base pair closing the loop (will be set to 5' position
+ *                        of leftmost decomposed block upon successful backtracking)
+ *  @param    j           3' position of base pair closing the loop (will be set to 3' position
+ *                        of rightmost decomposed block upon successful backtracking)
+ *  @param    k           Split position that delimits leftmost from rightmost block, [i,k] and
+ *                        [k+1, j], respectively. (Will be set upon successful backtracking)
+ *  @param    en          The energy contribution of the substructure enclosed by @f$ (i,j) @f$
+ *  @param    component1  Type of leftmost block (1 = ML, 2 = C)
+ *  @param    component2  Type of rightmost block (1 = ML, 2 = C)
+ *  @returns              1, if backtracking succeeded, 0 otherwise.
  */
 DEPRECATED(int
            vrna_BT_mb_loop(vrna_fold_compound_t *fc,
