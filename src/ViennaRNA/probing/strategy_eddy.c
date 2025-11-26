@@ -224,7 +224,7 @@ vrna_probing_strategy_eddy_options(double                         temperature,
   for (size_t i = 0; i < ptr_size; i++)
     vrna_array_append(opt->priors_unpaired, ptr_transformed[i]);
 
-  opt->unpaired_h = bandwidth(vrna_array_size(ptr_size), ptr_transformed);
+  opt->unpaired_h = bandwidth(ptr_size, ptr_transformed);
 
   if (ptr != prior_unpaired) {
     vrna_array_free(vs);
@@ -258,7 +258,7 @@ vrna_probing_strategy_eddy_options(double                         temperature,
   for (size_t i = 0; i < ptr_size; i++)
     vrna_array_append(opt->priors_paired, ptr_transformed[i]);
 
-  opt->paired_h = bandwidth(vrna_array_size(ptr_size), ptr_transformed);
+  opt->paired_h = bandwidth(ptr_size, ptr_transformed);
 
   if (ptr != prior_paired)
     vrna_array_free(vs);
