@@ -11,7 +11,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/data/transform.h"
 
-#include "ViennaRNA/probing/strategies.h"
+#include "ViennaRNA/probing/strategy_deigan.h"
 
 typedef struct {
   double                          m;

@@ -8,6 +8,9 @@
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/probing/basic.h"
+#include "ViennaRNA/probing/strategy_deigan.h"
+#include "ViennaRNA/probing/strategy_eddy.h"
+#include "ViennaRNA/probing/strategy_zarringhalam.h"
 #include "ViennaRNA/probing/SHAPE.h"
 
 

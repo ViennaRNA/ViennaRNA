@@ -14,7 +14,7 @@
 #include "ViennaRNA/static/probing_data_priors.h"
 #include "ViennaRNA/data/transform.h"
 
-#include "ViennaRNA/probing/strategies.h"
+#include "ViennaRNA/probing/strategy_eddy.h"
 
 #define gaussian(u) (1 / (sqrt(2 * PI)) * exp(-u * u / 2))
 

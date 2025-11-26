@@ -21,7 +21,7 @@ Depending on the input parameters, the object returned will invoke
 particular probing data integration methods either for single
 sequences or multiple sequence alignments. Hence, it subsumes and
 provides an easy interface for the functions
-:py:func:`probing_data_Deigan2009`, :py:func:`probing_data_Deigan2009_comparative`,
+:py:func:`probing_data_deigan`, :py:func:`probing_data_deigan_comparative`,
 etc.
 
 
@@ -529,6 +529,8 @@ probing_data_eddy_comparative(std::vector< std::vector<double> > reactivities,
 %constant unsigned int  PROBING_DATA_CHECK_SEQUENCE                         = VRNA_PROBING_DATA_CHECK_SEQUENCE;
 
 %include  <ViennaRNA/probing/basic.h>
-%include  <ViennaRNA/probing/strategies.h>
+%include  <ViennaRNA/probing/strategy_deigan.h>
+%include  <ViennaRNA/probing/strategy_eddy.h>
+%include  <ViennaRNA/probing/strategy_zarringhalam.h>
 
 %include  <ViennaRNA/data/transform.h>

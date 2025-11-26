@@ -24,8 +24,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/probing/basic.h"
-#include "ViennaRNA/data/transform.h"
-#include "ViennaRNA/probing/strategies.h"
+#include "ViennaRNA/probing/strategy_deigan.h"
 
 #ifdef __GNUC__
 # define INLINE inline
