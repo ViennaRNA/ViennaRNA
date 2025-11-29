@@ -488,14 +488,16 @@ PRIVATE double
 conversion_eddy_up(double       value,
                    eddy_options_t *options)
 {
+  FLT_OR_DBL p;
   if (value == VRNA_REACTIVITY_MISSING) {
     return 0;
   } else {
-    return  -options->kT *
-            log(gaussian_kde_pdf(value,
-                                 vrna_array_size(options->priors_unpaired),
-                                 options->unpaired_h,
-                                 options->priors_unpaired));
+    p = gaussian_kde_pdf(value,
+                         vrna_array_size(options->priors_unpaired),
+                         options->unpaired_h,
+                         options->priors_unpaired);
+    p = (p > 1e-10) ? p : 1e-10;
+    return  -options->kT * log(p);
   }
 }
 
@@ -504,14 +506,16 @@ PRIVATE double
 conversion_eddy_bp(double       value,
                    eddy_options_t *options)
 {
+  FLT_OR_DBL p;
   if (value == VRNA_REACTIVITY_MISSING) {
     return 0;
   } else {
-    return  -options->kT *
-            log(gaussian_kde_pdf(value,
-                                 vrna_array_size(options->priors_paired),
-                                 options->paired_h,
-                                 options->priors_paired));
+    p = gaussian_kde_pdf(value,
+                         vrna_array_size(options->priors_paired),
+                         options->paired_h,
+                         options->priors_paired);
+    p = (p > 1e-10) ? p : 1e-10;
+    return  -options->kT * log(p);
   }
 }
 
