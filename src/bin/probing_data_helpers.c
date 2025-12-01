@@ -326,17 +326,139 @@ extract_probing_options(int     argc,
                         char    *argv[],
                         size_t  expected_num_data)
 {
+  char  *file_r, *file_tmp, *file_pu, *file_pp, *strategy, *preprocess;
+
   probing_data_t *probing_data_p = (probing_data_t *)vrna_alloc(sizeof(probing_data_t));
 
   probing_data_p->count = 0;
   vrna_array_init_size(probing_data_p->files, expected_num_data);
   vrna_array_init_size(probing_data_p->strategies, expected_num_data);
   vrna_array_init_size(probing_data_p->preprocessing, expected_num_data);
+  vrna_array_init_size(probing_data_p->prior_unpaired, expected_num_data);
+  vrna_array_init_size(probing_data_p->prior_paired, expected_num_data);
+
+  file_r = file_pu = file_pp = NULL;
+  strategy = preprocess = NULL;
 
   /* Go through argument options and collect all probing data */
-  for (size_t i = 0; i < argc; i++) {
-     
+  for (size_t i = 1; i < argc; i++) {
+    vrna_log_error("%s", argv[i]);
+    if (strcmp(argv[i], "--sp-") == 0) {
+      /* extract argument for this option */
+      char *cmd, *arg;
+      cmd = argv[i];
+
+      if ((arg = strchr(cmd, '=')) != NULL) {
+        arg++; /* remove leading '=' */
+      } else if (i + 1 < argc) {
+        arg = argv[++i];
+      } else {
+        vrna_log_error("Command line option %s is missing its argument!");
+      }
+
+      /* now, do something */
+      switch (cmd[5]) {
+        case 'd':
+          /* data file */
+          if (file_tmp) {
+            /*
+             *  we read a new data file after already having a data file from the previous round
+             *  without any further specification of the strategy, so we assume default strategy
+             *  and add the previous data file with default strategy to our list
+             */
+            vrna_array_append(probing_data_p->files, file_tmp);
+            vrna_array_append(probing_data_p->strategies, NULL);
+            vrna_array_append(probing_data_p->preprocessing, preprocess);
+            vrna_array_append(probing_data_p->prior_unpaired, NULL);
+            vrna_array_append(probing_data_p->prior_paired, NULL);
+            /* reset everything */
+            file_r = file_pu = file_pp = strategy = preprocess = NULL;
+          } else if ((file_r) &&
+                     (strategy) &&
+                     (strategy[0] != 'E')) {
+            /* we already have a strategy other than Eddy 2014, so let us store everything */
+            vrna_array_append(probing_data_p->files, file_r);
+            vrna_array_append(probing_data_p->strategies, strategy);
+            vrna_array_append(probing_data_p->preprocessing, preprocess);
+            vrna_array_append(probing_data_p->prior_unpaired, NULL);
+            vrna_array_append(probing_data_p->prior_paired, NULL);
+            file_r = file_pu = file_pp = strategy = preprocess = NULL;
+          }
+
+          /* store current file name */
+          file_tmp = strdup(arg);
+
+          break;
+
+        case 's':
+          /* strategy */
+
+          /* first, check whether we are expecting to use Eddy 2014 approach and may use user-defined prior distributions */
+          if ((strategy) &&
+              (strategy[0] == 'E')) {
+            if (arg[0] == 'P') { /* last data file was prior data set */
+              if (arg[1] == 'u') {
+                free(file_pu);
+                file_pu   = file_tmp;
+                file_tmp  = NULL;
+              } else if (arg[11] == 'p') {
+                free(file_pp);
+                file_pp   = file_tmp;
+                file_tmp  = NULL;
+              } else {
+                vrna_log_error("Unrecognzed prior data set!");
+                free(file_tmp);
+                file_tmp  = NULL;
+              }
+              /* break out of case */
+              break;
+            } else {
+              /* last data file was a new probing data set, so store data for previously read Eddy strategy */
+              vrna_array_append(probing_data_p->files, file_r);
+              vrna_array_append(probing_data_p->strategies, strategy);
+              vrna_array_append(probing_data_p->preprocessing, preprocess);
+              vrna_array_append(probing_data_p->prior_unpaired, file_pu);
+              vrna_array_append(probing_data_p->prior_paired, file_pp);
+              file_r = file_pu = file_pp = strategy = preprocess = NULL;
+            }
+          }
+
+          /* overwrite/store strategy */
+          free(strategy);
+          strategy  = strdup(arg);
+
+          /* last data file contains actual probing data */
+          file_r    = file_tmp;
+          file_tmp  = NULL;
+
+          break;
+
+        case 'p':
+          /* preprocessing */
+
+          /* overwrite/store pre-processing option */
+          free(preprocess);
+          preprocess = strdup(arg);
+          break;
+
+        default:
+          break;
+      }
+    }
   }
+
+  if (file_tmp) {
+    if (file_r)
+      vrna_log_error("Something strange happend while parsing probing data options");
+
+    file_r = file_tmp;
+  }
+
+  vrna_array_append(probing_data_p->files, file_r);
+  vrna_array_append(probing_data_p->strategies, strategy);
+  vrna_array_append(probing_data_p->preprocessing, preprocess);
+  vrna_array_append(probing_data_p->prior_unpaired, file_pu);
+  vrna_array_append(probing_data_p->prior_paired, file_pp);
 
   return probing_data_p;
 }

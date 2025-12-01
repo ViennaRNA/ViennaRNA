@@ -9,6 +9,8 @@ typedef struct {
   vrna_array(char *)  files;
   vrna_array(char *)  strategies;
   vrna_array(char *)  preprocessing;
+  vrna_array(char *)  prior_unpaired;
+  vrna_array(char *)  prior_paired;
 } probing_data_t;
 
 
@@ -17,9 +19,8 @@ typedef struct {
                              ggostruct, \
                              probing_data_p)  { \
     probing_data_p = NULL; \
-    if (ggostruct.sp_data_given) { \
+    if (ggostruct.sp_data_given) \
       probing_data_p = extract_probing_options(argc, argv, ggostruct.sp_data_given); \
-    } \
     /* backward compatibility/convenience wrapper */ \
     if (ggostruct.shape_given) { \
       if (probing_data_p == NULL) { \
