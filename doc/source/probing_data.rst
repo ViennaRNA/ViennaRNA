@@ -41,9 +41,11 @@ to the :c:func:`vrna_sc_probing` function that performs the last of the three st
 calling the strategy to process the data and adding the derived pseudo energy
 contributions as soft constraints.
 
-In :doc:`probing/strategies` we already provide a few different strategies that can be
-used out-of-the-box, i.e. we provide wrappers that generate the bundled data structure
-for a particular strategy. But our interface allows for any user-defined strategy, thus new
+We already implemented a few different strategies that can be used out-of-the-box, i.e.
+we provide wrappers that generate the bundled data structure for a particular strategy.
+The available API symbols can be found in :doc:`probing/strategies`.
+
+However, the generic interface allows for any user-defined strategy, thus new
 strategies can be easily implemented by the user and then passed to our API.
 
 After all the above three steps are done, any prediction (MFE, partition function, etc.)
@@ -51,9 +53,7 @@ will acknowledge the probing data and therefore guide the prediction based on it
 
 
 In the following, you'll find the respective API symbols that allow for the integration
-of experimental probing data. In particular, we implement the most commonly used methods
-of how such data can be converted into pseudo energies that can then be turned into
-*soft constraints*.
+of experimental probing data.
 
 
 Generic Probing Data API
