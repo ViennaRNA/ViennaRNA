@@ -12,26 +12,13 @@ typedef struct {
 } probing_data_t;
 
 
-#define ggo_get_probing_data(ggostruct, \
+#define ggo_get_probing_data(argc, \
+                             argv, \
+                             ggostruct, \
                              probing_data_p)  { \
     probing_data_p = NULL; \
     if (ggostruct.sp_data_given) { \
-      probing_data_p = (probing_data_t *)vrna_alloc(sizeof(probing_data_t)); \
-      probing_data_p->count = 0; \
-      vrna_array_init(probing_data_p->files); \
-      vrna_array_init(probing_data_p->strategies); \
-      vrna_array_init(probing_data_p->preprocessing); \
-      /* collect probing data input files */ \
-      for (size_t i = 0; i < ggostruct.sp_data_given; ++i) { \
-        probing_data_p->count++; \
-        vrna_array_append(probing_data_p->files, strdup(ggostruct.sp_data_arg[i])); \
-      } \
-      /* collect probing data integration strategies (if not default) */ \
-      for (size_t i = 0; i < ggostruct.sp_strategy_given; ++i) \
-        vrna_array_append(probing_data_p->strategies, strdup(ggostruct.sp_strategy_arg[i])); \
-      /* collect probing data preprocessing (if not default) */ \
-      for (size_t i = 0; i < ggostruct.sp_preprocess_given; ++i) \
-        vrna_array_append(probing_data_p->preprocessing, strdup(ggostruct.sp_preprocess_arg[i])); \
+      probing_data_p = extract_probing_options(argc, argv, ggostruct.sp_data_given); \
     } \
     /* backward compatibility/convenience wrapper */ \
     if (ggostruct.shape_given) { \
@@ -123,5 +110,9 @@ vrna_probing_data_load_n_distribute(unsigned int  n_seq,
                                     unsigned int  options);
 
 
+probing_data_t *
+extract_probing_options(int     argc,
+                        char    *argv[],
+                        size_t  expected_num_data);
 
 #endif

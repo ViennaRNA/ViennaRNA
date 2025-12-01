@@ -544,7 +544,7 @@ main(int  argc,
   ggo_geometry_settings(args_info, &(opt.md));
 
   /* collect probing data */
-  ggo_get_probing_data(args_info, opt.probing_data);
+  ggo_get_probing_data(argc, argv, args_info, opt.probing_data);
 
   /* SHAPE reactivity data */
   ggo_get_SHAPE(args_info, opt.shape, opt.shape_file, opt.shape_method, opt.shape_conversion);

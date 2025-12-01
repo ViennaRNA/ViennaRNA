@@ -321,3 +321,23 @@ vrna_probing_data_load_n_distribute(unsigned int  n_seq,
 }
 
 
+PUBLIC probing_data_t *
+extract_probing_options(int     argc,
+                        char    *argv[],
+                        size_t  expected_num_data)
+{
+  probing_data_t *probing_data_p = (probing_data_t *)vrna_alloc(sizeof(probing_data_t));
+
+  probing_data_p->count = 0;
+  vrna_array_init_size(probing_data_p->files, expected_num_data);
+  vrna_array_init_size(probing_data_p->strategies, expected_num_data);
+  vrna_array_init_size(probing_data_p->preprocessing, expected_num_data);
+
+  /* Go through argument options and collect all probing data */
+  for (size_t i = 0; i < argc; i++) {
+     
+  }
+
+  return probing_data_p;
+}
+
