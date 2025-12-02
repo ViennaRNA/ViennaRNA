@@ -257,9 +257,9 @@ AC_DEFUN([RNA_CHECK_PROBING_DATA_FILES], [
     STATIC_FILE_DIR="${srcdir}/src/ViennaRNA/static"
     PROBING_DATA_PRIOR_FILE_LIST="${srcdir}/misc/probing_data_files.txt"
 
-    ## load list of probing data files and replace '\n' by ' '
+    ## load list of prior data files and replace '\n' by ' '
     PROBING_DATA_PRIOR_FILES=`cat $PROBING_DATA_PRIOR_FILE_LIST | sed 's/^/misc\//' | tr '\012' ' '`
-    ## create list of hex energy parameter files
+    ## create list of hex prior data files
     PROBING_DATA_PRIOR_FILES_HEX=`AS_ECHO("$PROBING_DATA_PRIOR_FILES") | sed -E 's/\.data/\.hex/g'`
 
     if test "x$XXD" = "xno"
@@ -294,38 +294,42 @@ generate it from source!
       # create a C variable defintion for the template
       # note [[]] will turn into [] after M4 processed everythin
       PROBING_DATA_PRIOR_CONST="$PROBING_DATA_PRIOR_CONST
-static const double probing_data_$datafile_name[[]] = {
+static const char probing_data_$datafile_name[[]] = {
 #include \"$datafile\"
 };
 "
       # create a SWIG Python output typemap for the template
       # note [[]] will turn into [] after M4 processed everything
       SWIG_PROBING_DATA_PRIOR_CONST_PYTHON="$SWIG_PROBING_DATA_PRIOR_CONST_PYTHON
-%typemap(varout) const double probing_data_$datafile_name[[]] {
-  size_t len = sizeof (probing_data_$datafile_name) / sizeof (probing_data_$datafile_name[[0]]);
-  PyObject *py_data = PyTuple_New(len);
-  for (unsigned int i = 0; i < len; i++) {
-    PyObject *d = PyFloat_FromDouble( (double) probing_data_$datafile_name[[i]]);
-    PyTuple_SET_ITEM(py_data, i, d);
-  }
-  swig_result = py_data;
+%typemap(varout) const double   my_probing_data_$datafile_name[[ANY]] {
+  /* create string from data */
+  std::string str( probing_data_$datafile_name, probing_data_$datafile_name + sizeof (probing_data_$datafile_name) / sizeof (probing_data_$datafile_name[[0]]) );
+  swig_result = vrna_string_to_double_tuple(str);
 }
-"
 
+%rename (probing_data_$datafile_name) my_probing_data_$datafile_name;
+
+%inline %{
+ extern const double  my_probing_data_$datafile_name[[]];
+%}
+
+%ignore probing_data_$datafile_name;
+"
       # create a SWIG Perl 5 output typemap for the template
       # note [[]] will turn into [] after M4 processed everything
       SWIG_PROBING_DATA_PRIOR_CONST_PERL5="$SWIG_PROBING_DATA_PRIOR_CONST_PERL5
-%typemap(varout) const double probing_data_$datafile_name[[]] {
-  AV* av = (AV*)sv_2mortal((SV*)newAV());
-  size_t i, len;
-  len = sizeof (probing_data_$datafile_name) / sizeof (probing_data_$datafile_name[[0]]);
-  for (i = 0; i < len ; i++) {
-      SV *v = newSViv(probing_data_$datafile_name[[i]]);
-      if (!av_store(av, i, v))
-          SvREFCNT_dec(v);
-  }
-  sv_setsv(swig_result, sv_2mortal(newRV_noinc((SV*) av )));
+%typemap(varout) const double   my_probing_data_$datafile_name[[ANY]] {
+  std::string str( probing_data_$datafile_name, probing_data_$datafile_name + sizeof (probing_data_$datafile_name) / sizeof (probing_data_$datafile_name[[0]]) );
+  sv_setsv(swig_result, sv_2mortal(newRV_noinc((SV*) vrna_string_to_double_array(str) )));
 }
+
+%rename (probing_data_$datafile_name) my_probing_data_$datafile_name;
+
+%inline %{
+ extern const double  my_probing_data_$datafile_name[[]];
+%}
+
+%ignore probing_data_$datafile_name;
 "
     done
 

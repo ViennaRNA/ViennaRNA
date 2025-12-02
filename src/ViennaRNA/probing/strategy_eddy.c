@@ -9,6 +9,7 @@
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/static/probing_data_priors.h"
 #include "ViennaRNA/data/transform.h"
@@ -172,6 +173,7 @@ vrna_probing_strategy_eddy_options(double                         temperature,
 {
   const double  *ptr;
   double        *ptr_transformed;
+  vrna_array(double)  vs;
   size_t        ptr_size;
 
   eddy_options_t  *opt = (eddy_options_t *)vrna_alloc(sizeof(eddy_options_t));
@@ -195,13 +197,29 @@ vrna_probing_strategy_eddy_options(double                         temperature,
   }
 
   /* append transformed priors */
+  vs = NULL;
+
   if ((prior_unpaired) &&
       (prior_unpaired_size > 0)) {
     ptr       = prior_unpaired;
     ptr_size  = prior_unpaired_size;
   } else {
-    ptr       = &(probing_data_prior_probing_1M7_unpaired[0]);
-    ptr_size  = sizeof(probing_data_prior_probing_1M7_unpaired) / sizeof(probing_data_prior_probing_1M7_unpaired[0]);
+    /* parse build-in priors */
+    char **tokens = vrna_strsplit(probing_data_prior_probing_1M7_unpaired, "\n");
+    if (tokens) {
+      vrna_array_init(vs);
+      for (size_t i = 0; tokens[i]; i++) {
+        double v;
+        if (sscanf(tokens[i], "%ld", &v) == 1)
+          vrna_array_append(vs, v);
+
+        free(tokens[i]);
+      }
+      free(tokens);
+    }
+
+    ptr       = vs;
+    ptr_size  = vrna_array_size(vs);
   }
 
   ptr_transformed = vrna_data_lin_transform(ptr,
@@ -219,6 +237,11 @@ vrna_probing_strategy_eddy_options(double                         temperature,
 
   opt->unpaired_h = bandwidth(vrna_array_size(ptr_size), ptr_transformed);
 
+  if (ptr != prior_unpaired) {
+    vrna_array_free(vs);
+    vs = NULL;
+  }
+
   free(ptr_transformed);
 
   if ((prior_paired) &&
@@ -226,8 +249,22 @@ vrna_probing_strategy_eddy_options(double                         temperature,
     ptr       = prior_paired;
     ptr_size  = prior_paired_size;
   } else {
-    ptr       = &(probing_data_prior_probing_1M7_paired[0]);
-    ptr_size  = sizeof(probing_data_prior_probing_1M7_paired) / sizeof(probing_data_prior_probing_1M7_paired[0]);
+    /* parse build-in priors */
+    char **tokens = vrna_strsplit(probing_data_prior_probing_1M7_paired, "\n");
+    if (tokens) {
+      vrna_array_init(vs);
+      for (size_t i = 0; tokens[i]; i++) {
+        double v;
+        if (sscanf(tokens[i], "%ld", &v) == 1)
+          vrna_array_append(vs, v);
+
+        free(tokens[i]);
+      }
+      free(tokens);
+    }
+
+    ptr       = vs;
+    ptr_size  = vrna_array_size(vs);
   }
 
   ptr_transformed = vrna_data_lin_transform(ptr,
@@ -244,6 +281,9 @@ vrna_probing_strategy_eddy_options(double                         temperature,
     vrna_array_append(opt->priors_paired, ptr_transformed[i]);
 
   opt->paired_h = bandwidth(vrna_array_size(ptr_size), ptr_transformed);
+
+  if (ptr != prior_paired)
+    vrna_array_free(vs);
 
   free(ptr_transformed);
 
