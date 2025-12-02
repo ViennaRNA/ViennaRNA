@@ -9,27 +9,23 @@
   PyObject *
   vrna_string_to_double_tuple(std::string s)
   {
-    std::string temp;
-    std::vector<double> vs;
-    size_t i = 0, start = 0, end;
+    vrna_array(double)  c_vs;
+    PyObject            *py_data;
 
-    do {
-      end = s.find_first_of ( '\n', start );
-      temp = s.substr( start, end );
-      if ((isdigit(temp[0])) ||
-          ((temp.size() > 1) && (temp[0] == '-') && (isdigit(temp[1]))))
-      {
-        vs.push_back ( atof ( temp.c_str ( ) ) );
-        ++i;
+    py_data = Py_None;
+    c_vs    = vrna_str_to_dbl_array(s.c_str(), "\n", 0);
+
+    if (c_vs) {
+      py_data = PyTuple_New(vrna_array_size(c_vs));
+
+      for (size_t i = 0; i < vrna_array_size(c_vs); i++) {
+        PyObject *d = PyFloat_FromDouble( c_vs[i]);
+        PyTuple_SET_ITEM(py_data, i, d);
       }
-      start = end + 1;
-    } while ( start );
-
-    PyObject *py_data = PyTuple_New(vs.size());
-    for (i = 0; i < vs.size(); i++) {
-      PyObject *d = PyFloat_FromDouble( vs[i]);
-      PyTuple_SET_ITEM(py_data, i, d);
     }
+
+    vrna_array_free(c_vs);
+
     return py_data;
   }
 %}
@@ -46,28 +42,21 @@
   AV *
   vrna_string_to_double_array(std::string s)
   {
-    std::string temp;
-    std::vector<double> vs;
-    size_t i = 0, start = 0, end;
+    vrna_array(double)  c_vs;
+    AV*                 av;
 
-    do {
-      end = s.find_first_of ( '\n', start );
-      temp = s.substr( start, end );
-      if ((isdigit(temp[0])) ||
-          ((temp.size() > 1) && (temp[0] == '-') && (isdigit(temp[1]))))
-      {
-        vs.push_back ( atof ( temp.c_str ( ) ) );
-        ++i;
+    av    = (AV*)sv_2mortal((SV*)newAV());
+    c_vs  = vrna_str_to_dbl_array(s.c_str(), "\n", 0);
+
+    if (c_vs) {
+      for (size_t i = 0; i < vrna_array_size(c_vs); i++) {
+        SV *v = newSVnv(c_vs[i]);
+        if (!av_store(av, i, v))
+            SvREFCNT_dec(v);
       }
-      start = end + 1;
-    } while ( start );
-
-    AV* av = (AV*)sv_2mortal((SV*)newAV());
-    for (i = 0; i < vs.size() ; i++) {
-      SV *v = newSViv(vs[i]);
-      if (!av_store(av, i, v))
-          SvREFCNT_dec(v);
     }
+
+    vrna_array_free(c_vs);
 
     return av;
   }
