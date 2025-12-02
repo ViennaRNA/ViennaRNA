@@ -224,7 +224,7 @@ vrna_probing_strategy_eddy_options(double                         temperature,
   for (size_t i = 0; i < ptr_size; i++)
     vrna_array_append(opt->priors_unpaired, ptr_transformed[i]);
 
-  opt->unpaired_h = bandwidth(vrna_array_size(ptr_size), ptr_transformed);
+  opt->unpaired_h = bandwidth(ptr_size, ptr_transformed);
 
   if (ptr != prior_unpaired) {
     vrna_array_free(vs);
@@ -258,7 +258,7 @@ vrna_probing_strategy_eddy_options(double                         temperature,
   for (size_t i = 0; i < ptr_size; i++)
     vrna_array_append(opt->priors_paired, ptr_transformed[i]);
 
-  opt->paired_h = bandwidth(vrna_array_size(ptr_size), ptr_transformed);
+  opt->paired_h = bandwidth(ptr_size, ptr_transformed);
 
   if (ptr != prior_paired)
     vrna_array_free(vs);
@@ -488,11 +488,17 @@ PRIVATE double
 conversion_eddy_up(double       value,
                    eddy_options_t *options)
 {
-  return  -options->kT *
-          log(gaussian_kde_pdf(value,
-                               vrna_array_size(options->priors_unpaired),
-                               options->unpaired_h,
-                               options->priors_unpaired));
+  FLT_OR_DBL p;
+  if (value == VRNA_REACTIVITY_MISSING) {
+    return 0;
+  } else {
+    p = gaussian_kde_pdf(value,
+                         vrna_array_size(options->priors_unpaired),
+                         options->unpaired_h,
+                         options->priors_unpaired);
+    p = (p > 1e-10) ? p : 1e-10;
+    return  -options->kT * log(p);
+  }
 }
 
 
@@ -500,11 +506,17 @@ PRIVATE double
 conversion_eddy_bp(double       value,
                    eddy_options_t *options)
 {
-  return  -options->kT *
-          log(gaussian_kde_pdf(value,
-                               vrna_array_size(options->priors_paired),
-                               options->paired_h,
-                               options->priors_paired));
+  FLT_OR_DBL p;
+  if (value == VRNA_REACTIVITY_MISSING) {
+    return 0;
+  } else {
+    p = gaussian_kde_pdf(value,
+                         vrna_array_size(options->priors_paired),
+                         options->paired_h,
+                         options->priors_paired);
+    p = (p > 1e-10) ? p : 1e-10;
+    return  -options->kT * log(p);
+  }
 }
 
 
