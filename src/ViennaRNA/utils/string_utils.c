@@ -691,6 +691,37 @@ vrna_strchr(const char  *str,
   return positions;
 }
 
+
+PUBLIC vrna_array(double)
+vrna_str_to_dbl_array(const char    *str,
+                      const char    *delimiter,
+                      unsigned int  options)
+{
+  vrna_array(double) vs = NULL;
+
+  if (str) {
+    if (delimiter == NULL)
+      delimiter = " ";
+
+    char **tokens = vrna_strsplit(str, delimiter);
+
+    if (tokens) {
+      vrna_array_init(vs);
+      for (size_t i = 0; tokens[i]; i++) {
+        double v;
+        if (sscanf(tokens[i], "%lf", &v) == 1) {
+          vrna_array_append(vs, v);
+        }
+        free(tokens[i]);
+      }
+      free(tokens);
+    }
+  }
+
+  return vs;
+}
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*

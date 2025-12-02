@@ -141,6 +141,40 @@ my_strtrim(char          *seq_mutable,
 %constant unsigned int TRIM_DEFAULT     = VRNA_TRIM_DEFAULT;
 %constant unsigned int TRIM_ALL         = VRNA_TRIM_ALL;
 
+
+%rename (str_to_dbl_array)  my_str_to_dbl_array;
+
+%{
+  std::vector<double>
+  my_str_to_dbl_array(const std::string &s,
+                      const std::string &delimiter = " ",
+                      unsigned int      options = 0)
+  {
+    std::vector<double> vs;
+    vrna_array(double) c_vs;
+
+    c_vs = vrna_str_to_dbl_array(s.c_str(), delimiter.c_str(), options);
+
+    if (c_vs) {
+      for (size_t i = 0; i < vrna_array_size(c_vs); i++)
+        printf("v[%ld] = %f", i, c_vs[i]);
+
+      vs = std::vector<double>(c_vs, c_vs + vrna_array_size(c_vs));
+    }
+
+    vrna_array_free(c_vs);
+
+    return vs;
+  }
+
+%}
+
+std::vector<double>
+my_str_to_dbl_array(const std::string &s,
+                    const std::string &delimiter = " ",
+                    unsigned int      options = 0);
+
+
 %include  <ViennaRNA/utils/strings.h>
 %include  <ViennaRNA/sequences/utils.h>
 
