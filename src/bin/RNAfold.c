@@ -949,6 +949,7 @@ process_record(struct record_data *record)
     apply_probing_data(vc,
                        opt->probing_data);
 
+#if 0
   if (opt->shape) {
     vrna_constraints_add_SHAPE(vc,
                                opt->shape_file,
@@ -957,6 +958,7 @@ process_record(struct record_data *record)
                                opt->verbose,
                                VRNA_OPTION_DEFAULT);
   }
+#endif
 
   if (opt->ligandMotif) {
     add_ligand_motif(vc,

@@ -173,7 +173,6 @@ vrna_probing_strategy_eddy_options(double                         temperature,
 {
   const double  *ptr;
   double        *ptr_transformed;
-  vrna_array(double)  vs;
   size_t        ptr_size;
 
   eddy_options_t  *opt = (eddy_options_t *)vrna_alloc(sizeof(eddy_options_t));
@@ -197,8 +196,6 @@ vrna_probing_strategy_eddy_options(double                         temperature,
   }
 
   /* append transformed priors */
-  vs = NULL;
-
   if ((prior_unpaired) &&
       (prior_unpaired_size > 0)) {
     ptr       = prior_unpaired;
@@ -208,7 +205,7 @@ vrna_probing_strategy_eddy_options(double                         temperature,
     ptr       = vrna_str_to_dbl_array(probing_data_prior_probing_1M7_unpaired,
                                       "\n",
                                       0);
-    ptr_size  = vrna_array_size(vs);
+    ptr_size  = vrna_array_size(ptr);
   }
 
   ptr_transformed = vrna_data_lin_transform(ptr,
@@ -226,10 +223,8 @@ vrna_probing_strategy_eddy_options(double                         temperature,
 
   opt->unpaired_h = bandwidth(ptr_size, ptr_transformed);
 
-  if (ptr != prior_unpaired) {
-    vrna_array_free(vs);
-    vs = NULL;
-  }
+  if (ptr != prior_unpaired)
+    vrna_array_free(ptr);
 
   free(ptr_transformed);
 
@@ -261,7 +256,7 @@ vrna_probing_strategy_eddy_options(double                         temperature,
   opt->paired_h = bandwidth(ptr_size, ptr_transformed);
 
   if (ptr != prior_paired)
-    vrna_array_free(vs);
+    vrna_array_free(ptr);
 
   free(ptr_transformed);
 

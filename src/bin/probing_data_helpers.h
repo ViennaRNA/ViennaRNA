@@ -29,11 +29,15 @@ typedef struct {
         vrna_array_init(probing_data_p->files); \
         vrna_array_init(probing_data_p->strategies); \
         vrna_array_init(probing_data_p->preprocessing); \
+        vrna_array_init(probing_data_p->prior_unpaired); \
+        vrna_array_init(probing_data_p->prior_paired); \
       } \
       probing_data_p->count++; \
       vrna_array_append(probing_data_p->files, strdup(ggostruct.shape_arg)); \
       vrna_array_append(probing_data_p->strategies, strdup(ggostruct.shapeMethod_arg)); \
       vrna_array_append(probing_data_p->preprocessing, strdup(ggostruct.shapeConversion_arg)); \
+      vrna_array_append(probing_data_p->prior_unpaired, NULL); \
+      vrna_array_append(probing_data_p->prior_paired, NULL); \
     } \
   }
 

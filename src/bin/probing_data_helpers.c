@@ -73,16 +73,124 @@ PUBLIC int
 apply_probing_data(vrna_fold_compound_t *fc,
                    probing_data_t       *d)
 {
+  char                method, *sequence;
+  unsigned int        length;
+  size_t              prior_unpaired_size, prior_paired_size;
+  float               p1, p2;
+  FLT_OR_DBL          *v;
+  double              *values, *prior_unpaired, *prior_paired;
+  vrna_probing_data_t pd;
 
-    for (size_t i = 0; i < vrna_array_size(d->strategies); i++) {
-      vrna_log_error("file %ld = %s\nstrategy: %s (prior_u: %s, prior_p: %s)\npre-process: %s",
-        i,
-        d->files[i],
-        d->strategies[i],
-        d->prior_unpaired[i],
-        d->prior_paired[i],
-        d->preprocessing[i]);
+  length = fc->length;
+
+  for (size_t i = 0; i < vrna_array_size(d->strategies); i++) {
+    pd = NULL;
+
+    /* parse the strategy and corresponding arguments */
+    if (!vrna_sc_SHAPE_parse_method(d->strategies[i] ? d->strategies[i] : "D", &method, &p1, &p2)) {
+      vrna_log_warning("Method for SHAPE reactivity data conversion not recognized!");
+      return 1;
     }
+
+    sequence  = vrna_alloc(sizeof(char) * (length + 1));
+    values    = vrna_alloc(sizeof(double) * (length + 1));
+
+    if (vrna_file_SHAPE_read(d->files[i],
+                             length,
+                             method == 'W' ? 0 : -1,
+                             sequence,
+                             values)) {
+      switch (method) {
+        case 'D':
+          pd = vrna_probing_data_deigan(values,
+                                       length,
+                                       p1,
+                                       p2);
+          if (pd)
+            vrna_log_info("Probing data set %ld: file = %s, strategy = Deigan et al. 2009, m = %g, b = %g, pre-processing = %s",
+                          i,
+                          d->files[i],
+                          p1,
+                          p2,
+                          d->preprocessing[i] ? d->preprocessing[i] : "None");
+
+          break;
+
+        case 'E':
+          prior_unpaired_size = prior_paired_size = 0;
+          prior_unpaired      = prior_paired      = NULL;
+
+          if (d->prior_unpaired[i])
+            prior_unpaired = vrna_file_doubles_read(d->prior_unpaired[i],
+                                                    0,
+                                                    &prior_unpaired_size);
+
+          if (d->prior_paired[i])
+            prior_paired = vrna_file_doubles_read(d->prior_paired[i],
+                                                    0,
+                                                    &prior_paired_size);
+
+          pd = vrna_probing_data_eddy(values,
+                                     length,
+                                     p1,
+                                     (p1 > -300.) ? VRNA_PROBING_STRATEGY_EDDY_NO_TEMPERATURE_RESCALING : VRNA_PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT,
+                                     prior_unpaired,
+                                     prior_unpaired_size,
+                                     prior_paired,
+                                     prior_paired_size);
+
+          if (pd)
+            vrna_log_info("Probing data set %ld: file = %s, strategy = Eddy 2014, t = %g, pre-processing = %s",
+                          i,
+                          d->files[i],
+                          (p1 > -300.) ? p1 : fc->params->temperature,
+                          d->preprocessing[i] ? d->preprocessing[i] : "None");
+
+          free(prior_unpaired);
+          free(prior_paired);
+
+          break;
+
+        case 'W':
+          /* this case won't trigger vrna_sc_probing() since we add soft constraints here already */
+          for (i = 1; i < length; i++)
+            (void)vrna_sc_add_up(fc, i, (FLT_OR_DBL)values[i], VRNA_OPTION_DEFAULT);
+
+          vrna_log_info("Probing data set %ld: file = %s, strategy = Wuchty et al. 2012, pre-processing = %s",
+                        i,
+                        d->files[i],
+                        d->preprocessing[i] ? d->preprocessing[i] : "None");
+
+          break;
+
+        case 'Z':
+          pd = vrna_probing_data_zarringhalam(values,
+                                             length,
+                                             p1,
+                                             d->preprocessing[i],
+                                             VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability);
+
+          if (pd)
+            vrna_log_info("Probing data set %ld: file = %s, strategy = Zarringhalam 2012, b = %g, pre-processing = %s",
+                          i,
+                          d->files[i],
+                          p1,
+                          d->preprocessing[i] ? d->preprocessing[i] : "None");
+
+          break;
+
+        default:
+          vrna_log_warning("Probing data set %ld not recognized", i);
+          break;
+      }
+    }
+
+    (void)vrna_sc_probing(fc, pd);
+
+    vrna_probing_data_free(pd);
+    free(values);
+    free(sequence);
+  }
 
   return 0;
 }
@@ -216,7 +324,7 @@ vrna_sc_SHAPE_parse_method(const char *method_string,
 
   switch (method_string[0]) {
     case 'Z':
-      *param_1 = 0.89;
+      *param_1 = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta;
       sc_parse_parameters(params, 'b', '\0', param_1, NULL);
       break;
 
@@ -237,8 +345,8 @@ vrna_sc_SHAPE_parse_method(const char *method_string,
       break;
 
     case 'D':
-      *param_1  = 1.8;
-      *param_2  = -0.6;
+      *param_1  = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m;
+      *param_2  = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b;
       sc_parse_parameters(params, 'm', 'b', param_1, param_2);
       break;
 
@@ -493,19 +601,20 @@ extract_probing_options(int     argc,
     }
   }
 
-  if (file_tmp) {
-    if (file_r)
-      vrna_log_error("Something strange happend while parsing probing data options");
-
-    file_r = file_tmp;
-  }
-
   if (file_r) {
     vrna_array_append(probing_data_p->files, file_r);
     vrna_array_append(probing_data_p->strategies, strategy);
     vrna_array_append(probing_data_p->preprocessing, preprocess);
     vrna_array_append(probing_data_p->prior_unpaired, file_pu);
     vrna_array_append(probing_data_p->prior_paired, file_pp);
+  }
+
+  if (file_tmp) {
+    vrna_array_append(probing_data_p->files, file_tmp);
+    vrna_array_append(probing_data_p->strategies, NULL);
+    vrna_array_append(probing_data_p->preprocessing, preprocess);
+    vrna_array_append(probing_data_p->prior_unpaired, NULL);
+    vrna_array_append(probing_data_p->prior_paired, NULL);
   }
 
   return probing_data_p;
