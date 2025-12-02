@@ -23,22 +23,22 @@ Generic Probing Data Strategy API
     :no-title:
 
 
-The :cite:t:`deigan:2009` Strategy API
---------------------------------------
+The Deigan 2009 Strategy API
+----------------------------
 
 .. doxygengroup:: probing_data_strategy_deigan
     :no-title:
 
 
-The :cite:t:`zarringhalam:2012` Strategy API
-----------------------------------------
+The Zarringhalam 2012 Strategy API
+----------------------------------
 
 .. doxygengroup:: probing_data_strategy_zarringhalam
     :no-title:
 
 
-The :cite:t:`eddy:2014` Strategy API
---------------------------------
+The Eddy 2014 Strategy API
+--------------------------
 
 .. doxygengroup:: probing_data_strategy_eddy
     :no-title:
