@@ -238,6 +238,25 @@ vrna_file_SHAPE_read(const char *file_name,
                      char       *sequence,
                      double     *values);
 
+
+/**
+ * @brief Read double values separated by newlines from a given input file
+ *
+ * This function parses an input file @p file_name expecting a double value
+ * per line. It then extracts all the double values and returns them as double
+ * array.
+ *
+ * @param file_name     Path to the input file
+ * @param options       Option flags to change the behavior of this function
+ * @param values_count  The adress of a counter to store the total size of the returned double array
+ * @return              An array of double values read from the input file
+ */
+double *
+vrna_file_doubles_read(const char   *file_name,
+                       unsigned int options,
+                       size_t       *values_count);
+
+
 #define VRNA_INPUT_VERBOSE  16384U
 
 
