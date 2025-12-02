@@ -66,6 +66,11 @@ void
 probing_data_free(probing_data_t *dat);
 
 
+int
+apply_probing_data(vrna_fold_compound_t *fc,
+                   probing_data_t       *d);
+
+
 void
 vrna_constraints_add_SHAPE(vrna_fold_compound_t *fc,
                            const char           *shape_file,

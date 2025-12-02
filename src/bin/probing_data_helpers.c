@@ -6,6 +6,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/log.h"
+#include <ViennaRNA/utils/units.h>
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/probing/basic.h"
 #include "ViennaRNA/probing/strategy_deigan.h"
@@ -47,13 +48,43 @@ probing_data_free(probing_data_t *dat) {
       free(dat->strategies[i]);
 
     vrna_array_free(dat->strategies);
+
     for (size_t i = 0; i < vrna_array_size(dat->preprocessing); ++i)
       free(dat->preprocessing[i]);
 
     vrna_array_free(dat->preprocessing);
 
+    for (size_t i = 0; i < vrna_array_size(dat->prior_unpaired); ++i)
+      free(dat->prior_unpaired[i]);
+
+    vrna_array_free(dat->prior_unpaired);
+
+    for (size_t i = 0; i < vrna_array_size(dat->prior_paired); ++i)
+      free(dat->prior_paired[i]);
+
+    vrna_array_free(dat->prior_paired);
+
     free(dat);
   }
+}
+
+
+PUBLIC int
+apply_probing_data(vrna_fold_compound_t *fc,
+                   probing_data_t       *d)
+{
+
+    for (size_t i = 0; i < vrna_array_size(d->strategies); i++) {
+      vrna_log_error("file %ld = %s\nstrategy: %s (prior_u: %s, prior_p: %s)\npre-process: %s",
+        i,
+        d->files[i],
+        d->strategies[i],
+        d->prior_unpaired[i],
+        d->prior_paired[i],
+        d->preprocessing[i]);
+    }
+
+  return 0;
 }
 
 
@@ -187,6 +218,22 @@ vrna_sc_SHAPE_parse_method(const char *method_string,
     case 'Z':
       *param_1 = 0.89;
       sc_parse_parameters(params, 'b', '\0', param_1, NULL);
+      break;
+
+    case 'E':
+      *param_1 = -300.;
+
+      sc_parse_parameters(params, 't', '\0', param_1, NULL);
+
+      if (*param_1 == -300.)
+        sc_parse_parameters(params, 'k', '\0', param_1, NULL);
+
+      if (*param_1 == -300.)
+        sc_parse_parameters(params, 'c', '\0', param_1, NULL);
+      else
+        *param_1 = (float)vrna_convert_temperature((float)(*param_1),
+                                                   VRNA_UNIT_K,
+                                                   VRNA_UNIT_DEG_C);
       break;
 
     case 'D':
@@ -337,13 +384,12 @@ extract_probing_options(int     argc,
   vrna_array_init_size(probing_data_p->prior_unpaired, expected_num_data);
   vrna_array_init_size(probing_data_p->prior_paired, expected_num_data);
 
-  file_r = file_pu = file_pp = NULL;
+  file_r = file_pu = file_pp = file_tmp = NULL;
   strategy = preprocess = NULL;
 
   /* Go through argument options and collect all probing data */
   for (size_t i = 1; i < argc; i++) {
-    vrna_log_error("%s", argv[i]);
-    if (strcmp(argv[i], "--sp-") == 0) {
+    if (strncmp(argv[i], "--sp-", 5) == 0) {
       /* extract argument for this option */
       char *cmd, *arg;
       cmd = argv[i];
@@ -401,7 +447,7 @@ extract_probing_options(int     argc,
                 free(file_pu);
                 file_pu   = file_tmp;
                 file_tmp  = NULL;
-              } else if (arg[11] == 'p') {
+              } else if (arg[1] == 'p') {
                 free(file_pp);
                 file_pp   = file_tmp;
                 file_tmp  = NULL;
@@ -454,11 +500,13 @@ extract_probing_options(int     argc,
     file_r = file_tmp;
   }
 
-  vrna_array_append(probing_data_p->files, file_r);
-  vrna_array_append(probing_data_p->strategies, strategy);
-  vrna_array_append(probing_data_p->preprocessing, preprocess);
-  vrna_array_append(probing_data_p->prior_unpaired, file_pu);
-  vrna_array_append(probing_data_p->prior_paired, file_pp);
+  if (file_r) {
+    vrna_array_append(probing_data_p->files, file_r);
+    vrna_array_append(probing_data_p->strategies, strategy);
+    vrna_array_append(probing_data_p->preprocessing, preprocess);
+    vrna_array_append(probing_data_p->prior_unpaired, file_pu);
+    vrna_array_append(probing_data_p->prior_paired, file_pp);
+  }
 
   return probing_data_p;
 }

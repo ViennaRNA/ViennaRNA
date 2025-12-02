@@ -425,9 +425,9 @@ details="The following strategies (methods) are available to convert structure p
  Based on a list of prior distributions for each of the classes, the posterior probability for\
  observing a probing reactivity of a base is estimated and then converted into a respective\
  pseudo energy contribution. Thermodynamic temperature T is taken from the model settings as\
- specified by --temp but can be changed to any other value, either in Celcius ('c') or Kelvin ('k').\
- Use one of the following parameter strings to change the temperature to 25 degree Celcius:\
- --sp-strategy=\"Ec=25\" or --sp-strategy=\"Ek=298.15\".\n\
+ specified by --temp but can be changed to any other value, either in Celcius ('c' or 't') or
+ Kelvin ('k'). Use one of the following parameter strings to change the temperature to 25 degree\
+ Celcius: --sp-strategy=\"Ec=25\" or --sp-strategy=\"Ek=298.15\".\n\
  By default, built-in prior distributions are used with this strategy. This can be changed if\
  the user passes additional probing data files via the --sp-data option and then selects the\
  prior distribution specifier as strategy (see below). An example call with probing data in\

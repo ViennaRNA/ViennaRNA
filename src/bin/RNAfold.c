@@ -945,6 +945,10 @@ process_record(struct record_data *record)
                       opt->constraint_canonical);
   }
 
+  if (opt->probing_data)
+    apply_probing_data(vc,
+                       opt->probing_data);
+
   if (opt->shape) {
     vrna_constraints_add_SHAPE(vc,
                                opt->shape_file,
