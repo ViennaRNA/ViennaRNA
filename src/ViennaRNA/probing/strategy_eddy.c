@@ -205,20 +205,9 @@ vrna_probing_strategy_eddy_options(double                         temperature,
     ptr_size  = prior_unpaired_size;
   } else {
     /* parse build-in priors */
-    char **tokens = vrna_strsplit(probing_data_prior_probing_1M7_unpaired, "\n");
-    if (tokens) {
-      vrna_array_init(vs);
-      for (size_t i = 0; tokens[i]; i++) {
-        double v;
-        if (sscanf(tokens[i], "%ld", &v) == 1)
-          vrna_array_append(vs, v);
-
-        free(tokens[i]);
-      }
-      free(tokens);
-    }
-
-    ptr       = vs;
+    ptr       = vrna_str_to_dbl_array(probing_data_prior_probing_1M7_unpaired,
+                                      "\n",
+                                      0);
     ptr_size  = vrna_array_size(vs);
   }
 
@@ -250,21 +239,10 @@ vrna_probing_strategy_eddy_options(double                         temperature,
     ptr_size  = prior_paired_size;
   } else {
     /* parse build-in priors */
-    char **tokens = vrna_strsplit(probing_data_prior_probing_1M7_paired, "\n");
-    if (tokens) {
-      vrna_array_init(vs);
-      for (size_t i = 0; tokens[i]; i++) {
-        double v;
-        if (sscanf(tokens[i], "%ld", &v) == 1)
-          vrna_array_append(vs, v);
-
-        free(tokens[i]);
-      }
-      free(tokens);
-    }
-
-    ptr       = vs;
-    ptr_size  = vrna_array_size(vs);
+    ptr       = vrna_str_to_dbl_array(probing_data_prior_probing_1M7_paired,
+                                      "\n",
+                                      0);
+    ptr_size  = vrna_array_size(ptr);
   }
 
   ptr_transformed = vrna_data_lin_transform(ptr,
