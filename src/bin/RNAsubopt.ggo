@@ -337,6 +337,91 @@ flag
 off
 dependon="constraint"
 
+
+option  "commands"   -
+"Read additional commands from file\n"
+details="Commands include hard and soft constraints, but also structure motifs in hairpin and internal\
+ loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
+ domains.\n\n"
+string
+typestr="filename"
+optional
+hidden
+
+
+section "Experimental Structure Probing Data"
+sectiondesc="The following arguments and siwtches control various implementations that allow for\
+ guiding the structure prediction with the help of additional (experimental) RNA structure probing\
+ data, such as SHAPE, DMS, etc.\n\n"
+
+
+option  "sp-data"   -
+"Read structure probing data from an input file and guide the predictions accordingly. Must precede\
+ the strategy, i.e. a data file must be specified before the corresponding --sp-strategy option!\n\n"
+details="This option and its argument only specifies the file name with the (reactivity)\
+ data. What kind of data the file contains and how the data is actually used during the\
+ predictions can be specified by the --sp-strategy and --sp-preprocess options.\n\n"
+string
+typestr="filename"
+multiple
+optional
+
+
+option  "sp-strategy" -
+"Select the strategy how the probing data is used to guide the structure predictions.\n\n"
+details="The following strategies (methods) are available to convert structure probing data into\
+ pseudo energy contributions:\n\n\
+ 'D': Deigan et al 2009 strategy.\n\n\
+ Here, probing data is converted into pseudo energy terms\
+ using a linear model. The derived energies are then applied for every nucleotide involved in a\
+ stacked pair. The default slope and intercept variables of the linear model are 'm=1.8' and\
+ 'b=-0.6', respectively. To change these parameters, e.g. to 'm=1.9' and 'b=-0.7', use a parameter\
+ string like this: --sp-strategy=\"Dm1.9b-0.7\". Note the precedence of 'm' over 'b'. You may also\
+ provide only one of the two variables like: --sp-strategy=\"Dm1.9\" or --sp-strategy=\"Db-0.7\".\n\n\
+ 'E': Eddy 2014 strategy.\n\n\
+ This strategy distinguishes two structural states (classes) for each base, paired and unpaired.\
+ Based on a list of prior distributions for each of the classes, the posterior probability for\
+ observing a probing reactivity of a base is estimated and then converted into a respective\
+ pseudo energy contribution. Thermodynamic temperature T is taken from the model settings as\
+ specified by --temp but can be changed to any other value, either in degrees Celcius ('c' or 't')\
+ or Kelvin ('k'). Use one of the following parameter strings to change the temperature to 25 degree\
+ Celcius: --sp-strategy=\"Ec=25\" or --sp-strategy=\"Ek=298.15\".\
+ By default, built-in prior distributions are used with this strategy. This can be changed if\
+ the user passes additional probing data files via the --sp-data option and then selects the\
+ prior distribution specifier ('P') as strategy (see below).\n\n\
+ 'P': Use probing data as prior distribution for Eddy 2014 strategy.\n\n\
+ This indicates that the most recent probing data file actually contains a prior distribution\
+ of probing data for a particular structure class, i.e. unpaired or paired bases. The prior\
+ distribution then replaces the default priors in the Eddy 2014 ('E') strategy. Use the lower\
+ case characters 'u' and 'p' to indicate which class, unpaired or paired, the prior distribution\
+ represents, e.g. --sp-strategy=\"Pp\" will be interpreted as prior distribution for paired\
+ nucleotides.\nNote, that this option must follow after the --sp-strategy=\"E\" and before\
+ any further --sp-strategy options that do not specify other prior distributions!\n\n\
+ 'Z': Zarringhalam et al 2012 strategy.\n\n\
+ Here, the probing data is first converted into pairing probabilities and aberration from the\
+ observed pairing probabilities will be penalized during the folding recursion. The magnitude of\
+ the penalties can affected by adjusting the factor beta (e.g. --sp-strategy=\"Zb0.8\").\n\n\
+ 'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012.\
+ Perturbation vectors can be calculated by using RNApvmin.\n\n"
+string
+typestr="strategy"
+dependon="sp-data"
+multiple
+default="D"
+optional
+
+
+option  "sp-preprocess"  -
+"Select a method to pre-process the structure probing data before it undergoes conversion by a strategy.\n\n"
+string
+typestr="method"
+dependon="sp-data"
+multiple
+default="I"
+optional
+hidden
+
+
 option  "shape" -
 "Use SHAPE reactivity data to guide structure predictions.\n\n"
 string
@@ -378,16 +463,6 @@ The following methods can be used to convert SHAPE reactivities into the probabi
 string
 typestr="method"
 default="O"
-optional
-hidden
-
-option  "commands"   -
-"Read additional commands from file\n"
-details="Commands include hard and soft constraints, but also structure motifs in hairpin and internal\
- loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
- domains.\n\n"
-string
-typestr="filename"
 optional
 hidden
 

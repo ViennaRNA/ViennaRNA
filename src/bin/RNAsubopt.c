@@ -76,17 +76,17 @@ main(int  argc,
   struct          RNAsubopt_args_info args_info;
   char                                *rec_sequence, *rec_id,
                                       **rec_rest, *orig_sequence, *constraints_file, *cstruc,
-                                      *structure, *shape_file, *shape_method, *shape_conversion,
-                                      *infile, *outfile, *filename_delim;
+                                      *structure, *infile, *outfile, *filename_delim;
   unsigned int                        rec_type, read_opt;
   int                                 i, length, cl, istty, delta, n_back, noconv, dos, zuker,
-                                      with_shapes, verbose, enforceConstraints, st_back_en, batch,
+                                      verbose, enforceConstraints, st_back_en, batch,
                                       tofile, filename_full, canonicalBPonly, nonRedundant;
   double                              deltap;
   vrna_md_t                           md;
   dataset_id                          id_control;
   vrna_cmd_t                          commands;
   vrna_sc_mod_param_t                 *mod_params;
+  probing_data_t                      *probing_data;
 
   do_backtrack        = 1;
   delta               = 100;
@@ -105,6 +105,7 @@ main(int  argc,
   commands            = NULL;
   nonRedundant        = 0;
   mod_params          = NULL;
+  probing_data        = NULL;
 
   set_model_details(&md);
 
@@ -139,9 +140,6 @@ main(int  argc,
     vrna_log_warning("required dangle model not implemented, falling back to default dangles=2");
     md.dangles = dangles = 2;
   }
-
-  /* SHAPE reactivity data */
-  ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
 
   ggo_get_constraints_settings(args_info,
                                fold_constrained,
@@ -267,6 +265,9 @@ main(int  argc,
                                  &(md));
 
   ggo_geometry_settings(args_info, &md);
+
+  /* collect probing data */
+  ggo_get_probing_data(argc, argv, args_info, probing_data);
 
   /* free allocated memory of command line data structure */
   RNAsubopt_cmdline_parser_free(&args_info);
@@ -445,6 +446,12 @@ main(int  argc,
       }
     }
 
+#if 1
+    if (probing_data)
+      apply_probing_data(vc,
+                         probing_data);
+
+#else
     if (with_shapes) {
       vrna_constraints_add_SHAPE(vc,
                                  shape_file,
@@ -453,6 +460,7 @@ main(int  argc,
                                  verbose,
                                  VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
     }
+#endif
 
     if (commands)
       vrna_commands_apply(vc,
@@ -606,7 +614,7 @@ main(int  argc,
 
     free(v_file_name);
 
-    if (with_shapes || (constraints_file && (!batch)))
+    if ((probing_data) || (constraints_file && (!batch)))
       break;
 
     /* print user help for the next round if we get input from tty */
@@ -629,8 +637,6 @@ main(int  argc,
   if (infile && input)
     fclose(input);
 
-  free(shape_method);
-  free(shape_conversion);
   free(filename_delim);
   vrna_commands_free(commands);
 
@@ -642,6 +648,8 @@ main(int  argc,
   }
 
   free_id_data(id_control);
+
+  probing_data_free(probing_data);
 
   if (vrna_log_fp() != stderr)
     fclose(vrna_log_fp());
