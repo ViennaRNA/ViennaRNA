@@ -87,11 +87,6 @@ struct options {
   int             constraint_enforce;
   int             constraint_canonical;
 
-  int             shape;
-  char            *shape_file;
-  char            *shape_method;
-  char            *shape_conversion;
-
   /* structure probing data releated options */
   probing_data_t  *probing_data;
 
@@ -418,11 +413,6 @@ init_default_options(struct options *opt)
   opt->constraint_enforce   = 0;
   opt->constraint_canonical = 0;
 
-  opt->shape            = 0;
-  opt->shape_file       = NULL;
-  opt->shape_method     = NULL;
-  opt->shape_conversion = NULL;
-
   opt->probing_data     = NULL;
 
   opt->mod_params         = NULL;
@@ -545,10 +535,6 @@ main(int  argc,
 
   /* collect probing data */
   ggo_get_probing_data(argc, argv, args_info, opt.probing_data);
-
-  /* SHAPE reactivity data */
-  ggo_get_SHAPE(args_info, opt.shape, opt.shape_file, opt.shape_method, opt.shape_conversion);
-
 
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
@@ -676,9 +662,6 @@ main(int  argc,
   free(input_files);
   free(opt.constraint_file);
   free(opt.ligandMotif);
-  free(opt.shape_file);
-  free(opt.shape_method);
-  free(opt.shape_conversion);
   free(opt.filename_delim);
   vrna_commands_free(opt.cmds);
 
@@ -856,8 +839,7 @@ process_input(FILE            *input_stream,
 
     RUN_IN_PARALLEL(process_record, record);
 
-    if ((opt->shape) ||
-        (opt->probing_data) ||
+    if ((opt->probing_data) ||
         (opt->constraint_file && (!opt->constraint_batch))) {
       ret = 0;
       break;
