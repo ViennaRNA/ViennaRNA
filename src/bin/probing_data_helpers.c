@@ -77,7 +77,6 @@ apply_probing_data(vrna_fold_compound_t *fc,
   unsigned int        length;
   size_t              prior_unpaired_size, prior_paired_size;
   float               p1, p2;
-  FLT_OR_DBL          *v;
   double              *values, *prior_unpaired, *prior_paired;
   vrna_probing_data_t pd;
 
