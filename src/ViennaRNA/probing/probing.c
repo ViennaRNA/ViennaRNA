@@ -169,7 +169,6 @@ vrna_probing_data_linear_multi(const double             **data,
 {
   double                      weight = 1.0;
 
-  vrna_array(double)          w;
   struct vrna_probing_data_s  *d = NULL;
   vrna_probing_strategy_f     cb;
   void                        *cb_options;
@@ -181,6 +180,10 @@ vrna_probing_data_linear_multi(const double             **data,
     d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
 
     nullify_probing_data_s(d);
+
+    cb              = NULL;
+    cb_options      = NULL;
+    cb_options_free = NULL;
 
     vrna_array_init_size(d->data_linear, data_size);
     vrna_array_init_size(d->data_linear_weight, data_size);
@@ -548,9 +551,8 @@ PRIVATE int
 apply_probing_data(vrna_fold_compound_t       *fc,
                    struct vrna_probing_data_s *data)
 {
-  unsigned int  i, j, s, n, **a2s;
+  unsigned int  i, j, s, n;
   int           ret, num_data;
-  FLT_OR_DBL    *vs, **cvs, weight;
   double        *e;
 
   ret       = 0;
