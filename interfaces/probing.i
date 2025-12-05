@@ -3,6 +3,7 @@
 /* derived constraints                        */
 /**********************************************/
 #ifdef SWIGPYTHON
+%include  callbacks-probing.i
 %include  callbacks-probing-data.i
 #endif
 
@@ -223,7 +224,79 @@ pr_defaults: list(double)
   {
     vrna_probing_data_free($self);
   }
+
+
+  unsigned int
+  probing_data_linear_num(void)
+  {
+    return vrna_probing_data_linear_num($self);
+  }
+
+
+  std::vector<double>
+  probing_data_linear_raw(unsigned int  pos)
+  {
+    unsigned int        s;
+    double              *r;
+    std::vector<double> rv;
+
+    r = vrna_probing_data_linear_raw($self,
+                                     pos,
+                                     &s);
+
+    if (r)
+      rv = std::vector<double>(r, r + s);
+
+    free(r);
+
+    return rv;
+  }
+
+
+  std::vector<double>
+  probing_data_linear_weight(unsigned int pos)
+  {
+    unsigned int        s;
+    double              *w;
+    std::vector<double> wv;
+
+    w = vrna_probing_data_linear_weight($self,
+                                        pos,
+                                        &s);
+
+    if (w)
+      wv = std::vector<double>(w, w + s);
+
+    free(w);
+
+    return wv;
+  }
+
+
+  std::vector<double>
+  probing_data_linear_energies(unsigned int         pos,
+                               vrna_fold_compound_t *fc,
+                               unsigned int         target)
+  {
+    unsigned int        s;
+    double              *e;
+    std::vector<double> ev;
+
+    e = vrna_probing_data_linear_energies($self,
+                                          pos,
+                                          fc,
+                                          target,
+                                          &s);
+
+    if (e)
+      ev = std::vector<double>(e, e + s);
+
+    free(e);
+
+    return ev;
+  }
 }
+
 
 %rename (probing_data_free) vrna_probing_data_free;
 
@@ -527,6 +600,16 @@ probing_data_eddy_comparative(std::vector< std::vector<double> > reactivities,
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_3                       = VRNA_PROBING_METHOD_MULTI_PARAMS_3;
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_DEFAULT                 = VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT;
 %constant unsigned int  PROBING_DATA_CHECK_SEQUENCE                         = VRNA_PROBING_DATA_CHECK_SEQUENCE;
+
+
+%constant unsigned int  PROBING_DATA_WEIGHT_POSITION_WISE = VRNA_PROBING_DATA_WEIGHT_POSITION_WISE;
+%constant unsigned int  PROBING_DATA_SINGLE_STRATEGY      = VRNA_PROBING_DATA_SINGLE_STRATEGY;
+%constant unsigned int  PROBING_DATA_SINGLE_WEIGHT        = VRNA_PROBING_DATA_SINGLE_WEIGHT;
+%constant unsigned int  PROBING_DATA_DEFAULT              = VRNA_PROBING_DATA_DEFAULT;
+%constant unsigned int  PROBING_DATA_LINEAR_TARGET_STACK  = VRNA_PROBING_DATA_LINEAR_TARGET_STACK;
+%constant unsigned int  PROBING_DATA_LINEAR_TARGET_UP     = VRNA_PROBING_DATA_LINEAR_TARGET_UP;
+%constant unsigned int  PROBING_DATA_LINEAR_TARGET_BP     = VRNA_PROBING_DATA_LINEAR_TARGET_BP;
+
 
 %include  <ViennaRNA/probing/basic.h>
 %include  <ViennaRNA/probing/strategy_deigan.h>
