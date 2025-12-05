@@ -716,7 +716,6 @@ vrna_file_doubles_read(const char   *file_name,
 {
   FILE                *fp;
   char                *line;
-  int                 i;
   vrna_array(double)  vs;
   double              v, *values;
 
