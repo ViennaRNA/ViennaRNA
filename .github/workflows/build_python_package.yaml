@@ -29,11 +29,32 @@ jobs:
       - name: install prerequisites
         run:  |
           sudo apt-get update
-          sudo apt-get -y install build-essential autoconf automake swig doxygen gengetopt help2man libtool check graphviz python3-sphinx 
+          sudo apt-get -y install build-essential autoconf automake gengetopt help2man libtool check graphviz python3-sphinx 
+      - name: Checkout swig repo
+        uses: actions/checkout@v6
+        with:
+          repository: swig/swig
+          ref: 'v4.4.0'
+          path: swig
+      - name: Install latest build tools
+        run:  |
+          cd swig
+          ./autogen.sh && ./configure --prefix=/usr
+          make -j $(nproc)
+          sudo make install
+          cd ..
+          curl https://www.doxygen.nl/files/doxygen-1.15.0.src.tar.gz --output ./doxygen-1.15.0.src.tar.gz
+          tar -xzf doxygen-1.15.0.src.tar.gz
+          cd doxygen-1.15.0
+          mkdir build
+          cd build
+          cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX:PATH=/usr -Dbuild_doc:BOOL=OFF ..
+          make -j $(nproc)
+          sudo make install
       - name: autotools setup
         run:  |
           autoreconf -i
-          tar -xjf src/dlib-19.24.tar.bz2 -C src
+          tar -xjf src/dlib-20.0.tar.bz2 -C src
           tar -xzf src/libsvm-3.35.tar.gz -C src
       - name: configure
         run: ./configure --without-kinfold --without-forester --without-rnalocmin --without-rnaxplorer --without-perl --without-gsl --disable-mpfr
@@ -71,7 +92,7 @@ jobs:
       fail-fast: false
       matrix:
         os : [ubuntu-latest]
-        pyver: [cp39, cp310, cp311, cp312, cp313]
+        pyver: [cp310, cp311, cp312, cp313, cp314]
         archs: [x86_64]
 
     steps:
@@ -82,7 +103,7 @@ jobs:
         run:  |
           echo "VRNA_SDIST_FILE=${{needs.build_sdist.outputs.vrna_sdist_file}}" >> "$GITHUB_ENV"
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.20.0
+        uses: pypa/cibuildwheel@v3.3.0
         with:
           package-dir: "$VRNA_SDIST_FILE"
           output-dir: dist
@@ -108,8 +129,8 @@ jobs:
       # Ensure that a wheel builder finishes even if another fails
       fail-fast: false
       matrix:
-        os: [macos-13, macos-14]
-        pyver: [cp39, cp310, cp311, cp312, cp313]
+        os: [macos-15-intel, macos-14]
+        pyver: [cp310, cp311, cp312, cp313, cp314]
 
     steps:
       - uses: actions/download-artifact@v4
@@ -119,7 +140,7 @@ jobs:
         run:  |
           echo "VRNA_SDIST_FILE=${{needs.build_sdist.outputs.vrna_sdist_file}}" >> "$GITHUB_ENV"
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.20.0
+        uses: pypa/cibuildwheel@v3.3.0
         with:
           package-dir: "$VRNA_SDIST_FILE"
           output-dir: dist
@@ -145,7 +166,7 @@ jobs:
       # Ensure that a wheel builder finishes even if another fails
       fail-fast: false
       matrix:
-        pyver: [cp39, cp310, cp311, cp312, cp313]
+        pyver: [cp310, cp311, cp312, cp313, cp314]
         archs: [AMD64]
 
     steps:
@@ -156,7 +177,7 @@ jobs:
         run:  |
           echo "VRNA_SDIST_FILE=${{needs.build_sdist.outputs.vrna_sdist_file}}" >> "$env:GITHUB_ENV"
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.20.0
+        uses: pypa/cibuildwheel@v3.3.0
         with:
           package-dir: "$env:VRNA_SDIST_FILE"
           output-dir: dist
@@ -185,7 +206,7 @@ jobs:
       fail-fast: false
       matrix:
         os : [ubuntu-latest]
-        pyver: [cp39, cp310, cp311, cp312, cp313]
+        pyver: [cp310, cp311, cp312, cp313]
         archs: [aarch64]
 
     steps:
@@ -206,6 +227,7 @@ jobs:
           output-dir: dist
         env:
           CIBW_BUILD_VERBOSITY: 3
+          CIBW_PROJECT_REQUIRES_PYTHON: ">= 3.10"
           CIBW_BUILD: ${{matrix.pyver}}-*
           CIBW_ARCHS: ${{matrix.archs}}
           CIBW_ENVIRONMENT: VRNA_SDIST_FILE=$VRNA_SDIST_FILE

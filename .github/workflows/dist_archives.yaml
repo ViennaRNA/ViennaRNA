@@ -5,7 +5,7 @@ on:
     inputs:
       config-flags:
         description: 'Configure flags to prepare the source directory'
-        default: '--with-cluster --with-kinwalker --with-python2 --disable-lto'
+        default: '--with-cluster --with-kinwalker --disable-lto'
         required: false
         type: string
       zip:
@@ -22,7 +22,7 @@ on:
     inputs:
       config-flags:
         description: 'Configure flags to prepare the source directory'
-        default: '--with-cluster --with-kinwalker --with-python2 --disable-lto'
+        default: '--with-cluster --with-kinwalker --disable-lto'
         required: false
         type: string
       zip:
@@ -57,8 +57,6 @@ jobs:
           build-essential \
           autoconf \
           automake \
-          swig \
-          doxygen \
           gengetopt \
           help2man \
           bison \
@@ -67,8 +65,6 @@ jobs:
           check \
           liblapacke \
           liblapacke-dev \
-          python2 \
-          python2-dev \
           graphviz \
           python3-sphinx \
           python3-myst-parser \
@@ -78,10 +74,32 @@ jobs:
           texlive-latex-recommended \
           texlive-latex-extra \
           texlive-font-utils \
-          texlive-fonts-recommended
+          texlive-fonts-recommended \
+          cmake
+    - name: Checkout swig repo
+      uses: actions/checkout@v6
+      with:
+        repository: swig/swig
+        ref: 'v4.4.0'
+        path: swig
+    - name: Install latest build tools
+      run:  |
+        cd swig
+        ./autogen.sh && ./configure --prefix=/usr
+        make -j $(nproc)
+        sudo make install
+        cd ..
+        curl https://www.doxygen.nl/files/doxygen-1.15.0.src.tar.gz --output ./doxygen-1.15.0.src.tar.gz
+        tar -xzf doxygen-1.15.0.src.tar.gz
+        cd doxygen-1.15.0
+        mkdir build
+        cd build
+        cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX:PATH=/usr -Dbuild_doc:BOOL=OFF ..
+        make -j $(nproc)
+        sudo make install
     - name: Autotools setup
       run:  |
-        tar -xjf src/dlib-19.24.tar.bz2 -C src
+        tar -xjf src/dlib-20.0.tar.bz2 -C src
         tar -xzf src/libsvm-3.35.tar.gz -C src
         autoreconf -i
     - name: Configure
@@ -89,14 +107,14 @@ jobs:
     - name: Make tarball
       id: tarball
       run:  |
-        make dist-gzip
+        make -j $(nproc) dist-gzip
         version_number=$(ls ViennaRNA-*.tar.gz)
         version_number="${version_number#ViennaRNA-}"
         version_number="${version_number%.tar.gz}"
         echo "version_number=${version_number}" >> "$GITHUB_OUTPUT"
     - name: Make ZIP
       if: ${{ inputs.zip }}
-      run:  make dist-zip
+      run:  make -j $(nproc) dist-zip
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:

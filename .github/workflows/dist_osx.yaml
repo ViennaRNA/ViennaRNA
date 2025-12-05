@@ -54,7 +54,7 @@ jobs:
       # Ensure that a wheel builder finishes even if another fails
       fail-fast: false
       matrix:
-        os: [macos-13, macos-14]
+        os: [macos-15-intel, macos-14]
 
     steps:
     - uses: actions/download-artifact@v4
@@ -68,9 +68,9 @@ jobs:
     - name: compile and build installer
       working-directory: ViennaRNA-${{ inputs.version-string }}
       run: |
-        make -j3
+        make -j $(nproc)
     - name: rename installer x86_64
-      if: ${{ matrix.os == 'macos-13' }}
+      if: ${{ matrix.os == 'macos-15' }}
       run: |
         mv ViennaRNA-${{ inputs.version-string }}/packaging/macosx/ViennaRNA-${{ inputs.version-string }}-MacOSX.dmg ViennaRNA-${{ inputs.version-string }}/ViennaRNA-${{ inputs.version-string }}-MacOSX-x86_64.dmg
     - name: rename installer arm64

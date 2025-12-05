@@ -5,14 +5,14 @@ on:
     inputs:
       config-flags:
         description: 'Configure flags to prepare the source directory'
-        default: '--with-cluster --with-kinwalker --with-python2 --disable-lto'
+        default: '--with-cluster --with-kinwalker --disable-lto'
         required: false
         type: string
   workflow_call:
     inputs:
       config-flags:
         description: 'Configure flags to prepare the source directory'
-        default: '--with-cluster --with-kinwalker --with-python2 --disable-lto'
+        default: '--with-cluster --with-kinwalker --disable-lto'
         required: false
         type: string
 
@@ -30,8 +30,6 @@ jobs:
           build-essential \
           autoconf \
           automake \
-          swig \
-          doxygen \
           gengetopt \
           help2man \
           bison \
@@ -40,8 +38,6 @@ jobs:
           check \
           liblapacke \
           liblapacke-dev \
-          python2 \
-          python2-dev \
           graphviz \
           python3-sphinx \
           python3-myst-parser \
@@ -52,12 +48,33 @@ jobs:
           texlive-latex-extra \
           texlive-font-utils \
           texlive-fonts-recommended
+    - name: Checkout swig repo
+      uses: actions/checkout@v6
+      with:
+        repository: swig/swig
+        ref: 'v4.4.0'
+        path: swig
+    - name: Install latest build tools
+      run:  |
+        cd swig
+        ./autogen.sh && ./configure --prefix=/usr
+        make -j $(nproc)
+        sudo make install
+        cd ..
+        curl https://www.doxygen.nl/files/doxygen-1.15.0.src.tar.gz --output ./doxygen-1.15.0.src.tar.gz
+        tar -xzf doxygen-1.15.0.src.tar.gz
+        cd doxygen-1.15.0
+        mkdir build
+        cd build
+        cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX:PATH=/usr -Dbuild_doc:BOOL=OFF ..
+        make -j $(nproc)
+        sudo make install
     - name: Autotools setup
       run:  |
-        tar -xjf src/dlib-19.24.tar.bz2 -C src
+        tar -xjf src/dlib-20.0.tar.bz2 -C src
         tar -xzf src/libsvm-3.35.tar.gz -C src
         autoreconf -i
     - name: Configure
       run: ./configure ${{ inputs.config-flags }}
     - name: distcheck
-      run:  make distcheck
+      run:  make -j $(nproc) distcheck
