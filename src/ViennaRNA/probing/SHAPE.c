@@ -23,7 +23,6 @@
 #include "ViennaRNA/probing/SHAPE.h"
 
 
-
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -50,13 +49,12 @@ load_n_distribute(unsigned int  n_seq,
                   const int     *file_name_association,
                   unsigned int  options);
 
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-
-
 PUBLIC int
 vrna_sc_add_SHAPE_zarringhalam(vrna_fold_compound_t *vc,
                                const double         *reactivities,
@@ -98,14 +96,14 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
       (reactivities)) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        d = vrna_probing_data_deigan(reactivities, vc->length, m, b);
+        d   = vrna_probing_data_deigan(reactivities, vc->length, m, b);
         ret = vrna_sc_probing(vc, d);
         vrna_probing_data_free(d);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
         vrna_log_warning("vrna_sc_add_SHAPE_deigan() not implemented for comparative prediction! "
-                             "Use vrna_sc_add_SHAPE_deigan_ali() instead!");
+                         "Use vrna_sc_add_SHAPE_deigan_ali() instead!");
         break;
     }
   }
@@ -138,11 +136,11 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
                           VRNA_PROBING_DATA_CHECK_SEQUENCE);
 
     vrna_probing_data_t d = vrna_probing_data_deigan_comparative((const double **)r,
-                                                                  vc->alignment->gapfree_size,
-                                                                  vc->n_seq,
-                                                                  &m,
-                                                                  &b,
-                                                                  VRNA_PROBING_METHOD_MULTI_PARAMS_0);
+                                                                 vc->alignment->gapfree_size,
+                                                                 vc->n_seq,
+                                                                 &m,
+                                                                 &b,
+                                                                 VRNA_PROBING_METHOD_MULTI_PARAMS_0);
     ret = vrna_sc_probing(vc, d);
     vrna_probing_data_free(d);
 
@@ -154,7 +152,6 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
 
   return ret;
 }
-
 
 
 PUBLIC int
@@ -211,11 +208,12 @@ load_n_distribute(unsigned int  n_seq,
       ss = file_name_association[s]; /* actual sequence number in alignment */
 
       if (ss >= n_seq) {
-        vrna_log_warning("Failed to associate probing data file \"%s\" with sequence %d in alignment! "
-                         "Omitting data since alignment has only %d sequences!",
-                         file_names[s],
-                         ss,
-                         n_seq);
+        vrna_log_warning(
+          "Failed to associate probing data file \"%s\" with sequence %d in alignment! "
+          "Omitting data since alignment has only %d sequences!",
+          file_names[s],
+          ss,
+          n_seq);
         continue;
       }
 
@@ -230,11 +228,11 @@ load_n_distribute(unsigned int  n_seq,
             (options & VRNA_PROBING_DATA_CHECK_SEQUENCE)) {
           /* double check information by comparing the sequence read from */
           if (strcmp(sequence, sequences[ss]))
-            vrna_log_warning("Input sequence %d differs from sequence provided via probing data file!\n%s\n%s",
-                             file_name_association[s] + 1,
-                             sequences[ss],
-                             sequence);
-
+            vrna_log_warning(
+              "Input sequence %d differs from sequence provided via probing data file!\n%s\n%s",
+              file_name_association[s] + 1,
+              sequences[ss],
+              sequence);
         }
       } else {
         vrna_log_warning("Failed to open probing data file \"%d\"! "
