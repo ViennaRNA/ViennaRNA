@@ -35,7 +35,7 @@
  *  @see  vrna_probing_strategy_eddy_options(), vrna_probing_data_eddy(), vrna_probing_data_eddy_trans(),
  *        vrna_probing_data_eddy_comparative(), vrna_probing_data_eddy_trans_comparative()
  */
-#define VRNA_PROBING_STRATEGY_EDDY_NO_TEMPERATURE_RESCALING     (1<<5)
+#define VRNA_PROBING_STRATEGY_EDDY_NO_TEMPERATURE_RESCALING     (1 << 5)
 
 
 double *
@@ -47,12 +47,12 @@ vrna_probing_strategy_eddy(vrna_fold_compound_t *fc,
 
 
 void *
-vrna_probing_strategy_eddy_options(double                   temperature,
-                                   unsigned char            options,
-                                   const double             *prior_unpaired,
-                                   size_t                   prior_unpaired_size,
-                                   const double             *prior_paired,
-                                   size_t                   prior_paired_size,
+vrna_probing_strategy_eddy_options(double                       temperature,
+                                   unsigned char                options,
+                                   const double                 *prior_unpaired,
+                                   size_t                       prior_unpaired_size,
+                                   const double                 *prior_paired,
+                                   size_t                       prior_paired_size,
                                    vrna_math_fun_dbl_f          cb_preprocess,
                                    vrna_math_fun_dbl_opt_t      cb_preprocess_opt,
                                    vrna_math_fun_dbl_opt_free_f cb_preprocess_opt_free);
@@ -118,14 +118,14 @@ vrna_probing_data_eddy(const double   *reactivities,
 
 
 struct vrna_probing_data_s *
-vrna_probing_data_eddy_trans(const double             *reactivities,
-                             unsigned int             n,
-                             double                   temperature,
-                             unsigned char            options,
-                             const double             *unpaired_data,
-                             unsigned int             unpaired_len,
-                             const double             *paired_data,
-                             unsigned int             paired_len,
+vrna_probing_data_eddy_trans(const double                 *reactivities,
+                             unsigned int                 n,
+                             double                       temperature,
+                             unsigned char                options,
+                             const double                 *unpaired_data,
+                             unsigned int                 unpaired_len,
+                             const double                 *paired_data,
+                             unsigned int                 paired_len,
                              vrna_math_fun_dbl_f          cb_preprocess,
                              vrna_math_fun_dbl_opt_t      cb_preprocess_opt,
                              vrna_math_fun_dbl_opt_free_f cb_preprocess_opt_free);
@@ -196,16 +196,16 @@ vrna_probing_data_eddy_comparative(const double       **reactivities,
 
 
 struct vrna_probing_data_s *
-vrna_probing_data_eddy_trans_comparative(const double             **reactivities,
-                                         const unsigned int       *n,
-                                         unsigned int             n_seq,
-                                         double                   temperature,
-                                         unsigned char            options,
-                                         const double             **unpaired_datas,
-                                         const unsigned int       *unpaired_lens,
-                                         const double             **paired_datas,
-                                         const unsigned int       *paired_lens,
-                                         unsigned int             multi_params,
+vrna_probing_data_eddy_trans_comparative(const double                 **reactivities,
+                                         const unsigned int           *n,
+                                         unsigned int                 n_seq,
+                                         double                       temperature,
+                                         unsigned char                options,
+                                         const double                 **unpaired_datas,
+                                         const unsigned int           *unpaired_lens,
+                                         const double                 **paired_datas,
+                                         const unsigned int           *paired_lens,
+                                         unsigned int                 multi_params,
                                          vrna_math_fun_dbl_f          *cb_preprocess,
                                          vrna_math_fun_dbl_opt_t      *cb_preprocess_opt,
                                          vrna_math_fun_dbl_opt_free_f *cb_preprocess_opt_free);
