@@ -112,8 +112,6 @@ vrna_sc_add_SHAPE_zarringhalam(vrna_fold_compound_t *fc,
                                unsigned int         options);
 
 
-
-
 /**
  *  @brief  Add SHAPE reactivity data as soft constraints (Eddy/RNAprob-2 method)
  *
@@ -125,7 +123,7 @@ vrna_sc_add_SHAPE_zarringhalam(vrna_fold_compound_t *fc,
  *  pairedness @f$ \pi_i @f$ at position @f$ i @f$. The reactivity distribution is computed
  *  using Gaussian kernel density estimation (KDE) with bandwidth @f$ h @f$ computed using
  *  Scott factor
- * 
+ *
  * @f[ h = n^{-\frac{1}{5}} @f]
  *
  * where @f$ n @f$ is the number of data points.
