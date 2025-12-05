@@ -67,10 +67,10 @@ python_wrap_move_update_cb(vrna_fold_compound_t *fc,
   /* compose argument list */
   py_fc       = SWIG_NewPointerObj(SWIG_as_voidptr(fc),
                                    SWIGTYPE_p_vrna_fold_compound_t,
-                                   SWIG_POINTER_NEW);
+                                   0);
   py_neighbor = SWIG_NewPointerObj(SWIG_as_voidptr(&neighbor),
                                    SWIGTYPE_p_vrna_move_t,
-                                   SWIG_POINTER_NEW);
+                                   0);
   py_state    = PyLong_FromLong((long int)state);
   result      = PyObject_CallFunctionObjArgs(func,
                                            py_fc,
