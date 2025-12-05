@@ -20,7 +20,7 @@
 #endif
 
 typedef struct {
-  double        (*thresholds)[2];
+  double (*thresholds)[2];
   size_t        num_thresholds;
   unsigned int  options;
   double        v_min;
@@ -38,17 +38,17 @@ bin_option_free(vrna_math_fun_dbl_opt_t options);
 
 
 PRIVATE double
-fun_bin_opt(double              v,
+fun_bin_opt(double                  v,
             vrna_math_fun_dbl_opt_t options);
 
 
 INLINE PRIVATE double
 fun_bin(double        v,
-        double        (*thresholds)[2],  
-        size_t        num_thresholds,    
-        double        oolb_value,        
-        double        ooub_value,        
-        unsigned int  options);          
+        double        (*thresholds)[2],
+        size_t        num_thresholds,
+        double        oolb_value,
+        double        ooub_value,
+        unsigned int  options);
 
 
 /*
@@ -58,14 +58,14 @@ fun_bin(double        v,
  */
 PUBLIC vrna_math_fun_dbl_f
 vrna_math_fun_dbl_bin_opt(double                    (*thresholds)[2],
-                      unsigned int              thresholds_num,
-                      double                    oolb_value,
-                      double                    ooub_value,
-                      unsigned int              options,
-                      vrna_math_fun_dbl_opt_t       *fun_options_p,
-                      vrna_math_fun_dbl_opt_free_f  *fun_options_free)
+                          unsigned int                  thresholds_num,
+                          double                        oolb_value,
+                          double                        ooub_value,
+                          unsigned int                  options,
+                          vrna_math_fun_dbl_opt_t       *fun_options_p,
+                          vrna_math_fun_dbl_opt_free_f  *fun_options_free)
 {
-  vrna_math_fun_dbl_f  cb = NULL;
+  vrna_math_fun_dbl_f cb = NULL;
 
   if ((thresholds) &&
       (thresholds_num > 1) &&
@@ -79,7 +79,8 @@ vrna_math_fun_dbl_bin_opt(double                    (*thresholds)[2],
 
     o->num_thresholds = thresholds_num;
     o->thresholds     = (double (*)[2])vrna_alloc(thresholds_num * sizeof(*(o->thresholds)));
-    o->thresholds     = (double (*)[2])memcpy(o->thresholds, thresholds, thresholds_num * sizeof(*(o->thresholds)));
+    o->thresholds     = (double (*)[2])memcpy(o->thresholds, thresholds,
+                                              thresholds_num * sizeof(*(o->thresholds)));
 
     cb                = fun_bin_opt;
     *fun_options_p    = (vrna_math_fun_dbl_opt_t)o;
@@ -92,11 +93,11 @@ vrna_math_fun_dbl_bin_opt(double                    (*thresholds)[2],
 
 PUBLIC double
 vrna_math_fun_dbl_bin(double        v,
-                  double        (*thresholds)[2],
-                  size_t        num_thresholds,
-                  double        oolb_value,
-                  double        ooub_value,
-                  unsigned int  options)
+                      double        (*thresholds)[2],
+                      size_t        num_thresholds,
+                      double        oolb_value,
+                      double        ooub_value,
+                      unsigned int  options)
 {
   if ((thresholds) &&
       (num_thresholds > 1)) {
@@ -112,6 +113,7 @@ vrna_math_fun_dbl_bin(double        v,
 
   return v;
 }
+
 
 /*
  #####################################
@@ -129,7 +131,7 @@ bin_option_free(vrna_math_fun_dbl_opt_t options)
 
 
 PRIVATE double
-fun_bin_opt(double              v,
+fun_bin_opt(double                  v,
             vrna_math_fun_dbl_opt_t options)
 {
   fun_bin_opt_t *o = (fun_bin_opt_t *)options;
@@ -145,16 +147,17 @@ fun_bin_opt(double              v,
 
 INLINE PRIVATE double
 fun_bin(double        v,
-        double        (*thresholds)[2],  
-        size_t        num_thresholds,    
-        double        oolb_value,        
-        double        ooub_value,        
-        unsigned int  options)           
+        double        (*thresholds)[2],
+        size_t        num_thresholds,
+        double        oolb_value,
+        double        ooub_value,
+        unsigned int  options)
 {
   if (v < thresholds[0][0])
-    return (options & VRNA_MATH_FUN_BIN_OPTION_MAP_OUTOF_LOWERBOUND) ? thresholds[0][1] : oolb_value;
+    return (options &
+            VRNA_MATH_FUN_BIN_OPTION_MAP_OUTOF_LOWERBOUND) ? thresholds[0][1] : oolb_value;
 
-  size_t  start, end, mid, last;
+  size_t start, end, mid, last;
 
   last  = num_thresholds - 1;
   start = 1;
@@ -167,12 +170,12 @@ fun_bin(double        v,
     if ((v >= thresholds[mid - 1][0]) &&
         (v < thresholds[mid][0])) {
       if (options & VRNA_MATH_FUN_BIN_OPTION_PROJECT) {
-        double diff_source = thresholds[mid][0] - thresholds[mid - 1][0];
-        double diff_target = thresholds[mid][1] - thresholds[mid - 1][1];
-        return  (v - thresholds[mid - 1][0]) /
-                diff_source *
-                diff_target +
-                thresholds[mid - 1][1];
+        double  diff_source = thresholds[mid][0] - thresholds[mid - 1][0];
+        double  diff_target = thresholds[mid][1] - thresholds[mid - 1][1];
+        return (v - thresholds[mid - 1][0]) /
+               diff_source *
+               diff_target +
+               thresholds[mid - 1][1];
       } else {
         return thresholds[mid - 1][1];
       }
@@ -185,7 +188,8 @@ fun_bin(double        v,
   }
 
   if (v > thresholds[last][0])
-    return (options & VRNA_MATH_FUN_BIN_OPTION_MAP_OUTOF_UPPERBOUND) ? thresholds[last][1] : ooub_value;
+    return (options &
+            VRNA_MATH_FUN_BIN_OPTION_MAP_OUTOF_UPPERBOUND) ? thresholds[last][1] : ooub_value;
   else
     return thresholds[last][1];
 }
