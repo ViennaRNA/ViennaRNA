@@ -31,7 +31,6 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 #define VRNA_REACTIVITY_MISSING                                   -999.
 
 
-
 /**
  *  @}
  */
@@ -126,7 +125,6 @@ typedef double *(*vrna_probing_strategy_f)(vrna_fold_compound_t *fc,
  */
 
 
-
 /**
  *  @addtogroup probing_data
  *  @{
@@ -161,16 +159,14 @@ vrna_probing_data_linear(const double             *data,
 
 
 vrna_probing_data_t
-vrna_probing_data_linear_multi(const double              **data,
-                               unsigned int              data_size,
-                               const unsigned int        *data_lengths,
-                               const double              **data_weights,
-                               vrna_probing_strategy_f   *strategy_cbs,
-                               void                      **strategy_cbs_options,
-                               vrna_auxdata_free_f       *strategy_cbs_options_free,
-                               unsigned int              options);
-
-
+vrna_probing_data_linear_multi(const double             **data,
+                               unsigned int             data_size,
+                               const unsigned int       *data_lengths,
+                               const double             **data_weights,
+                               vrna_probing_strategy_f  *strategy_cbs,
+                               void                     **strategy_cbs_options,
+                               vrna_auxdata_free_f      *strategy_cbs_options_free,
+                               unsigned int             options);
 
 
 /**
@@ -183,7 +179,6 @@ vrna_probing_data_linear_multi(const double              **data,
  */
 void
 vrna_probing_data_free(vrna_probing_data_t d);
-
 
 
 /**
