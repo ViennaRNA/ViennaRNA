@@ -9,9 +9,9 @@ on:
         required: false
         type: string
       version-string:
-        description: 'Version string, e.g. 2.7.0'
+        description: 'Version string, e.g. 2.7.1'
         required: false
-        default: '2.7.0'
+        default: '2.7.1'
         type: string
       artifact-name:
         description: 'Name of the artifact'
@@ -31,9 +31,9 @@ on:
         required: false
         type: string
       version-string:
-        description: 'Version string, e.g. 2.7.0'
+        description: 'Version string, e.g. 2.7.1'
         required: false
-        default: '2.7.0'
+        default: '2.7.1'
         type: string
       artifact-name:
         description: 'Name of the artifact'

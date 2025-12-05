@@ -5,7 +5,43 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 ## Version 2.7.x
 
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.7.0...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.7.1...HEAD)
+
+
+### [Version 2.7.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.7.0...v2.7.1)
+
+#### Programs
+  * Allow for FASTA header changes in `ct2db`
+  * Fix constraints parsing in `RNAsubopt`
+  * Add new command line options for structure probing data to `RNAfold` and `RNAsubopt`
+
+
+#### Library
+  * API: Refactor structure probing data API to support multiple data at once, position-wise weighting, user-defined reactivity-to-energy strategies and more
+  * API: Refactor hard constraint wrappers
+  * API: Add `ViennaRNA/math/` to provide several useful mathematical functions
+  * API: Add `vrna_str_to_dbl_array()`
+  * API: Add `vrna_file_doubles_read()`
+  * API: Fix backtracking issues in exterior loop
+  * API: Fix backtracking issues with odd dangles
+  * API: Fix segmentation fault in `vrna_pt_pk_remove()`
+  * API: Fix `vrna_plist()` and `vrna_ptable()` to deal with malformed input
+  * API: Fix soft constraints access in backtracking of QM2 (Boltzmann sampling)
+  * SWIG: Add wrappers for concentration dependency computations
+  * SWIG: Fix `RNA.fold_compound.bpp()` output for multistrand base pair probabilities
+  * SWIG: Do not return symmetric pair probability matrix by default
+  * SWIG: Fix Python object ownership in callbacks for unstructured domains, direct soft constraints and landscape moves
+
+
+#### Package
+  * Update `dlib` to version 20.0
+  * Overall improvements to the documentation
+  * Fix energy parameter file markup
+  * Fix compilation with compilers that default to C23
+  * Update `swig` requirement to 4.2.0
+  * Fix compilation without `libsvm`
+  * Update `breathe` to version v5.0.0a5
+  * Add probing data priors (paired and unpaired) for 1M7 and DMS
 
 
 ### [Version 2.7.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.4...v2.7.0)
