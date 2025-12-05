@@ -188,7 +188,7 @@
 
     py_fc = SWIG_NewPointerObj(SWIG_as_voidptr(fc),
                                SWIGTYPE_p_vrna_fold_compound_t,
-                               SWIG_POINTER_NEW);
+                               0);
     py_i    = PyLong_FromLong(i);
     py_j    = PyLong_FromLong(j);
     py_k    = PyLong_FromLong(k);
@@ -263,7 +263,7 @@
 
     py_fc = SWIG_NewPointerObj(SWIG_as_voidptr(fc),
                                SWIGTYPE_p_vrna_fold_compound_t,
-                               SWIG_POINTER_NEW);
+                               0);
     py_i  = PyLong_FromLong(i);
     py_j  = PyLong_FromLong(j);
     py_k  = PyLong_FromLong(k);
@@ -335,7 +335,7 @@
 
     py_fc = SWIG_NewPointerObj(SWIG_as_voidptr(fc),
                                SWIGTYPE_p_vrna_fold_compound_t,
-                               SWIG_POINTER_NEW);
+                               0);
     py_event = PyLong_FromLong(event);
     if (event_data) {
       py_event_data = PyLong_FromLong(*((unsigned int *)event_data));
