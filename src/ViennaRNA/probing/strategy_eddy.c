@@ -19,13 +19,13 @@
 #define gaussian(u) (1 / (sqrt(2 * PI)) * exp(-u * u / 2))
 
 typedef struct {
-  unsigned char             options;
-  double                    temperature;
-  double                    kT;
+  unsigned char                 options;
+  double                        temperature;
+  double                        kT;
   vrna_array(double)        priors_unpaired;
   vrna_array(double)        priors_paired;
-  double                    unpaired_h;
-  double                    paired_h;
+  double                        unpaired_h;
+  double                        paired_h;
   vrna_math_fun_dbl_f           cb_preprocess;
   vrna_math_fun_dbl_opt_t       cb_preprocess_opt;
   vrna_math_fun_dbl_opt_free_f  cb_preprocess_opt_free;
@@ -97,7 +97,6 @@ bandwidth(unsigned int  n,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-
 PUBLIC double *
 vrna_probing_strategy_eddy(vrna_fold_compound_t *fc,
                            const double         *data,
@@ -110,10 +109,10 @@ vrna_probing_strategy_eddy(vrna_fold_compound_t *fc,
 
   pseudo_energies = NULL;
 
-  if (((target == VRNA_PROBING_DATA_LINEAR_TARGET_UP) || (target == VRNA_PROBING_DATA_LINEAR_TARGET_BP)) &&
+  if (((target == VRNA_PROBING_DATA_LINEAR_TARGET_UP) ||
+       (target == VRNA_PROBING_DATA_LINEAR_TARGET_BP)) &&
       (data) &&
       (data_size > 0)) {
-
     /* preprare (default) options */
     if (options) {
       opt = (eddy_options_t *)options;
@@ -139,8 +138,8 @@ vrna_probing_strategy_eddy(vrna_fold_compound_t *fc,
                                               VRNA_TRANSFORM_DEFAULT);
 
     if (!(opt->options & VRNA_PROBING_STRATEGY_EDDY_NO_TEMPERATURE_RESCALING)) {
-      opt->temperature = fc->params->temperature;
-      opt->kT          = GASCONST * (opt->temperature + K0) / 1000; /* in kcal/mol */
+      opt->temperature  = fc->params->temperature;
+      opt->kT           = GASCONST * (opt->temperature + K0) / 1000; /* in kcal/mol */
     }
 
     /* transform data into actual pseudo-energies */
@@ -161,25 +160,25 @@ vrna_probing_strategy_eddy(vrna_fold_compound_t *fc,
 
 
 PUBLIC void *
-vrna_probing_strategy_eddy_options(double                         temperature,
-                                   unsigned char                  options,
-                                   const double                   *prior_unpaired,
-                                   size_t                         prior_unpaired_size,
-                                   const double                   *prior_paired,
-                                   size_t                         prior_paired_size,
+vrna_probing_strategy_eddy_options(double                       temperature,
+                                   unsigned char                options,
+                                   const double                 *prior_unpaired,
+                                   size_t                       prior_unpaired_size,
+                                   const double                 *prior_paired,
+                                   size_t                       prior_paired_size,
                                    vrna_math_fun_dbl_f          cb_preprocess,
                                    vrna_math_fun_dbl_opt_t      cb_preprocess_opt,
                                    vrna_math_fun_dbl_opt_free_f cb_preprocess_opt_free)
 {
-  const double  *ptr;
-  double        *ptr_transformed;
-  size_t        ptr_size;
+  const double    *ptr;
+  double          *ptr_transformed;
+  size_t          ptr_size;
 
   eddy_options_t  *opt = (eddy_options_t *)vrna_alloc(sizeof(eddy_options_t));
 
-  opt->temperature    = temperature;
-  opt->kT             = GASCONST * (temperature + K0) / 1000; /* in kcal/mol */
-  opt->options        = options;
+  opt->temperature  = temperature;
+  opt->kT           = GASCONST * (temperature + K0) / 1000;   /* in kcal/mol */
+  opt->options      = options;
 
   if (cb_preprocess) {
     opt->cb_preprocess          = cb_preprocess;
@@ -187,12 +186,12 @@ vrna_probing_strategy_eddy_options(double                         temperature,
     opt->cb_preprocess_opt_free = cb_preprocess_opt_free;
   } else {
     /* default preprocessing of the probing data */
-    opt->cb_preprocess          = vrna_math_fun_dbl_log_opt(1,
-                                                        0,
-                                                        VRNA_REACTIVITY_MISSING,
-                                                        VRNA_MATH_FUN_LOG_OPTION_DEFAULT,
-                                                        &(opt->cb_preprocess_opt),
-                                                        &(opt->cb_preprocess_opt_free));
+    opt->cb_preprocess = vrna_math_fun_dbl_log_opt(1,
+                                                   0,
+                                                   VRNA_REACTIVITY_MISSING,
+                                                   VRNA_MATH_FUN_LOG_OPTION_DEFAULT,
+                                                   &(opt->cb_preprocess_opt),
+                                                   &(opt->cb_preprocess_opt_free));
   }
 
   /* append transformed priors */
@@ -202,10 +201,10 @@ vrna_probing_strategy_eddy_options(double                         temperature,
     ptr_size  = prior_unpaired_size;
   } else {
     /* parse build-in priors */
-    ptr       = vrna_str_to_dbl_array(probing_data_prior_probing_1M7_unpaired,
-                                      "\n",
-                                      0);
-    ptr_size  = vrna_array_size(ptr);
+    ptr = vrna_str_to_dbl_array(probing_data_prior_probing_1M7_unpaired,
+                                "\n",
+                                0);
+    ptr_size = vrna_array_size(ptr);
   }
 
   ptr_transformed = vrna_data_lin_transform(ptr,
@@ -234,10 +233,10 @@ vrna_probing_strategy_eddy_options(double                         temperature,
     ptr_size  = prior_paired_size;
   } else {
     /* parse build-in priors */
-    ptr       = vrna_str_to_dbl_array(probing_data_prior_probing_1M7_paired,
-                                      "\n",
-                                      0);
-    ptr_size  = vrna_array_size(ptr);
+    ptr = vrna_str_to_dbl_array(probing_data_prior_probing_1M7_paired,
+                                "\n",
+                                0);
+    ptr_size = vrna_array_size(ptr);
   }
 
   ptr_transformed = vrna_data_lin_transform(ptr,
@@ -268,7 +267,7 @@ vrna_probing_strategy_eddy_options(double                         temperature,
 PUBLIC void
 vrna_probing_strategy_eddy_options_free(void *options)
 {
-  eddy_options_t  *opt = (eddy_options_t *)options;
+  eddy_options_t *opt = (eddy_options_t *)options;
 
   if (opt->cb_preprocess_opt_free)
     opt->cb_preprocess_opt_free(opt->cb_preprocess_opt);
@@ -305,14 +304,14 @@ vrna_probing_data_eddy(const double   *reactivities,
 
 
 PUBLIC struct vrna_probing_data_s *
-vrna_probing_data_eddy_trans(const double             *reactivities,
-                             unsigned int             n,
-                             double                   temperature,
-                             unsigned char            options,
-                             const double             *unpaired_data,
-                             unsigned int             unpaired_len,
-                             const double             *paired_data,
-                             unsigned int             paired_len,
+vrna_probing_data_eddy_trans(const double                 *reactivities,
+                             unsigned int                 n,
+                             double                       temperature,
+                             unsigned char                options,
+                             const double                 *unpaired_data,
+                             unsigned int                 unpaired_len,
+                             const double                 *paired_data,
+                             unsigned int                 paired_len,
                              vrna_math_fun_dbl_f          trans,
                              vrna_math_fun_dbl_opt_t      trans_options,
                              vrna_math_fun_dbl_opt_free_f trans_options_free)
@@ -337,7 +336,6 @@ vrna_probing_data_eddy_trans(const double             *reactivities,
 
   return NULL;
 }
-
 
 
 PUBLIC struct vrna_probing_data_s *
@@ -369,26 +367,27 @@ vrna_probing_data_eddy_comparative(const double       **reactivities,
 
 
 PUBLIC struct vrna_probing_data_s *
-vrna_probing_data_eddy_trans_comparative(const double **reactivities,
-                                         const unsigned int *n,
-                                         unsigned int n_seq,
-                                         double       temperature,
-                                         unsigned char  options,
-                                         const double **unpaired_datas,
-                                         const unsigned int *unpaired_lens,
-                                         const double **paired_datas,
-                                         const unsigned int *paired_lens,
-                                         unsigned int multi_params,
+vrna_probing_data_eddy_trans_comparative(const double                 **reactivities,
+                                         const unsigned int           *n,
+                                         unsigned int                 n_seq,
+                                         double                       temperature,
+                                         unsigned char                options,
+                                         const double                 **unpaired_datas,
+                                         const unsigned int           *unpaired_lens,
+                                         const double                 **paired_datas,
+                                         const unsigned int           *paired_lens,
+                                         unsigned int                 multi_params,
                                          vrna_math_fun_dbl_f          *trans,
                                          vrna_math_fun_dbl_opt_t      *trans_options,
                                          vrna_math_fun_dbl_opt_free_f *trans_options_free)
 {
-  const double                          *priors_unpaired, *priors_paired;
-  double                                priors_unpaired_size, priors_paired_size;
-  struct vrna_probing_data_s            *d = NULL;
-  vrna_math_fun_dbl_f                 cb_trans;
-  vrna_math_fun_dbl_opt_t             cb_trans_options;
-  vrna_math_fun_dbl_opt_free_f        cb_trans_options_free;
+  const double                  *priors_unpaired, *priors_paired;
+  double                        priors_unpaired_size, priors_paired_size;
+  struct vrna_probing_data_s    *d = NULL;
+  vrna_math_fun_dbl_f           cb_trans;
+  vrna_math_fun_dbl_opt_t       cb_trans_options;
+  vrna_math_fun_dbl_opt_free_f  cb_trans_options_free;
+
   vrna_array(vrna_probing_strategy_f)   cbs_linear;
   vrna_array(void *)                    cbs_linear_options;
   vrna_array(vrna_auxdata_free_f)       cbs_linear_options_free;
@@ -431,6 +430,7 @@ vrna_probing_data_eddy_trans_comparative(const double **reactivities,
           cb_trans = trans[s];
           if (trans_options)
             cb_trans_options = trans_options[s];
+
           if (trans_options_free)
             cb_trans_options_free = trans_options_free[s];
         }
@@ -471,20 +471,17 @@ vrna_probing_data_eddy_trans_comparative(const double **reactivities,
 }
 
 
-
-
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #
  #####################################
  */
-
-
 PRIVATE double
-conversion_eddy_up(double       value,
+conversion_eddy_up(double         value,
                    eddy_options_t *options)
 {
   FLT_OR_DBL p;
+
   if (value == VRNA_REACTIVITY_MISSING) {
     return 0;
   } else {
@@ -493,16 +490,17 @@ conversion_eddy_up(double       value,
                          options->unpaired_h,
                          options->priors_unpaired);
     p = (p > 1e-10) ? p : 1e-10;
-    return  -options->kT * log(p);
+    return -options->kT * log(p);
   }
 }
 
 
 PRIVATE double
-conversion_eddy_bp(double       value,
+conversion_eddy_bp(double         value,
                    eddy_options_t *options)
 {
   FLT_OR_DBL p;
+
   if (value == VRNA_REACTIVITY_MISSING) {
     return 0;
   } else {
@@ -511,7 +509,7 @@ conversion_eddy_bp(double       value,
                          options->paired_h,
                          options->priors_paired);
     p = (p > 1e-10) ? p : 1e-10;
-    return  -options->kT * log(p);
+    return -options->kT * log(p);
   }
 }
 
@@ -527,8 +525,8 @@ gaussian_kde_pdf(double       x,
                  float        h,
                  const double *data)
 {
-  FLT_OR_DBL total;
-  int count;
+  FLT_OR_DBL  total;
+  int         count;
 
   total = 0.;
   count = 0;
@@ -575,11 +573,11 @@ PRIVATE FLT_OR_DBL
 bandwidth(unsigned int  n,
           const double  *data)
 {
-  double factor, mu, std;
-  int count;
+  double  factor, mu, std;
+  int     count;
 
-  mu  = 0.;
-  std = 0.;
+  mu    = 0.;
+  std   = 0.;
   count = 0;
 
   factor = (pow(n, -1. / 5));
@@ -592,12 +590,10 @@ bandwidth(unsigned int  n,
   }
   mu /= count;
 
-  for (unsigned int i = 0; i < n; i++) {
+  for (unsigned int i = 0; i < n; i++)
     if (data[i] != VRNA_REACTIVITY_MISSING)
       std += (data[i] - mu) * (data[i] - mu);
-  }
+
   std = sqrt(std / (count - 1));
   return (FLT_OR_DBL)(factor * std);
 }
-
-
