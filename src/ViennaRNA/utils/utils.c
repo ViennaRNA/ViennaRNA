@@ -86,7 +86,7 @@ vrna_alloc(size_t size)
   if ((pointer = (void *)calloc(1, size)) == NULL) {
 #ifdef EINVAL
     if (errno == EINVAL) {
-      fprintf(stderr, "vrna_alloc: requested size: %d\n", size);
+      fprintf(stderr, "vrna_alloc: requested size: %ld\n", size);
       ("Memory allocation failure -> EINVAL");
     }
 
@@ -110,7 +110,7 @@ vrna_realloc(void     *p,
   if (p == NULL) {
 #ifdef EINVAL
     if (errno == EINVAL) {
-      fprintf(stderr, "vrna_realloc: requested size: %d\n", size);
+      fprintf(stderr, "vrna_realloc: requested size: %ld\n", size);
       vrna_log_error("vrna_realloc allocation failure -> EINVAL");
     }
 
