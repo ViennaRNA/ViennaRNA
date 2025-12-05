@@ -37,19 +37,20 @@
 
 double *
 vrna_probing_strategy_deigan(vrna_fold_compound_t *fc,
-                             const double *data,
-                             size_t       data_size,
-                             unsigned int target,
-                             void         *options);
+                             const double         *data,
+                             size_t               data_size,
+                             unsigned int         target,
+                             void                 *options);
 
 
 void *
-vrna_probing_strategy_deigan_options(double                   m,
-                                     double                   b,
-                                     double                   max_value,
+vrna_probing_strategy_deigan_options(double                       m,
+                                     double                       b,
+                                     double                       max_value,
                                      vrna_math_fun_dbl_f          cb_preprocess,
                                      vrna_math_fun_dbl_opt_t      cb_preprocess_opt,
                                      vrna_math_fun_dbl_opt_free_f cb_preprocess_opt_free);
+
 
 void
 vrna_probing_strategy_deigan_options_free(void *options);
@@ -96,10 +97,10 @@ vrna_probing_data_deigan(const double *reactivities,
 
 
 vrna_probing_data_t
-vrna_probing_data_deigan_trans(const double             *reactivities,
-                               unsigned int             n,
-                               double                   m,
-                               double                   b,
+vrna_probing_data_deigan_trans(const double                 *reactivities,
+                               unsigned int                 n,
+                               double                       m,
+                               double                       b,
                                vrna_math_fun_dbl_f          cb_preprocess,
                                vrna_math_fun_dbl_opt_t      cb_preprocess_opt,
                                vrna_math_fun_dbl_opt_free_f cb_preprocess_opt_free);
@@ -157,12 +158,12 @@ vrna_probing_data_deigan_comparative(const double       **reactivities,
 
 
 vrna_probing_data_t
-vrna_probing_data_deigan_trans_comparative(const double             **reactivities,
-                                           const unsigned int       *n,
-                                           unsigned int             n_seq,
-                                           double                   *ms,
-                                           double                   *bs,
-                                           unsigned int             multi_params,
+vrna_probing_data_deigan_trans_comparative(const double                 **reactivities,
+                                           const unsigned int           *n,
+                                           unsigned int                 n_seq,
+                                           double                       *ms,
+                                           double                       *bs,
+                                           unsigned int                 multi_params,
                                            vrna_math_fun_dbl_f          *cb_preprocess,
                                            vrna_math_fun_dbl_opt_t      *cb_preprocess_opt,
                                            vrna_math_fun_dbl_opt_free_f *cb_preprocess_opt_free);
