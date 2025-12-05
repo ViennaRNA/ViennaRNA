@@ -47,7 +47,7 @@ typedef struct {
  * Log(1+x) for x > -1, ignore otherwise
  */
 PRIVATE double
-fun_logistic_opt(double               v,
+fun_logistic_opt(double                   v,
                  vrna_math_fun_dbl_opt_t  options);
 
 
@@ -69,14 +69,14 @@ logistic_option_free(vrna_math_fun_dbl_opt_t options);
  #################################
  */
 PUBLIC vrna_math_fun_dbl_f
-vrna_math_fun_dbl_logistic_opt(double                   mid_point,
-                           double                   supremum,
-                           double                   growth_rate,
-                           unsigned int             options,
-                           vrna_math_fun_dbl_opt_t      *fun_options_p,
-                           vrna_math_fun_dbl_opt_free_f *fun_options_free)
+vrna_math_fun_dbl_logistic_opt(double                       mid_point,
+                               double                       supremum,
+                               double                       growth_rate,
+                               unsigned int                 options,
+                               vrna_math_fun_dbl_opt_t      *fun_options_p,
+                               vrna_math_fun_dbl_opt_free_f *fun_options_free)
 {
-  vrna_math_fun_dbl_f  cb = NULL;
+  vrna_math_fun_dbl_f cb = NULL;
 
   if ((fun_options_p) &&
       (fun_options_free)) {
@@ -98,10 +98,10 @@ vrna_math_fun_dbl_logistic_opt(double                   mid_point,
 
 PUBLIC double
 vrna_math_fun_dbl_logistic(double       v,
-                       double       mid_point,
-                       double       supremum,
-                       double       growth_rate,
-                       unsigned int options)
+                           double       mid_point,
+                           double       supremum,
+                           double       growth_rate,
+                           unsigned int options)
 {
   return fun_logistic(v,
                       mid_point,
@@ -124,7 +124,7 @@ logistic_option_free(vrna_math_fun_dbl_opt_t options)
 
 
 PRIVATE double
-fun_logistic_opt(double               value,
+fun_logistic_opt(double                   value,
                  vrna_math_fun_dbl_opt_t  options)
 {
   fun_logistic_opt_t *o = (fun_logistic_opt_t *)options;
