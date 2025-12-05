@@ -390,7 +390,7 @@ py_wrap_ud_energy(vrna_fold_compound_t *vc,
   /* compose argument list */
   py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
                                    SWIGTYPE_p_vrna_fold_compound_t,
-                                   SWIG_POINTER_NEW);
+                                   0);
   py_i        = PyLong_FromLong(i);
   py_j        = PyLong_FromLong(j);
   py_looptype = PyLong_FromLong(looptype);
@@ -450,7 +450,7 @@ py_wrap_ud_exp_energy(vrna_fold_compound_t *vc,
   /* compose argument list */
   py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
                                    SWIGTYPE_p_vrna_fold_compound_t,
-                                   SWIG_POINTER_NEW);
+                                   0);
   py_i        = PyLong_FromLong(i);
   py_j        = PyLong_FromLong(j);
   py_looptype = PyLong_FromLong(looptype);
@@ -509,7 +509,7 @@ py_wrap_ud_prob_add(vrna_fold_compound_t *vc,
   /* compose argument list */
   py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
                                    SWIGTYPE_p_vrna_fold_compound_t,
-                                   SWIG_POINTER_NEW);
+                                   0);
   py_i        = PyLong_FromLong(i);
   py_j        = PyLong_FromLong(j);
   py_looptype = PyLong_FromLong(looptype);
@@ -569,7 +569,7 @@ py_wrap_ud_prob_get(vrna_fold_compound_t *vc,
   /* compose argument list */
   py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
                                    SWIGTYPE_p_vrna_fold_compound_t,
-                                   SWIG_POINTER_NEW);
+                                   0);
   py_i        = PyLong_FromLong(i);
   py_j        = PyLong_FromLong(j);
   py_looptype = PyLong_FromLong(looptype);
