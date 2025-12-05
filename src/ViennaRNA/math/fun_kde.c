@@ -19,14 +19,13 @@
 #endif
 
 
-
 typedef struct {
   vrna_array(double)        samples;
   vrna_math_fun_dbl_f           kernel;
   vrna_math_fun_dbl_opt_t       kernel_data;
   vrna_math_fun_dbl_opt_free_f  kernel_data_free;
-  double                    bandwidth;
-  unsigned int              options;
+  double                        bandwidth;
+  unsigned int                  options;
 } fun_kde_opt_t;
 
 
@@ -48,17 +47,17 @@ typedef struct {
  #################################
  */
 PRIVATE double
-fun_kde_opt(double              v,
+fun_kde_opt(double                  v,
             vrna_math_fun_dbl_opt_t options);
 
 
 INLINE PRIVATE double
-fun_kde(double              v,
-        double              *samples,
-        size_t              num_samples,
+fun_kde(double                  v,
+        double                  *samples,
+        size_t                  num_samples,
         vrna_math_fun_dbl_f     kernel,
         vrna_math_fun_dbl_opt_t kernel_data,
-        double              bandwidth);
+        double                  bandwidth);
 
 
 PRIVATE void
@@ -76,17 +75,17 @@ gaussian_bandwidth_default(const double *data,
  #################################
  */
 PUBLIC vrna_math_fun_dbl_f
-vrna_math_fun_dbl_kde_opt(double                    *samples,
-                      size_t                    num_samples,
-                      vrna_math_fun_dbl_f           kernel,
-                      vrna_math_fun_dbl_opt_t       kernel_data,
-                      vrna_math_fun_dbl_opt_free_f  kernel_data_free,
-                      double                    bandwidth,
-                      unsigned int              options,
-                      vrna_math_fun_dbl_opt_t       *fun_options_p,
-                      vrna_math_fun_dbl_opt_free_f  *fun_options_free)
+vrna_math_fun_dbl_kde_opt(double                        *samples,
+                          size_t                        num_samples,
+                          vrna_math_fun_dbl_f           kernel,
+                          vrna_math_fun_dbl_opt_t       kernel_data,
+                          vrna_math_fun_dbl_opt_free_f  kernel_data_free,
+                          double                        bandwidth,
+                          unsigned int                  options,
+                          vrna_math_fun_dbl_opt_t       *fun_options_p,
+                          vrna_math_fun_dbl_opt_free_f  *fun_options_free)
 {
-  vrna_math_fun_dbl_f  cb = NULL;
+  vrna_math_fun_dbl_f cb = NULL;
 
   if ((fun_options_p) &&
       (fun_options_free) &&
@@ -94,7 +93,7 @@ vrna_math_fun_dbl_kde_opt(double                    *samples,
       (num_samples > 0)) {
     fun_kde_opt_t *o = (fun_kde_opt_t *)vrna_alloc(sizeof(fun_kde_opt_t));
 
-    o->options  = options;
+    o->options = options;
 
     /* store the samples */
     vrna_array_init_size(o->samples, num_samples);
@@ -108,14 +107,14 @@ vrna_math_fun_dbl_kde_opt(double                    *samples,
       o->kernel_data_free = kernel_data_free;
       o->bandwidth        = bandwidth;
     } else {
-      o->kernel       = vrna_math_fun_dbl_gaussian_opt(1. / sqrt(2 * PI),
-                                                   0,
-                                                   1.,
-                                                   VRNA_MATH_FUN_GAUSSIAN_OPTION_DEFAULT,
-                                                   &(o->kernel_data),
-                                                   &(o->kernel_data_free));
-      o->bandwidth    = gaussian_bandwidth_default(o->samples,
-                                                   vrna_array_size(o->samples));
+      o->kernel = vrna_math_fun_dbl_gaussian_opt(1. / sqrt(2 * PI),
+                                                 0,
+                                                 1.,
+                                                 VRNA_MATH_FUN_GAUSSIAN_OPTION_DEFAULT,
+                                                 &(o->kernel_data),
+                                                 &(o->kernel_data_free));
+      o->bandwidth = gaussian_bandwidth_default(o->samples,
+                                                vrna_array_size(o->samples));
     }
 
     cb                = fun_kde_opt;
@@ -128,13 +127,13 @@ vrna_math_fun_dbl_kde_opt(double                    *samples,
 
 
 PUBLIC double
-vrna_math_fun_dbl_kde(double                    value,
-                  double                    *samples,
-                  size_t                    num_samples,
-                  vrna_math_fun_dbl_f           kernel,
-                  vrna_math_fun_dbl_opt_t       kernel_data,
-                  double                    bandwidth,
-                  unsigned int              options)
+vrna_math_fun_dbl_kde(double                  value,
+                      double                  *samples,
+                      size_t                  num_samples,
+                      vrna_math_fun_dbl_f     kernel,
+                      vrna_math_fun_dbl_opt_t kernel_data,
+                      double                  bandwidth,
+                      unsigned int            options)
 {
   double result = 0.;
 
@@ -149,11 +148,11 @@ vrna_math_fun_dbl_kde(double                    value,
       kd  = kernel_data;
     } else {
       k = vrna_math_fun_dbl_gaussian_opt(1. / sqrt(2 * PI),
-                                     0,
-                                     1.,
-                                     VRNA_MATH_FUN_GAUSSIAN_OPTION_DEFAULT,
-                                     &kd,
-                                     &kd_free);
+                                         0,
+                                         1.,
+                                         VRNA_MATH_FUN_GAUSSIAN_OPTION_DEFAULT,
+                                         &kd,
+                                         &kd_free);
       bandwidth = gaussian_bandwidth_default(samples, num_samples);
     }
 
@@ -163,7 +162,6 @@ vrna_math_fun_dbl_kde(double                    value,
                      k,
                      kd,
                      bandwidth);
-
   } else {
     vrna_log_warning("Missing samples in KDE! Returning input value instead");
   }
@@ -192,10 +190,10 @@ kde_option_free(vrna_math_fun_dbl_opt_t options)
 
 
 PRIVATE double
-fun_kde_opt(double              value,
+fun_kde_opt(double                  value,
             vrna_math_fun_dbl_opt_t options)
 {
-  fun_kde_opt_t *o  = (fun_kde_opt_t *)options;
+  fun_kde_opt_t *o = (fun_kde_opt_t *)options;
 
   return fun_kde(value,
                  o->samples,
@@ -207,12 +205,12 @@ fun_kde_opt(double              value,
 
 
 INLINE PRIVATE double
-fun_kde(double              value,
-        double              *samples,
-        size_t              num_samples,
+fun_kde(double                  value,
+        double                  *samples,
+        size_t                  num_samples,
         vrna_math_fun_dbl_f     kernel,
         vrna_math_fun_dbl_opt_t kernel_data,
-        double              bandwidth)
+        double                  bandwidth)
 {
   double t = 0;
 
@@ -242,7 +240,7 @@ gaussian_bandwidth_default(const double *data,
   count = 0;
 
   factor = (pow((double)n, -1. / 5)) *
-            (pow(4. / 3., 1. / 5.));
+           (pow(4. / 3., 1. / 5.));
 
   /* compute mean */
   for (i = 0; i < n; i++)
@@ -258,4 +256,3 @@ gaussian_bandwidth_default(const double *data,
 
   return factor * std;
 }
-
