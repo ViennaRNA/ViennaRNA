@@ -34,8 +34,8 @@
 
 
 struct vrna_probing_data_s {
-  vrna_array(double *)                  data_linear;   /* actual data */
-  vrna_array(double)                    data_linear_weight;    /* weight for each data set */
+  vrna_array(double *)                  data_linear;          /* actual data */
+  vrna_array(double *)                  data_linear_weight;   /* weight for each data set */
   vrna_array(vrna_probing_strategy_f)   cbs_linear;
   vrna_array(void *)                    cbs_linear_options;
   vrna_array(vrna_auxdata_free_f)       cbs_linear_options_free;
@@ -131,12 +131,13 @@ vrna_sc_probing(vrna_fold_compound_t  *fc,
 
 
 PUBLIC vrna_probing_data_t
-vrna_probing_data_linear(const double              *data,
-                         unsigned int              data_length,
-                         double                    data_weight,
-                         vrna_probing_strategy_f   strategy_cb,
-                         void                      *strategy_cb_options,
-                         vrna_auxdata_free_f       strategy_cb_options_free)
+vrna_probing_data_linear(const double             *data,
+                         unsigned int             data_length,
+                         const double             *data_weights,
+                         vrna_probing_strategy_f  strategy_cb,
+                         void                     *strategy_cb_options,
+                         vrna_auxdata_free_f      strategy_cb_options_free,
+                         unsigned int             options)
 {
   struct vrna_probing_data_s  *d = NULL;
 
@@ -144,11 +145,11 @@ vrna_probing_data_linear(const double              *data,
     return vrna_probing_data_linear_multi(&data,
                                           1,
                                           &data_length,
-                                          &data_weight,
-                                          &strategy_cb,
-                                          &strategy_cb_options,
-                                          &strategy_cb_options_free,
-                                          VRNA_PROBING_DATA_DEFAULT);
+                                          (data_weights) ? &data_weights : NULL,
+                                          (strategy_cb) ? &strategy_cb : NULL,
+                                          (strategy_cb_options) ? &strategy_cb_options : NULL,
+                                          (strategy_cb_options_free) ? &strategy_cb_options_free : NULL,
+                                          options);
   }
 
   return d;
@@ -159,17 +160,18 @@ PUBLIC vrna_probing_data_t
 vrna_probing_data_linear_multi(const double              **data,
                                unsigned int              data_size,
                                const unsigned int        *data_lengths,
-                               const double              *data_weights,
+                               const double              **data_weights,
                                vrna_probing_strategy_f   *strategy_cbs,
                                void                      **strategy_cbs_options,
                                vrna_auxdata_free_f       *strategy_cbs_options_free,
                                unsigned int              options)
 {
   double                      weight = 1.0;
+  vrna_array(double)          w;
   struct vrna_probing_data_s  *d = NULL;
-  vrna_probing_strategy_f   cb;
-  void                      *cb_options;
-  vrna_auxdata_free_f       cb_options_free;
+  vrna_probing_strategy_f     cb;
+  void                        *cb_options;
+  vrna_auxdata_free_f         cb_options_free;
 
   if ((data) &&
       (data_lengths) &&
@@ -197,9 +199,33 @@ vrna_probing_data_linear_multi(const double              **data,
       }
     }
 
-    if (options & VRNA_PROBING_DATA_SINGLE_WEIGHT) {
+    if (options & VRNA_PROBING_DATA_WEIGHT_POSITION_WISE) {
+      if (!data_weights) {
+        vrna_log_error("No weight data given despite request for position wise weights");
+        vrna_log_warning("deactivating position wise weighting");
+
+        options &= ~VRNA_PROBING_DATA_WEIGHT_POSITION_WISE;
+      } else {
+        /*  check for consistency, i.e. a weight vector must be present for
+         *  each data set
+         */
+        for (size_t i = 0; i < data_size; i++) {
+          if ((data[i]) &&
+              (data_lengths[i]) &&
+              (data_weights[i] == NULL)) {
+            vrna_log_error("Missing weight data for data set %ld despite request for position wise weights", i);
+            vrna_log_warning("deactivating position wise weighting");
+            options &= ~VRNA_PROBING_DATA_WEIGHT_POSITION_WISE;
+            break;
+          }
+        }
+      }
+    }
+
+    if ((options & VRNA_PROBING_DATA_SINGLE_WEIGHT) &&
+        (!(options & VRNA_PROBING_DATA_WEIGHT_POSITION_WISE))) {
       if (data_weights) {
-        weight = data_weights[0];
+        weight = data_weights[0][0];
       } else {
         weight = get_msa_weight(data, data_size);
       }
@@ -210,20 +236,41 @@ vrna_probing_data_linear_multi(const double              **data,
     for (size_t i = 0; i < data_size; i++) {
       if ((data[i]) &&
           (data_lengths[i])) {
-        /* init and store raw probing data */
         vrna_array(double)  a;
+
+        /* init and store raw probing data */
         vrna_array_init_size(a, data_lengths[i] + 1);
         for (size_t j = 0; j <= data_lengths[i]; j++)
           vrna_array_append(a, data[i][j]);
 
         vrna_array_append(d->data_linear, a);
+        a = NULL;
 
-        /* store weight for this data set */
-        if (options & VRNA_PROBING_DATA_SINGLE_WEIGHT) {
-          vrna_array_append(d->data_linear_weight, weight);
+        /* prepare and store weights for this data set */
+        vrna_array_init_size(a, data_lengths[i] + 1);
+
+        if (options & VRNA_PROBING_DATA_WEIGHT_POSITION_WISE) {
+          if (options & VRNA_PROBING_DATA_SINGLE_WEIGHT) {
+            /* use weights from first weight vector for all data sets */
+            for (size_t j = 0; j <= data_lengths[i]; j++)
+              vrna_array_append(a, data_weights[0][j]);
+          } else {
+            for (size_t j = 0; j <= data_lengths[i]; j++)
+              vrna_array_append(a, data_weights[i][j]);
+          }
         } else {
-          vrna_array_append(d->data_linear_weight, (data_weights) ? data_weights[i] : weight);
+          if (options & VRNA_PROBING_DATA_SINGLE_WEIGHT) {
+            /* use the same weight for all positions in all data sets */
+            for (size_t j = 0; j <= data_lengths[i]; j++)
+              vrna_array_append(a, weight);
+          } else {
+            for (size_t j = 0; j <= data_lengths[i]; j++)
+              vrna_array_append(a, ((data_weights) && (data_weights[i])) ? data_weights[i][0] : weight);
+          }
         }
+
+        vrna_array_append(d->data_linear_weight, a);
+        a = NULL;
 
         /* set corresponding conversion strategy */
         if (options & VRNA_PROBING_DATA_SINGLE_STRATEGY) {
@@ -251,7 +298,7 @@ vrna_probing_data_linear_multi(const double              **data,
         }
       } else {
         vrna_array_append(d->data_linear, NULL);
-        vrna_array_append(d->data_linear_weight, 0.);
+        vrna_array_append(d->data_linear_weight, NULL);
         vrna_array_append(d->cbs_linear, NULL);
         vrna_array_append(d->cbs_linear_options, NULL);
         vrna_array_append(d->cbs_linear_options_free, NULL);
@@ -274,7 +321,11 @@ vrna_probing_data_free(struct vrna_probing_data_s *d)
 
     vrna_array_free(d->data_linear);
 
-    /* free weight vector */
+    /* free weights */
+    if (d->data_linear_weight)
+      for (size_t i = 0; i < vrna_array_size(d->data_linear_weight); i++)
+        vrna_array_free(d->data_linear_weight[i]);
+
     vrna_array_free(d->data_linear_weight);
 
     /* free probing strategy callback vector */
@@ -396,6 +447,79 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
 }
 
 
+PUBLIC unsigned int
+vrna_probing_data_linear_num(struct vrna_probing_data_s *data)
+{
+  return (data) ? vrna_array_size(data->data_linear) : 0;
+}
+
+
+PUBLIC double *
+vrna_probing_data_linear_raw(struct vrna_probing_data_s *data,
+                             unsigned int               pos,
+                             unsigned int               *data_size)
+{
+  double *raw;
+
+  raw         = NULL;
+  *data_size  = 0;
+
+  if ((data) &&
+      (vrna_array_size(data->data_linear) >= pos) &&
+      (data->data_linear[pos])) {
+    *data_size  = vrna_array_size(data->data_linear[pos]);
+    raw         = vrna_alloc(sizeof(double) * *data_size);
+    raw         = memcpy(raw, data->data_linear[pos], sizeof(double) * *data_size);
+  }
+
+  return raw;
+}
+
+
+PUBLIC double *
+vrna_probing_data_linear_weight(struct vrna_probing_data_s  *data,
+                                unsigned int                pos,
+                                unsigned int                *data_size)
+{
+  double *w;
+
+  w           = NULL;
+  *data_size  = 0;
+
+  if ((data) &&
+      (vrna_array_size(data->data_linear_weight) >= pos) &&
+      (data->data_linear_weight[pos])) {
+    *data_size  = vrna_array_size(data->data_linear_weight[pos]);
+    w           = vrna_alloc(sizeof(double) * *data_size);
+    w           = memcpy(w, data->data_linear_weight[pos], sizeof(double) * *data_size);
+  }
+
+  return w;
+}
+
+
+PUBLIC double *
+vrna_probing_data_linear_energies(struct vrna_probing_data_s  *data,
+                                  unsigned int                pos,
+                                  vrna_fold_compound_t        *fc,
+                                  unsigned int                target,
+                                  unsigned int                *data_size)
+{
+  double *e;
+
+  e           = NULL;
+  *data_size  = 0;
+
+  if ((data) &&
+      (vrna_array_size(data->data_linear) > pos) &&
+      (data->data_linear[pos])) {
+    *data_size  = vrna_array_size(data->data_linear[pos]);
+    e           = prepare_linear_data(fc, data, pos, target);
+  }
+
+  return e;
+}
+
 
 
 /*
@@ -455,7 +579,7 @@ apply_probing_data(vrna_fold_compound_t        *fc,
             for (i = 1; i <= n; ++i)
               ret &= vrna_sc_add_stack(fc,
                                        i,
-                                       e[i] * data->data_linear_weight[0],
+                                       e[i] * data->data_linear_weight[0][i],
                                        VRNA_OPTION_DEFAULT);
 
             free(e);
@@ -470,7 +594,7 @@ apply_probing_data(vrna_fold_compound_t        *fc,
             for (i = 1; i <= n; ++i) {
               ret &= vrna_sc_add_up(fc,
                                     i,
-                                    e[i] * data->data_linear_weight[0],
+                                    e[i] * data->data_linear_weight[0][i],
                                     VRNA_OPTION_DEFAULT);
             }
 
@@ -487,7 +611,8 @@ apply_probing_data(vrna_fold_compound_t        *fc,
                 ret &= vrna_sc_add_bp(fc,
                                       i,
                                       j,
-                                      (e[i] + e[j]) * data->data_linear_weight[0],
+                                      (e[i] * data->data_linear_weight[0][i]) +
+                                      (e[j] * data->data_linear_weight[0][j]),
                                       VRNA_OPTION_DEFAULT);
               }
 
@@ -524,7 +649,7 @@ apply_probing_data(vrna_fold_compound_t        *fc,
                 ret &= vrna_sc_add_stack_comparative_seq(fc,
                                                          s,
                                                          i,
-                                                         e[i] * data->data_linear_weight[s],
+                                                         e[i] * data->data_linear_weight[s][i],
                                                          VRNA_OPTION_DEFAULT);
 
               free(e);
@@ -537,7 +662,7 @@ apply_probing_data(vrna_fold_compound_t        *fc,
                 ret &= vrna_sc_add_up_comparative_seq(fc,
                                                       s,
                                                       i,
-                                                      e[i] * data->data_linear_weight[s],
+                                                      e[i] * data->data_linear_weight[s][i],
                                                       VRNA_OPTION_DEFAULT);
 
               free(e);
@@ -552,7 +677,8 @@ apply_probing_data(vrna_fold_compound_t        *fc,
                                                         s,
                                                         i,
                                                         j,
-                                                        (e[i] + e[j]) * data->data_linear_weight[0],
+                                                        (e[i] * data->data_linear_weight[s][i]) +
+                                                        (e[j] * data->data_linear_weight[s][j]),
                                                         VRNA_OPTION_DEFAULT);
                 }
 

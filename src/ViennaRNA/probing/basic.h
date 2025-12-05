@@ -42,9 +42,10 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
  *  @{
  */
 
-#define VRNA_PROBING_DATA_DEFAULT                                 0
+#define VRNA_PROBING_DATA_WEIGHT_POSITION_WISE                    (1 << 2)
 #define VRNA_PROBING_DATA_SINGLE_STRATEGY                         (1 << 0)
 #define VRNA_PROBING_DATA_SINGLE_WEIGHT                           (1 << 1)
+#define VRNA_PROBING_DATA_DEFAULT                                 0
 
 #define VRNA_PROBING_DATA_LINEAR_TARGET_STACK                     (1 << 4)
 #define VRNA_PROBING_DATA_LINEAR_TARGET_UP                        (1 << 5)
@@ -150,19 +151,20 @@ vrna_sc_probing(vrna_fold_compound_t  *fc,
 
 
 vrna_probing_data_t
-vrna_probing_data_linear(const double              *data,
-                         unsigned int              data_length,
-                         double                    data_weight,
-                         vrna_probing_strategy_f   strategy_cb,
-                         void                      *strategy_cb_options,
-                         vrna_auxdata_free_f       strategy_cb_options_free);
+vrna_probing_data_linear(const double             *data,
+                         unsigned int             data_length,
+                         const double             *data_weights,
+                         vrna_probing_strategy_f  strategy_cb,
+                         void                     *strategy_cb_options,
+                         vrna_auxdata_free_f      strategy_cb_options_free,
+                         unsigned int             options);
 
 
 vrna_probing_data_t
 vrna_probing_data_linear_multi(const double              **data,
                                unsigned int              data_size,
                                const unsigned int        *data_lengths,
-                               const double              *data_weights,
+                               const double              **data_weights,
                                vrna_probing_strategy_f   *strategy_cbs,
                                void                      **strategy_cbs_options,
                                vrna_auxdata_free_f       *strategy_cbs_options_free,
@@ -181,6 +183,30 @@ vrna_probing_data_linear_multi(const double              **data,
  */
 void
 vrna_probing_data_free(vrna_probing_data_t d);
+
+
+unsigned int
+vrna_probing_data_linear_num(struct vrna_probing_data_s *data);
+
+
+double *
+vrna_probing_data_linear_raw(struct vrna_probing_data_s *data,
+                             unsigned int               pos,
+                             unsigned int               *data_size);
+
+
+double *
+vrna_probing_data_linear_weight(struct vrna_probing_data_s  *data,
+                                unsigned int                pos,
+                                unsigned int                *data_size);
+
+
+double *
+vrna_probing_data_linear_energies(struct vrna_probing_data_s  *data,
+                                  unsigned int                pos,
+                                  vrna_fold_compound_t        *fc,
+                                  unsigned int                target,
+                                  unsigned int                *data_size);
 
 
 /**

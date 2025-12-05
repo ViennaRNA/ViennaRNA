@@ -320,7 +320,7 @@ vrna_probing_data_eddy_trans(const double             *reactivities,
   if (reactivities) {
     return vrna_probing_data_linear(reactivities,
                                     n,
-                                    1.,
+                                    NULL,
                                     vrna_probing_strategy_eddy,
                                     vrna_probing_strategy_eddy_options(temperature,
                                                                        options,
@@ -331,7 +331,8 @@ vrna_probing_data_eddy_trans(const double             *reactivities,
                                                                        trans,
                                                                        trans_options,
                                                                        trans_options_free),
-                                    vrna_probing_strategy_eddy_options_free);
+                                    vrna_probing_strategy_eddy_options_free,
+                                    VRNA_PROBING_DATA_DEFAULT);
   }
 
   return NULL;

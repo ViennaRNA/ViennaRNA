@@ -192,7 +192,7 @@ vrna_probing_data_deigan_trans(const double             *reactivities,
 
     return vrna_probing_data_linear(reactivities,
                                     n,
-                                    1.,
+                                    NULL,
                                     vrna_probing_strategy_deigan,
                                     vrna_probing_strategy_deigan_options(m,
                                                                          b,
@@ -200,7 +200,8 @@ vrna_probing_data_deigan_trans(const double             *reactivities,
                                                                          trans,
                                                                          trans_options,
                                                                          trans_options_free),
-                                    vrna_probing_strategy_deigan_options_free);
+                                    vrna_probing_strategy_deigan_options_free,
+                                    VRNA_PROBING_DATA_DEFAULT);
   }
 
   return NULL;

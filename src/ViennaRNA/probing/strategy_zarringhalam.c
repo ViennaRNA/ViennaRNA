@@ -198,7 +198,7 @@ vrna_probing_data_zarringhalam(const double *reactivities,
 
     return vrna_probing_data_linear(reactivities,
                                     n,
-                                    1.,
+                                    NULL,
                                     vrna_probing_strategy_zarringhalam,
                                     vrna_probing_strategy_zarringhalam_options(beta,
                                                                                pr_default,
@@ -206,7 +206,8 @@ vrna_probing_data_zarringhalam(const double *reactivities,
                                                                                trans,
                                                                                trans_options,
                                                                                trans_options_free),
-                                    vrna_probing_strategy_zarringhalam_options_free);
+                                    vrna_probing_strategy_zarringhalam_options_free,
+                                    VRNA_PROBING_DATA_DEFAULT);
   }
 
   return NULL;
@@ -229,7 +230,7 @@ vrna_probing_data_zarringhalam_trans(const double *reactivities,
 
     return vrna_probing_data_linear(reactivities,
                                     n,
-                                    1.,
+                                    NULL,
                                     vrna_probing_strategy_zarringhalam,
                                     vrna_probing_strategy_zarringhalam_options(beta,
                                                                                pr_default,
@@ -237,7 +238,8 @@ vrna_probing_data_zarringhalam_trans(const double *reactivities,
                                                                                trans,
                                                                                trans_options,
                                                                                trans_options_free),
-                                    vrna_probing_strategy_zarringhalam_options_free);
+                                    vrna_probing_strategy_zarringhalam_options_free,
+                                    VRNA_PROBING_DATA_DEFAULT);
   }
 
   return NULL;
