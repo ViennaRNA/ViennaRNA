@@ -513,6 +513,15 @@ pr_defaults: list(double)
 
 %}
 
+
+%newobject probing_data_deigan;
+%newobject probing_data_deigan_comparative;
+%newobject probing_data_zarringhalam;
+%newobject probing_data_zarringhalam_comparative;
+%newobject probing_data_eddy;
+%newobject probing_data_eddy_comparative;
+
+
 #ifdef SWIGPYTHON
 %feature("autodoc") probing_data_deigan;
 %feature("kwargs") probing_data_deigan;
@@ -589,11 +598,6 @@ probing_data_eddy_comparative(std::vector< std::vector<double> > reactivities,
 
 
 
-%constant double        PROBING_METHOD_DEIGAN2009_DEFAULT_m                 = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m;
-%constant double        PROBING_METHOD_DEIGAN2009_DEFAULT_b                 = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b;
-%constant double        PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta        = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta;
-%constant char *        PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion  = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion;
-%constant double        PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability;
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_0                       = VRNA_PROBING_METHOD_MULTI_PARAMS_0;
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_1                       = VRNA_PROBING_METHOD_MULTI_PARAMS_1;
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_2                       = VRNA_PROBING_METHOD_MULTI_PARAMS_2;
@@ -602,6 +606,7 @@ probing_data_eddy_comparative(std::vector< std::vector<double> > reactivities,
 %constant unsigned int  PROBING_DATA_CHECK_SEQUENCE                         = VRNA_PROBING_DATA_CHECK_SEQUENCE;
 
 
+%constant double        REACTIVITY_MISSING                = VRNA_REACTIVITY_MISSING;
 %constant unsigned int  PROBING_DATA_WEIGHT_POSITION_WISE = VRNA_PROBING_DATA_WEIGHT_POSITION_WISE;
 %constant unsigned int  PROBING_DATA_SINGLE_STRATEGY      = VRNA_PROBING_DATA_SINGLE_STRATEGY;
 %constant unsigned int  PROBING_DATA_SINGLE_WEIGHT        = VRNA_PROBING_DATA_SINGLE_WEIGHT;
@@ -612,8 +617,22 @@ probing_data_eddy_comparative(std::vector< std::vector<double> > reactivities,
 
 
 %include  <ViennaRNA/probing/basic.h>
+
+%constant double        PROBING_METHOD_DEIGAN2009_DEFAULT_m                 = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m;
+%constant double        PROBING_METHOD_DEIGAN2009_DEFAULT_b                 = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b;
+
 %include  <ViennaRNA/probing/strategy_deigan.h>
+
+%constant unsigned int  PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT           = VRNA_PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT;
+%constant unsigned int  PROBING_STRATEGY_EDDY_NO_TEMPERATURE_RESCALING  = VRNA_PROBING_STRATEGY_EDDY_NO_TEMPERATURE_RESCALING;
+
+
 %include  <ViennaRNA/probing/strategy_eddy.h>
+
+%constant double        PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta        = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta;
+%constant char *        PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion  = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion;
+%constant double        PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability;
+
 %include  <ViennaRNA/probing/strategy_zarringhalam.h>
 
 %include  <ViennaRNA/data/transform.h>
