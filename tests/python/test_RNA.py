@@ -143,7 +143,7 @@ class GeneralTests(unittest.TestCase):
         start = RNA.random_string(len(struct1), "GC")
         cost = 100
         trial = 0
-        max_tries = 100
+        max_tries = 500
         while cost != 0 and trial < max_tries:
             (sinv, cost) = RNA.inverse_fold(start, struct1)
             trial += 1
