@@ -185,22 +185,78 @@ void
 vrna_probing_data_free(vrna_probing_data_t d);
 
 
+
+/**
+ *  @brief  Get the number of structure probing data sets
+ *
+ *  @see vrna_probing_data_linear(), vrna_probing_data_linear_multi()
+ *
+ *  @param  data  The data structure storing the probing data
+ *  @return       The number of probing data sets stored in @p data
+ */
 unsigned int
 vrna_probing_data_linear_num(struct vrna_probing_data_s *data);
 
 
+/**
+ *  @brief  Get the raw probing data
+ *
+ *  This function retrieves a copy of the structure probing data
+ *  set number @p pos as stored in @p data. The number of values
+ *  returned by this function is stored in @p data_size.
+ *
+ *  @see  vrna_probing_data_linear(), vrna_probing_data_linear_multi(),
+ *        vrna_probing_data_linear_num(), vrna_probing_data_linear_weight(),
+ *        vrna_probing_data_linear_energies()
+ *
+ *  @param  data      The data structure storing the probing data
+ *  @param  pos       The position of the data set
+ *  @param  data_size A pointer to a variable to store the number of returned values to
+ *  @return           A copy of the @p pos -th probing data set stored in @p data
+ */
 double *
 vrna_probing_data_linear_raw(struct vrna_probing_data_s *data,
                              unsigned int               pos,
                              unsigned int               *data_size);
 
 
+/**
+ *  @brief  Get the weights for a probing data set
+ *
+ *  @see  vrna_probing_data_linear(), vrna_probing_data_linear_multi(),
+ *        vrna_probing_data_linear_num(), vrna_probing_data_linear_raw(),
+ *        vrna_probing_data_linear_energies()
+ *
+ *  @param  data      The data structure storing the probing data
+ *  @param  pos       The position of the weights vector
+ *  @param  data_size A pointer to a variable to store the number of returned values to
+ *  @return           A copy of the @p pos -th weighting vector stored in @p data
+ */
 double *
 vrna_probing_data_linear_weight(struct vrna_probing_data_s  *data,
                                 unsigned int                pos,
                                 unsigned int                *data_size);
 
 
+/**
+ *  @brief  Get pseudo energy contributions from a structure probing data set
+ *
+ *  This function retrieves a vector of pseudo energies derived from a set
+ *  of structure probing data stored in @p data. For that, the function calls
+ *  the probing data strategy that is associated with @p data.
+ *
+ *  @see  vrna_probing_data_linear(), vrna_probing_data_linear_multi(),
+ *        vrna_probing_data_linear_num(), vrna_probing_data_linear_raw(),
+ *        vrna_probing_data_linear_weight(), #VRNA_PROBING_DATA_LINEAR_TARGET_STACK,
+ *        #VRNA_PROBING_DATA_LINEAR_TARGET_UP, #VRNA_PROBING_DATA_LINEAR_TARGET_BP
+ *
+ *  @param  data      The data structure storing the probing data
+ *  @param  pos       The position of the weights vector
+ *  @param  fc        The fold_compound that will be passed through to the conversion strategy
+ *  @param  target    The target, i.e. the structure context the pseudo energies should be applied to
+ *  @param  data_size A pointer to a variable to store the number of returned values to
+ *  @return           An array of pseudo energies (1-based) or @b NULL
+ */
 double *
 vrna_probing_data_linear_energies(struct vrna_probing_data_s  *data,
                                   unsigned int                pos,
