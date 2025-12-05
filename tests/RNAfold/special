@@ -69,17 +69,17 @@ if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed
 for f in TPP_riboswitch_E.coli Lysine_riboswitch_T._martima 5domain16S_rRNA_H.volcanii 5domain16S_rRNA_E.coli
 do
   testname="SHAPE probing data ($f) Deigan et al. 2009 method"
-  RNAfold --noPS --shape=${DATADIR}/${f}.shape_2rows --shapeMethod=D < ${DATADIR}/${f}.db > rnafold_special.fold
+  RNAfold --noPS --sp-data=${DATADIR}/${f}.shape_2rows --sp-strategy=D < ${DATADIR}/${f}.db > rnafold_special.fold
   diff=$(${DIFF} -ru ${RNAFOLD_RESULTSDIR}/rnafold.SHAPE.${f}.D.gold rnafold_special.fold)
   if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
 
   testname="SHAPE probing data ($f) Zarringhalam et al. 2012 method"
-  RNAfold --noPS --shape=${DATADIR}/${f}.shape_2rows --shapeMethod=Z < ${DATADIR}/${f}.db > rnafold_special.fold
+  RNAfold --noPS --sp-data=${DATADIR}/${f}.shape_2rows --sp-strategy=Z < ${DATADIR}/${f}.db > rnafold_special.fold
   diff=$(${DIFF} -ru ${RNAFOLD_RESULTSDIR}/rnafold.SHAPE.${f}.Z.gold rnafold_special.fold)
   if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
 
   testname="SHAPE probing data ($f) Washietl et al. 2012 method"
-  RNAfold --noPS --shape=${DATADIR}/${f}.pvmin --shapeMethod=W < ${DATADIR}/${f}.db > rnafold_special.fold
+  RNAfold --noPS --sp-data=${DATADIR}/${f}.pvmin --sp-strategy=W < ${DATADIR}/${f}.db > rnafold_special.fold
   diff=$(${DIFF} -ru ${RNAFOLD_RESULTSDIR}/rnafold.SHAPE.${f}.W.gold rnafold_special.fold)
   if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
 done
