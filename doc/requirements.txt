@@ -1,4 +1,4 @@
-sphinx<7
+sphinx
 sphinx-multiproject
 myst-parser
 sphinx-copybutton
