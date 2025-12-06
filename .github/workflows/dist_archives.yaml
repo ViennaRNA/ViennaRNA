@@ -107,14 +107,14 @@ jobs:
     - name: Make tarball
       id: tarball
       run:  |
-        make -j $(nproc) dist-gzip
+        make dist-gzip
         version_number=$(ls ViennaRNA-*.tar.gz)
         version_number="${version_number#ViennaRNA-}"
         version_number="${version_number%.tar.gz}"
         echo "version_number=${version_number}" >> "$GITHUB_OUTPUT"
     - name: Make ZIP
       if: ${{ inputs.zip }}
-      run:  make -j $(nproc) dist-zip
+      run:  make dist-zip
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:

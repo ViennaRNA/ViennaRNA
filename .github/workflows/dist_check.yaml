@@ -77,4 +77,4 @@ jobs:
     - name: Configure
       run: ./configure ${{ inputs.config-flags }}
     - name: distcheck
-      run:  make -j $(nproc) distcheck
+      run:  make distcheck
