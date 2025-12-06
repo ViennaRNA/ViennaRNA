@@ -47,6 +47,7 @@
 #include "modified_bases_helpers.h"
 #include "ViennaRNA/intern/color_output.h"
 #include "parallel_helpers.h"
+#include "probing_data_helpers.h"
 
 
 struct options {

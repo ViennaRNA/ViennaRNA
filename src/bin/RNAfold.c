@@ -61,6 +61,7 @@
 #include "input_id_helpers.h"
 #include "modified_bases_helpers.h"
 #include "parallel_helpers.h"
+#include "probing_data_helpers.h"
 
 
 struct options {
@@ -86,10 +87,8 @@ struct options {
   int             constraint_enforce;
   int             constraint_canonical;
 
-  int             shape;
-  char            *shape_file;
-  char            *shape_method;
-  char            *shape_conversion;
+  /* structure probing data releated options */
+  probing_data_t  *probing_data;
 
   vrna_sc_mod_param_t *mod_params;
 
@@ -414,10 +413,7 @@ init_default_options(struct options *opt)
   opt->constraint_enforce   = 0;
   opt->constraint_canonical = 0;
 
-  opt->shape            = 0;
-  opt->shape_file       = NULL;
-  opt->shape_method     = NULL;
-  opt->shape_conversion = NULL;
+  opt->probing_data     = NULL;
 
   opt->mod_params         = NULL;
 
@@ -469,9 +465,6 @@ main(int  argc,
     vrna_log_warning("Requested dangle model not implemented, falling back to default dangles=2");
     opt.md.dangles = dangles = 2;
   }
-
-  /* SHAPE reactivity data */
-  ggo_get_SHAPE(args_info, opt.shape, opt.shape_file, opt.shape_method, opt.shape_conversion);
 
   ggo_get_id_control(args_info, opt.id_control, "Sequence", "sequence", "_", 4, 1);
 
@@ -539,6 +532,9 @@ main(int  argc,
   ggo_get_modified_base_settings(args_info, opt.mod_params, &(opt.md));
 
   ggo_geometry_settings(args_info, &(opt.md));
+
+  /* collect probing data */
+  ggo_get_probing_data(argc, argv, args_info, opt.probing_data);
 
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
@@ -666,9 +662,6 @@ main(int  argc,
   free(input_files);
   free(opt.constraint_file);
   free(opt.ligandMotif);
-  free(opt.shape_file);
-  free(opt.shape_method);
-  free(opt.shape_conversion);
   free(opt.filename_delim);
   vrna_commands_free(opt.cmds);
 
@@ -680,6 +673,8 @@ main(int  argc,
   }
 
   free_id_data(opt.id_control);
+
+  probing_data_free(opt.probing_data);
 
   if (vrna_log_fp() != stderr)
     fclose(vrna_log_fp());
@@ -844,7 +839,8 @@ process_input(FILE            *input_stream,
 
     RUN_IN_PARALLEL(process_record, record);
 
-    if (opt->shape || (opt->constraint_file && (!opt->constraint_batch))) {
+    if ((opt->probing_data) ||
+        (opt->constraint_file && (!opt->constraint_batch))) {
       ret = 0;
       break;
     }
@@ -931,6 +927,11 @@ process_record(struct record_data *record)
                       opt->constraint_canonical);
   }
 
+  if (opt->probing_data)
+    apply_probing_data(vc,
+                       opt->probing_data);
+
+#if 0
   if (opt->shape) {
     vrna_constraints_add_SHAPE(vc,
                                opt->shape_file,
@@ -939,6 +940,7 @@ process_record(struct record_data *record)
                                opt->verbose,
                                VRNA_OPTION_DEFAULT);
   }
+#endif
 
   if (opt->ligandMotif) {
     add_ligand_motif(vc,

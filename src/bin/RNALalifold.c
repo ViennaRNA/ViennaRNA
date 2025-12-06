@@ -33,9 +33,11 @@
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/probing/SHAPE.h"
+
 #include "RNALalifold_cmdl.h"
 #include "gengetopt_helpers.h"
 #include "input_id_helpers.h"
+#include "probing_data_helpers.h"
 
 #include "ViennaRNA/intern/color_output.h"
 

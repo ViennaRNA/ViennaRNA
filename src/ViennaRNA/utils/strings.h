@@ -296,6 +296,12 @@ vrna_strjoin(const char **strings,
              const char *delimiter);
 
 
+vrna_array(double)
+vrna_str_to_dbl_array(const char    *str,
+                      const char    *delimiter,
+                      unsigned int  options);
+
+
 /**
  *  @brief Create a random string using characters from a specified symbol set
  *

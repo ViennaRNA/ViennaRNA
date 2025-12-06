@@ -63,7 +63,7 @@ vrna_mfe_gquad_internal_loop(vrna_fold_compound_t *fc,
 /**
  *  @brief  Get G-Quadruplexes (MFE)
  *
- *  This function yields a sparse, two-dimensional matrix @f$ G @f@ that at
+ *  This function yields a sparse, two-dimensional matrix @f$ G @f$ that at
  *  position @f$ G(i,j) @f$ stores the minimum free energy of a G-Quadruplex
  *  that starts at @f$ i @f$ and ends at @f$ j @f$.
  *

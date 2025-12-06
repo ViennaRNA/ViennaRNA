@@ -6,12 +6,6 @@ Breathe has some limited support for Sphinx domains. It tries to output targets
 that the Sphinx domain references expect. This should allow you to use Sphinx
 domain roles like ``:c:func:`foo``` to link to output from Breathe.
 
-The following targets are supported:
-
-* C & C++ functions
-* C++ classes
-
-
 Class Example
 -------------
 
@@ -26,8 +20,8 @@ Given the following Breathe directives:
 
 Which create formatted output like:
 
-   .. doxygenclass:: TestNamespaceClasses::NamespacedClassTest
-      :path: ../../examples/specific/class/xml
+.. doxygenclass:: TestNamespaceClasses::NamespacedClassTest
+   :path: ../../examples/specific/class/xml
 
 We can refer to **NamespacedClassTest** using:
 
@@ -56,9 +50,9 @@ Given the following Breathe directive::
 
 Which create formatted output like:
 
-   .. doxygenclass:: OuterClass
-      :path: ../../examples/specific/class/xml
-      :members:
+.. doxygenclass:: OuterClass
+   :path: ../../examples/specific/class/xml
+   :members:
 
 We can refer to **OuterClass::InnerClass** using::
 
@@ -83,11 +77,11 @@ Given the following Breathe directives:
 
 Which create formatted output like:
 
-   .. doxygenfunction:: TestNamespaceClasses::NamespacedClassTest::function
-      :path: ../../examples/specific/class/xml
+.. doxygenfunction:: TestNamespaceClasses::NamespacedClassTest::function
+   :path: ../../examples/specific/class/xml
 
-   .. doxygenfunction:: frob_foos
-      :path: ../../examples/specific/alias/xml
+.. doxygenfunction:: frob_foos
+   :path: ../../examples/specific/alias/xml
 
 We can refer to **namespaceFunc** using:
 
@@ -139,15 +133,15 @@ Given the following Breathe directives:
 
 which create formatted output like:
 
-   .. doxygentypedef:: TestTypedef
-      :path: ../../examples/specific/typedef/xml
+.. doxygentypedef:: TestTypedef
+   :path: ../../examples/specific/typedef/xml
 
-   .. doxygennamespace:: TypeDefNamespace
-      :path: ../../examples/specific/typedef/xml
+.. doxygennamespace:: TypeDefNamespace
+   :path: ../../examples/specific/typedef/xml
 
-   .. doxygenclass:: TestClass
-      :path: ../../examples/specific/typedef/xml
-      :members:
+.. doxygenclass:: TestClass
+   :path: ../../examples/specific/typedef/xml
+   :members:
 
 We can refer to **TestTypedef** using:
 
@@ -186,11 +180,11 @@ Given the following Breathe directives:
 
 Which create formatted output like:
 
-   .. doxygenenumvalue:: VALUE
-      :path: ../../examples/specific/enum/xml
+.. doxygenenumvalue:: VALUE
+   :path: ../../examples/specific/enum/xml
 
-   .. doxygenenumvalue:: TestEnumNamespace::FIRST
-      :path: ../../examples/specific/enum/xml
+.. doxygenenumvalue:: TestEnumNamespace::FIRST
+   :path: ../../examples/specific/enum/xml
 
 We can refer to **VALUE** using:
 

@@ -1,0 +1,70 @@
+/*#######################################*/
+/* Interface for static probing data     */
+/*#######################################*/
+
+#ifdef SWIGPYTHON
+
+%inline %{
+  /* tokenize string and create vector of doubles */
+  PyObject *
+  vrna_string_to_double_tuple(std::string s)
+  {
+    vrna_array(double)  c_vs;
+    PyObject            *py_data;
+
+    py_data = Py_None;
+    c_vs    = vrna_str_to_dbl_array(s.c_str(), "\n", 0);
+
+    if (c_vs) {
+      py_data = PyTuple_New(vrna_array_size(c_vs));
+
+      for (size_t i = 0; i < vrna_array_size(c_vs); i++) {
+        PyObject *d = PyFloat_FromDouble( c_vs[i]);
+        PyTuple_SET_ITEM(py_data, i, d);
+      }
+    }
+
+    vrna_array_free(c_vs);
+
+    return py_data;
+  }
+%}
+
+
+@SWIG_PROBING_DATA_PRIOR_CONST_PYTHON@
+
+#endif
+
+#ifdef SWIGPERL5
+
+%inline %{
+  /* tokenize string and create vector of doubles */
+  AV *
+  vrna_string_to_double_array(std::string s)
+  {
+    vrna_array(double)  c_vs;
+    AV*                 av;
+
+    av    = (AV*)sv_2mortal((SV*)newAV());
+    c_vs  = vrna_str_to_dbl_array(s.c_str(), "\n", 0);
+
+    if (c_vs) {
+      for (size_t i = 0; i < vrna_array_size(c_vs); i++) {
+        SV *v = newSVnv(c_vs[i]);
+        if (!av_store(av, i, v))
+            SvREFCNT_dec(v);
+      }
+    }
+
+    vrna_array_free(c_vs);
+
+    return av;
+  }
+%}
+
+
+@SWIG_PROBING_DATA_PRIOR_CONST_PERL5@
+
+#endif
+
+%include  <ViennaRNA/static/probing_data_priors.h>

@@ -13,6 +13,7 @@ DIST_SUBDIRS = static @NAVIEW_DIR@
 vrna_backtrackdir       = $(pkgincludedir)/backtrack
 vrna_combinatoricsdir   = $(pkgincludedir)/combinatorics
 vrna_constraintsdir     = $(pkgincludedir)/constraints
+vrna_datadir            = $(pkgincludedir)/data
 vrna_datastructuresdir  = $(pkgincludedir)/datastructures
 vrna_evaldir            = $(pkgincludedir)/eval
 vrna_grammardir         = $(pkgincludedir)/grammar
@@ -20,6 +21,7 @@ vrna_inversedir         = $(pkgincludedir)/inverse
 vrna_iodir              = $(pkgincludedir)/io
 vrna_landscapedir       = $(pkgincludedir)/landscape
 vrna_loopsdir           = $(pkgincludedir)/loops
+vrna_mathdir            = $(pkgincludedir)/math
 vrna_mfedir             = $(pkgincludedir)/mfe
 vrna_paramsdir          = $(pkgincludedir)/params
 vrna_partfuncdir        = $(pkgincludedir)/partfunc
@@ -45,11 +47,13 @@ noinst_LTLIBRARIES =  \
     libRNA_concentrations.la \
     libRNA_constraints.la \
     libRNA_conv.la \
+    libRNA_data.la \
     libRNA_datastructures.la \
     libRNA_eval.la \
     libRNA_grammar.la \
     libRNA_inverse.la \
     libRNA_landscape.la \
+    libRNA_math.la \
     libRNA_mfe.la \
     libRNA_params.la \
     libRNA_partfunc.la \
@@ -82,12 +86,14 @@ libRNA_conv_la_LIBADD = \
     libRNA_combinatorics.la \
     libRNA_concentrations.la \
     libRNA_constraints.la \
+    libRNA_data.la \
     libRNA_datastructures.la \
     libRNA_eval.la \
     libRNA_grammar.la \
     libRNA_inverse.la \
     libRNA_landscape.la \
     libRNA_mfe.la \
+    libRNA_math.la \
     libRNA_params.la \
     libRNA_partfunc.la \
     libRNA_plotting.la \
@@ -135,6 +141,8 @@ if VRNA_AM_SWITCH_SVM
 
   libRNA_svm_la_CPPFLAGS = $(CPPFLAGS)  -I$(top_srcdir)/src ${SVM_INC} -U_OPENMP ## disable OpenMP support for libSVM
   libRNA_utils_la_CPPFLAGS = $(AM_CPPFLAGS) ${SVM_INC}
+else
+  libRNA_utils_la_CPPFLAGS = $(AM_CPPFLAGS)
 endif
 
 JSON_SRC    = ../json/json.c
@@ -270,7 +278,18 @@ vrna_constraints_HEADERS = \
 
 vrna_probing_HEADERS = \
     probing/basic.h \
-    probing/SHAPE.h
+    probing/SHAPE.h \
+    probing/strategy_deigan.h \
+    probing/strategy_eddy.h \
+    probing/strategy_zarringhalam.h
+
+
+vrna_data_HEADERS = \
+    data/transform.h
+
+
+vrna_math_HEADERS = \
+    math/functions.h
 
 
 vrna_loops_HEADERS = \
@@ -510,7 +529,23 @@ libRNA_constraints_la_SOURCES = \
 
 libRNA_probing_la_SOURCES = \
     probing/probing.c \
+    probing/strategy_deigan.c \
+    probing/strategy_zarringhalam.c \
+    probing/strategy_eddy.c \
     probing/SHAPE.c
+
+
+libRNA_data_la_SOURCES = \
+    data/transform.c
+
+
+libRNA_math_la_SOURCES = \
+    math/fun_bin.c \
+    math/fun_gaussian.c \
+    math/fun_kde.c \
+    math/fun_linear.c \
+    math/fun_log.c \
+    math/fun_logistic.c
 
 
 libRNA_structures_la_SOURCES = \

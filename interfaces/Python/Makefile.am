@@ -25,6 +25,7 @@ LANG_SPECIFIC_INTERFACE_FILES = \
   $(srcdir)/callbacks-mfe-window.i \
   $(srcdir)/callbacks-pf-window.i \
   $(srcdir)/callbacks-log.i \
+  $(srcdir)/callbacks-probing-data.i \
   $(builddir)/version.i \
   $(doxy2swig_pydoc_file)
 

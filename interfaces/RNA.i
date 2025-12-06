@@ -63,7 +63,13 @@ extern "C" {
 
 #include  <ViennaRNA/probing/basic.h>
 #include  <ViennaRNA/probing/SHAPE.h>
+#include  <ViennaRNA/probing/strategy_deigan.h>
+#include  <ViennaRNA/probing/strategy_eddy.h>
+#include  <ViennaRNA/probing/strategy_zarringhalam.h>
 
+#include  <ViennaRNA/data/transform.h>
+
+#include  <ViennaRNA/math/functions.h>
 
 #ifdef VRNA_WITH_NAVIEW_LAYOUT
 #include  <ViennaRNA/plotting/naview/naview.h>
@@ -151,6 +157,7 @@ extern "C" {
 #include  <ViennaRNA/mm.h>
 
 #include  <ViennaRNA/static/energy_parameter_sets.h>
+#include  <ViennaRNA/static/probing_data_priors.h>
 }
 
 %}
@@ -283,11 +290,13 @@ namespace std {
 %include constraints_soft.i
 %include constraints_ligand.i
 %include constraints_mod.i
+%include data.i
 %include probing.i
 %include probing_SHAPE.i
 %include eval.i
 %include loops.i
 %include basic_algorithms.i
+%include math.i
 %include mfe.i
 %include mfe_window.i
 %include backtrack.i
@@ -312,6 +321,7 @@ namespace std {
 %include fold_compound.i
 %include dp_matrices.i
 %include parameter_sets.i
+%include probing_data_priors.i
 
 /**********************************************/
 /* BEGIN interface for data structures        */

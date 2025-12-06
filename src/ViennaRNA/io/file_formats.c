@@ -709,6 +709,62 @@ vrna_file_SHAPE_read(const char *file_name,
 }
 
 
+PUBLIC double *
+vrna_file_doubles_read(const char   *file_name,
+                       unsigned int options,
+                       size_t       *values_count)
+{
+  FILE                *fp;
+  char                *line;
+  int                 i;
+  vrna_array(double)  vs;
+  double              v, *values;
+
+  values = NULL;
+
+  if (!values_count)
+    return values;
+
+  *values_count = 0;
+
+  if (!file_name)
+    return values;
+
+  if (!(fp = fopen(file_name, "r"))) {
+    vrna_log_warning("data file could not be opened");
+    return values;
+  }
+
+  vrna_array_init(vs);
+
+  while ((line = vrna_read_line(fp))) {
+    if (sscanf(line, "%lf", &v) != 1) {
+      free(line);
+      continue;
+    }
+
+    vrna_array_append(vs, v);
+
+    free(line);
+  }
+
+  fclose(fp);
+
+  if (vrna_array_size(vs) == 0) {
+    vrna_log_warning("data file is empty or doesn't contain floating point numbers");
+  } else {
+    /* convert vrna_array() to simple array */
+    values        = (double *)vrna_alloc(sizeof(double) * vrna_array_size(vs));
+    values        = memcpy(values, vs, sizeof(double) * vrna_array_size(vs));
+    *values_count = vrna_array_size(vs);
+  }
+
+  vrna_array_free(vs);
+
+  return values;
+}
+
+
 PUBLIC int
 vrna_file_RNAstrand_db_read_record(FILE         *fp,
                                    char         **name_p,

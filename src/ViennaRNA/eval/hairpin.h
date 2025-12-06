@@ -103,7 +103,7 @@ vrna_E_hairpin(unsigned int size,
  *  @brief Evaluate free energy of a hairpin loop
  *
  *  This function evaluates the free energy of a hairpin loop closed by a base pair
- *  (i,j). By default (@p options = #VRNA_EVAL_DEFAULT), @emph all user-supplied
+ *  (i,j). By default (@p options = #VRNA_EVAL_LOOP_DEFAULT), *all* user-supplied
  *  constraints will be taken into consideration. This means that any hard constraints
  *  that prohibit the formation of this loop will result in an energy contribution
  *  of @b #INF. On the other hand, if, given the set of constraints, the loop is

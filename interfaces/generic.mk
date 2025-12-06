@@ -17,6 +17,7 @@ SWIG_misc_src = \
   $(srcdir)/../constraints_soft.i \
   $(srcdir)/../constraints_ligand.i \
   $(srcdir)/../constraints_mod.i \
+  $(srcdir)/../data.i \
   $(srcdir)/../probing.i \
   $(srcdir)/../probing_SHAPE.i \
   $(srcdir)/../data_structures.i \
@@ -28,6 +29,7 @@ SWIG_misc_src = \
   $(srcdir)/../grammar.i \
   $(srcdir)/../inverse.i \
   $(srcdir)/../loops.i \
+  $(srcdir)/../math.i \
   $(srcdir)/../mfe.i \
   $(srcdir)/../mfe_window.i \
   $(srcdir)/../model_details.i \
@@ -45,7 +47,8 @@ SWIG_misc_src = \
   $(srcdir)/../utils.i \
   $(srcdir)/../var_arrays.i \
   $(srcdir)/../walk.i \
-  $(builddir)/../parameter_sets.i
+  $(builddir)/../parameter_sets.i \
+  $(builddir)/../probing_data_priors.i
 
 SWIG_module_name = RNA
 

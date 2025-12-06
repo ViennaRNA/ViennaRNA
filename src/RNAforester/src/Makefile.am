@@ -14,6 +14,7 @@ AM_CPPFLAGS = $(VRNA_CFLAGS) \
 
 # C++ compiler flags 
 AM_CXXFLAGS = -Wall -std=c++98 #-fmudflap -funwind-tables 
+AM_CFLAGS = -std=c99
 
 # C++ linker flags
 #AM_LDFLAGS = -lmudflap

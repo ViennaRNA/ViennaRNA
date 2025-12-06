@@ -129,36 +129,6 @@ using:
 .ft
 .fi
 
-.I Guide structure prediction with SHAPE reactivity data
-
-Use SHAPE reactivity data to guide secondary structure prediction:
-
-.nf
-.ft CW
-  $ RNAfold --shape=reactivities.dat < sequence.fa
-.ft
-.fi
-
-where the file reactivities.dat is a two column text file with sequence positions (1-based)
-and normalized reactivity values (usually between 0 and 2. Missing values may be left out,
-or assigned a negative score:
-
-.nf
-.ft CW
-  $ cat reactivities.dat
-  9    -999       # No reactivity information
-  10   -999
-  11   0.042816   # normalized SHAPE reactivity
-  12   0          # also a valid SHAPE reactivity
-  15   0.15027    # Missing data for pos. 13-14
-  ...
-  42   0.16201
-.ft
-.fi
-
-Note, that RNAfold will only process the first sequence in the input file, when provided
-with SHAPE reactivity data!
-
 .I Complex structure constraints and grammar extensions
 
 Structure constraints beyond those that can be expressed with a pseudo-dot bracket notation
@@ -214,6 +184,95 @@ option:
   $ RNAfold --constraint=constraints.txt --batch < sequences.fa
 .ft
 .fi
+
+
+[>EXAMPLES]
+.SH "EXPERIMENTAL STRUCTURE PROBING DATA"
+
+Structure predictions can be guided by additional structure probing data. Such data
+may be derived from SHAPE, DMS, or similar techniques. In our software we implement
+different strategies that convert the probing data (reactivities) into pseudo energy
+contributions that guide the predictions.
+
+Probing reactivities have to be provided in the form of a two column text file
+with sequence positions (1-based) and (normalized) reactivity values (usually
+between 0 and 2. Missing values may be left out, or assigned a negative score,
+e.g.:
+
+.nf
+.ft CW
+  $ cat reactivities.dat
+  9    -999       # No reactivity information
+  10   -999
+  11   0.042816   # normalized SHAPE reactivity
+  12   0          # also a valid SHAPE reactivity
+  15   0.15027    # Missing data for pos. 13-14
+  ...
+  42   0.16201
+.ft
+.fi
+
+A simple example using the default strategy (Deigan et al. 2009) assuming SHAPE
+reactivity data in 'reactivities.dat' may look like:
+
+.nf
+.ft CW
+  $ RNAfold --shape=reactivities.dat < sequence.fa
+.ft
+.fi
+
+Another example using the Eddy 2014 strategy with non-default prior distribution
+for unpaired bases located in file 'pu.txt' may look like:
+
+.nf
+.ft CW
+  $ RNAfold --sp-data=reactivities.dat --sp-strategy=E --sp-data=pu.txt --sp-strategy=Pu
+.ft
+.fi
+
+Note, that RNAfold will only process the first sequence in the input file, when provided
+with SHAPE reactivity data!
+
+
+[>EXAMPLES]
+.SH "POST-TRANSCRIPTIONAL MODIFICATION EXAMPLES"
+
+Many RNA molecules harbor (post-transcriptional) modifications. These modified base
+often change the pairing behavior or energy contribution for the loops they are part of.
+To accommodate for that effect (to a certain degree) one may use additional correcting
+energy parameters for loops with the respective modified bases. In literature, a few
+stacking- and some terminal mismatch energies can be found. Some of them are already provided
+within the ViennaRNA Package. The --modification and --mod-file command line parameters can be
+used to apply these parameters in the predictions. While the former allows one to select a
+subset of implemented modified base corrections, the latter enables the prediction programs
+to read energy parameters for modified bases from a user-provided JSON file.
+
+Consider, for instance, the following tRNA sequence with dihydrouridines and pseudouridines
+annotated by their respective one-letter codes D and P:
+
+.nf
+.ft CW
+  $ cat tRNAphe.fa
+  >tRNAphe
+  GCCGAAAUAGCUCAGDDGGGAGAGCGPPAGACUGAAGAPCUAAAGGDCCCUGGUPCGAUCCCGGGUUUCGGCACCA
+.ft
+.fi
+
+Now, a prediction that includes support for the destabilizing effect of D and the stabilizing
+effects of P within base pair stacks can be done as follows:
+
+.nf
+.ft CW
+  $ RNAfold --modifications=DP < tRNAphe.fa
+  >tRNAphe
+  GCCGAAAUAGCUCAGDDGGGAGAGCGPPAGACUGAAGAPCUAAAGGDCCCUGGUPCGAUCCCGGGUUUCGGCACCA
+  (((((((..((((........)))).(((((.......)))))....(((.((......)).)))))))))).... (-23.37)
+.ft
+.fi
+
+
+[>EXAMPLES]
+.SH "LIGAND BINDING"
 
 .I Ligand binding contributions to specific hairpin/interior loop motifs
 
@@ -292,44 +351,6 @@ and the corresponding call to RNAfold to compute MFE and equilibrium probabiliti
 The resulting MFE plot will be annotated to display the binding site(s) of the ligand,
 and the base pair probability dot-plot is extended to include the probability that
 a particular nucleotide is bound by the ligand.
-
-
-[>EXAMPLES]
-.SH "POST-TRANSCRIPTIONAL MODIFICATION EXAMPLES"
-
-Many RNA molecules harbor (post-transcriptional) modifications. These modified base
-often change the pairing behavior or energy contribution for the loops they are part of.
-To accommodate for that effect (to a certain degree) one may use additional correcting
-energy parameters for loops with the respective modified bases. In literature, a few
-stacking- and some terminal mismatch energies can be found. Some of them are already provided
-within the ViennaRNA Package. The --modification and --mod-file command line parameters can be
-used to apply these parameters in the predictions. While the former allows one to select a
-subset of implemented modified base corrections, the latter enables the prediction programs
-to read energy parameters for modified bases from a user-provided JSON file.
-
-Consider, for instance, the following tRNA sequence with dihydrouridines and pseudouridines
-annotated by their respective one-letter codes D and P:
-
-.nf
-.ft CW
-  $ cat tRNAphe.fa
-  >tRNAphe
-  GCCGAAAUAGCUCAGDDGGGAGAGCGPPAGACUGAAGAPCUAAAGGDCCCUGGUPCGAUCCCGGGUUUCGGCACCA
-.ft
-.fi
-
-Now, a prediction that includes support for the destabilizing effect of D and the stabilizing
-effects of P within base pair stacks can be done as follows:
-
-.nf
-.ft CW
-  $ RNAfold --modifications=DP < tRNAphe.fa
-  >tRNAphe
-  GCCGAAAUAGCUCAGDDGGGAGAGCGPPAGACUGAAGAPCUAAAGGDCCCUGGUPCGAUCCCGGGUUUCGGCACCA
-  (((((((..((((........)))).(((((.......)))))....(((.((......)).)))))))))).... (-23.37)
-.ft
-.fi
-
 
 
 [>REFERENCES]

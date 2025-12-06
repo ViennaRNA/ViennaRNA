@@ -614,7 +614,7 @@ vrna_hc_add_bp(vrna_fold_compound_t *fc,
  *  @brief  Favorize/Enforce  a certain base pair (i,j) where i and j may point to different strands
  *
  *  This function adds a base pair constraint for pair (i,j), where the positions i and j are
- *  relative to the RNA strands i and j correspond to. For each strand @p strand_i and @strand_j
+ *  relative to the RNA strands i and j correspond to. For each strand @p strand_i and @p strand_j
  *  positions are 1-based. For instance, if position 5 of strand 0 must pair with position 10
  *  of strand 1, the function call would be
  *  @code
@@ -637,7 +637,7 @@ vrna_hc_add_bp(vrna_fold_compound_t *fc,
  *  @param  i         The 5' located nucleotide position of the base pair (1-based, relative to @p strand_i)
  *  @param  j         The 3' located nucleotide position of the base pair (1-based, relative to @p strand_j)
  *  @param  strand_i  The strand number of pairing partner @p i (0-based, negative value for autodetect)
- *  @param  strand_i  The strand number of pairing partner @p j (0-based, negative value for autodetect)
+ *  @param  strand_j  The strand number of pairing partner @p j (0-based, negative value for autodetect)
  *  @param  option    The option flag(s) indicating loop types and enforcement of the constraint
  */
 int
@@ -700,7 +700,7 @@ vrna_hc_add_f(vrna_fold_compound_t  *fc,
 /**
  *  @brief Add an auxiliary data structure for the generic hard constraints callback function
  *
- *  @ingroup generic_hc
+ *  @ingroup hard_constraints
  *
  *  @see vrna_hc_add_f()
  *

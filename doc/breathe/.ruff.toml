@@ -1,0 +1,66 @@
+target-version = "py39"  # Pin Ruff to Python 3.9
+line-length = 100
+output-format = "full"
+
+[format]
+preview = true
+quote-style = "double"
+
+[lint]
+preview = true
+ignore = [
+    "UP031",  # Use format specifiers instead of percent format
+]
+select = [
+    "C4",    # flake8-comprehensions
+#    "B",     # flake8-bugbear
+#    "D",     # pydocstyle
+    "E",     # pycodestyle
+    "F",     # pyflakes
+    "FA",    # flake8-future-annotations
+    "FLY",   # flynt
+    "FURB",  # refurb
+    "G",     # flake8-logging-format
+    "I",     # isort
+    "LOG",   # flake8-logging
+#    "N",     # pep8-naming
+    "PERF",  # perflint
+    "PGH",   # pygrep-hooks
+    "PT",    # flake8-pytest-style
+    "TC",    # flake8-type-checking
+    "TID",   # flake8-tidy-imports
+    "UP",    # pyupgrade
+    "W",     # pycodestyle
+]
+
+[lint.per-file-ignores]
+"breathe/parser/{compound,index}super.py" = [
+    "E266",  # Too many leading `#` before block comment
+]
+
+"examples/doxygen/pyexample.py" = [
+    "E266",  # Too many leading `#` before block comment
+]
+
+[lint.flake8-quotes]
+inline-quotes = "double"
+
+[lint.flake8-type-checking]
+exempt-modules = []
+strict = true
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[lint.isort]
+forced-separate = [
+    "tests",
+]
+required-imports = [
+    "from __future__ import annotations",
+]
+
+[lint.pydocstyle]
+convention = "pep257"
+ignore-decorators = ["typing.overload"]
+ignore-var-parameters = true

@@ -2,7 +2,7 @@
 #define VIENNA_RNA_PACKAGE_LOOPS_EXTLOOP_DEPRECATED_H
 
 /**
- *  @file       ViennaRNA/loops/exterior.h
+ *  @file       ViennaRNA/loops/external.h
  *  @brief      Deprecated include file for exterior loop energy evaluation function declarations
  *  @deprecated Use ViennaRNA/eval/exterior.h, ViennaRNA/mfe/exterior.h, ViennaRNA/backtrack/exterior.h, and ViennaRNA/partfunc/exterior.h instead
  */
