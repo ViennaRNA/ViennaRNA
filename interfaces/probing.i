@@ -70,17 +70,10 @@ pr_defaults: list(double)
                       double              m,
                       double              b)
   {
-<<<<<<< interfaces/probing.i
-    vrna_probing_data_s *obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
-                                                            reactivities.size() - 1,
-                                                            m,
-                                                            b);
-=======
     vrna_probing_data_s *obj = vrna_probing_data_deigan(&(reactivities[0]),
-                                                        reactivities.size(),
+                                                        reactivities.size() - 1,
                                                         m,
                                                         b);
->>>>>>> interfaces/probing.i
     return obj;
   }
 
