@@ -1,0 +1,16 @@
+name: rtd27
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - swig
+  - doxygen
+  - python=3.12
+  - pip>=20.1  # pip is needed as dependency
+  - pip:
+    - sphinx
+    - sphinx-multiproject
+    - myst-parser
+    - sphinx-copybutton
+    - sphinxcontrib-bibtex
+    - sphinx-rtd-theme
