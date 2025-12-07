@@ -54,16 +54,21 @@ jobs:
         repository: swig/swig
         ref: 'v4.4.0'
         path: swig
-    - name: Install latest build tools
+    - name: Install swig
       run:  |
         cd swig
         ./autogen.sh && ./configure --prefix=/usr
         make -j $(nproc)
         sudo make install
-        cd ..
-        curl https://www.doxygen.nl/files/doxygen-1.15.0.src.tar.gz --output ./doxygen-1.15.0.src.tar.gz
-        tar -xzf doxygen-1.15.0.src.tar.gz
-        cd doxygen-1.15.0
+    - name: Checkout doxygen repo
+      uses: actions/checkout@v6
+      with:
+        repository: doxygen/doxygen
+        ref: 'Release_1_15_0'
+        path: doxygen
+    - name: Install doxygen
+      run:  |
+        cd doxygen
         mkdir build
         cd build
         cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX:PATH=/usr -Dbuild_doc:BOOL=OFF ..
