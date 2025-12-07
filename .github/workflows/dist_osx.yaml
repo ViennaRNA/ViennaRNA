@@ -68,9 +68,9 @@ jobs:
     - name: compile and build installer
       working-directory: ViennaRNA-${{ inputs.version-string }}
       run: |
-        make -j $(nproc)
+        make
     - name: rename installer x86_64
-      if: ${{ matrix.os == 'macos-15' }}
+      if: ${{ matrix.os == 'macos-15-intel' }}
       run: |
         mv ViennaRNA-${{ inputs.version-string }}/packaging/macosx/ViennaRNA-${{ inputs.version-string }}-MacOSX.dmg ViennaRNA-${{ inputs.version-string }}/ViennaRNA-${{ inputs.version-string }}-MacOSX-x86_64.dmg
     - name: rename installer arm64
