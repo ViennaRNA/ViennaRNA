@@ -139,7 +139,7 @@ PRIVATE interact_region_s *
 parse_crosslink_data(FILE *fp);
 
 
-PRIVATE int
+INLINE PRIVATE int
 xlink_hp_en(vrna_fold_compound_t  *fc,
             int                   i,
             int                   j,
@@ -148,8 +148,26 @@ xlink_hp_en(vrna_fold_compound_t  *fc,
             void                  *data);
 
 
-PRIVATE int
+INLINE PRIVATE int
 xlink_il_en(vrna_fold_compound_t  *fc,
+            int                   i,
+            int                   j,
+            int                   k,
+            int                   l,
+            void                  *data);
+
+
+INLINE PRIVATE FLT_OR_DBL
+xlink_hp_exp_en(vrna_fold_compound_t  *fc,
+            int                   i,
+            int                   j,
+            int                   k,
+            int                   l,
+            void                  *data);
+
+
+INLINE PRIVATE FLT_OR_DBL
+xlink_il_exp_en(vrna_fold_compound_t  *fc,
             int                   i,
             int                   j,
             int                   k,
@@ -1432,7 +1450,7 @@ vrna_sc_xl_update_mfe(vrna_fold_compound_t *fc,
 }
 
 
-PRIVATE int
+INLINE PRIVATE int
 xlink_hp_en(vrna_fold_compound_t  *fc,
             int                   i,
             int                   j,
@@ -1459,7 +1477,19 @@ xlink_hp_en(vrna_fold_compound_t  *fc,
 }
 
 
-PRIVATE int
+INLINE PRIVATE FLT_OR_DBL
+xlink_hp_exp_en(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j,
+                int                   k,
+                int                   l,
+                void                  *data)
+{
+  return exp(-(FLT_OR_DBL)xlink_hp_en(fc, i, j, k, l, data) * 10. / fc->exp_params->kT);
+}
+
+
+INLINE PRIVATE int
 xlink_il_en(vrna_fold_compound_t  *fc,
             int                   i,
             int                   j,
@@ -1485,6 +1515,19 @@ xlink_il_en(vrna_fold_compound_t  *fc,
   return energy;
 
 }
+
+
+INLINE PRIVATE FLT_OR_DBL
+xlink_il_exp_en(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j,
+                int                   k,
+                int                   l,
+                void                  *data)
+{
+  return exp(-(FLT_OR_DBL)xlink_il_en(fc, i, j, k, l, data) * 10. / fc->exp_params->kT);
+}
+
 
 PRIVATE interact_region_s *
 parse_crosslink_data(FILE *fp)
