@@ -1086,10 +1086,17 @@ process_record(struct record_data *record)
         if (hc_nondefaults) {
           /* single nucleotide constraints first */
           for (unsigned int i = 1; i <= Alength; ++i) {
+#ifndef VRNA_DISABLE_C11_FEATURES
             unsigned char constraint = vrna_smx_csr_get(hc_nondefaults,
                                                         i,
                                                         i,
                                                         VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+#else
+            unsigned char constraint = vrna_smx_csr_vrna_uchar_get(hc_nondefaults,
+                                                        i,
+                                                        i,
+                                                        VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+#endif
             if (constraint != VRNA_CONSTRAINT_CONTEXT_NO_REMOVE) {
               vrna_hc_add_up(fc_AA, i, constraint);
               vrna_hc_add_up(fc_AA, Alength + i, constraint);
@@ -1104,10 +1111,17 @@ process_record(struct record_data *record)
               if (j > Alength)
                 break;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
               unsigned char constraint = vrna_smx_csr_get(hc_nondefaults,
                                                           i,
                                                           j,
                                                           VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+#else
+              unsigned char constraint = vrna_smx_csr_vrna_uchar_get(hc_nondefaults,
+                                                          i,
+                                                          j,
+                                                          VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+#endif
               if (constraint != VRNA_CONSTRAINT_CONTEXT_NO_REMOVE) {
                 /* insert constraint as plain as possible */
                 vrna_hc_add_bp(fc_AA, i, j, constraint | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
@@ -1116,7 +1130,11 @@ process_record(struct record_data *record)
             }
           }
 
+#ifndef VRNA_DISABLE_C11_FEATURES
           vrna_smx_csr_free(hc_nondefaults);
+#else
+          vrna_smx_csr_vrna_uchar_free(hc_nondefaults);
+#endif
         }
       }
 
@@ -1187,10 +1205,17 @@ process_record(struct record_data *record)
         if (hc_nondefaults) {
           /* single nucleotide constraints first */
           for (unsigned int i = Alength + 1; i <= Alength + Blength; ++i) {
+#ifndef VRNA_DISABLE_C11_FEATURES
             unsigned char constraint = vrna_smx_csr_get(hc_nondefaults,
                                                         i,
                                                         i,
                                                         VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+#else
+            unsigned char constraint = vrna_smx_csr_vrna_uchar_get(hc_nondefaults,
+                                                        i,
+                                                        i,
+                                                        VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+#endif
             if (constraint != VRNA_CONSTRAINT_CONTEXT_NO_REMOVE) {
               vrna_hc_add_up(fc_AA, i - Alength, constraint);
               vrna_hc_add_up(fc_AA, Blength + i - Alength, constraint);
@@ -1205,10 +1230,17 @@ process_record(struct record_data *record)
               if (j > Alength + Blength)
                 break;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
               unsigned char constraint = vrna_smx_csr_get(hc_nondefaults,
                                                           i,
                                                           j,
                                                           VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+#else
+              unsigned char constraint = vrna_smx_csr_vrna_uchar_get(hc_nondefaults,
+                                                          i,
+                                                          j,
+                                                          VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+#endif
               if (constraint != VRNA_CONSTRAINT_CONTEXT_NO_REMOVE) {
                 /* insert constraint as plain as possible */
                 vrna_hc_add_bp(fc_AA, i - Alength, j - Alength, constraint | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
@@ -1217,7 +1249,11 @@ process_record(struct record_data *record)
             }
           }
 
+#ifndef VRNA_DISABLE_C11_FEATURES
           vrna_smx_csr_free(hc_nondefaults);
+#else
+          vrna_smx_csr_vrna_uchar_free(hc_nondefaults);
+#endif
         }
       }
 
