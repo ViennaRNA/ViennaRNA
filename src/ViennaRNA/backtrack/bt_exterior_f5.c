@@ -118,10 +118,6 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
   hc            = fc->hc;
   evaluate      = hc->eval_ext;
 
-  if (j == 0)
-    /* no more pairs */
-    return 1;
-
   /* return true for empty interval */
   if (j == 0)
     return 1;
