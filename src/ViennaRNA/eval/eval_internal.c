@@ -99,7 +99,6 @@ vrna_en_internal(unsigned int n1,
   if (P) {
     no_close              = 0;
     salt_stack_correction = P->SaltStack;
-    salt_loop_correction  = 0;
 
     if ((P->model_details.noGUclosure) &&
         ((type_2 == 3) || (type_2 == 4) || (type == 3) || (type == 4)))
@@ -119,18 +118,6 @@ vrna_en_internal(unsigned int n1,
 
     if (no_close)
       return INF;
-
-    if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
-      /* salt correction for loop */
-      backbones = nl + ns + 2;
-      if (backbones <= MAXLOOP + 1)
-        salt_loop_correction = P->SaltLoop[backbones];
-      else
-        salt_loop_correction = vrna_salt_loop_int(backbones,
-                                                  P->model_details.salt,
-                                                  P->temperature + K0,
-                                                  P->model_details.backbone_length);
-    }
 
     energy = 0;
 
@@ -206,7 +193,17 @@ vrna_en_internal(unsigned int n1,
         break;
     }
 
-    energy += salt_loop_correction;
+    if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
+      /* salt correction for loop */
+      backbones = nl + ns + 2;
+      if (backbones <= MAXLOOP + 1)
+        energy += P->SaltLoop[backbones];
+      else
+        energy += vrna_salt_loop_int(backbones,
+                                     P->model_details.salt,
+                                     P->temperature + K0,
+                                     P->model_details.backbone_length);
+    }
   }
 
   return energy;
