@@ -75,6 +75,21 @@ vrna_E_internal(unsigned int  n1,
                 int           sq1,
                 vrna_param_t  *P)
 {
+  return vrna_en_internal(n1, n2, type, type_2, si1, sj1, sp1, sq1, P);
+}
+
+
+PUBLIC int
+vrna_en_internal(unsigned int n1,
+                 unsigned int n2,
+                 unsigned int type,
+                 unsigned int type_2,
+                 unsigned int si1,
+                 unsigned int sj1,
+                 unsigned int sp1,
+                 unsigned int sq1,
+                 vrna_param_t *P)
+{
   /* compute energy of degree 2 loop (stack bulge or internal) */
   unsigned int  nl, ns, u, backbones, no_close;
   int           energy, salt_stack_correction, salt_loop_correction;
@@ -195,6 +210,70 @@ vrna_E_internal(unsigned int  n1,
   }
 
   return energy;
+}
+
+
+PUBLIC int
+vrna_en_bulge(unsigned int n,
+              unsigned int type,
+              unsigned int type_2,
+              vrna_param_t *P)
+{
+  /* compute energy of a bulge loop */
+  unsigned int  backbones;
+  int           energy;
+
+  energy = INF;
+
+  if ((P) &&
+      (n > 0)) {
+    if ((P->model_details.noGUclosure) &&
+        ((type_2 == 3) || (type_2 == 4) || (type == 3) || (type == 4)))
+      return energy;
+
+    energy  = (n <= MAXLOOP) ?
+                P->bulge[n] :
+                (P->bulge[30] + (int)(P->lxc * log(n / 30.)));
+
+    if (n == 1) {
+      /* add stacking energy for 1-bulges */
+      energy += P->stack[type][type_2];
+    } else {
+      if (type > 2)
+        energy += P->TerminalAU;
+
+      if (type_2 > 2)
+        energy += P->TerminalAU;
+    }
+
+    if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
+      /* salt correction for loop */
+      backbones = n + 2;
+
+      energy += (backbones <= MAXLOOP + 1) ?
+                  P->SaltLoop[backbones] :
+                  vrna_salt_loop_int(backbones,
+                                     P->model_details.salt,
+                                     P->temperature + K0,
+                                     P->model_details.backbone_length);
+    }
+  }
+
+  return energy;
+}
+
+
+PUBLIC int
+vrna_en_stack(unsigned int type,
+              unsigned int type_2,
+              vrna_param_t *P)
+{
+  /* return energy of stack */
+  if (P)
+    return P->stack[type][type_2] +
+           P->SaltStack;
+
+  return INF;
 }
 
 
