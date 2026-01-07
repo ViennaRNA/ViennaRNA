@@ -169,6 +169,16 @@ wrap_hc_mb_cb(int            i,
 
       break;
 
+    case VRNA_DECOMP_ML_STEM_ML:
+      u     = l - k - 1;
+      if (hc->mx[n * i + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
+        eval = (unsigned char)1;
+
+      if ((u != 0) && (hc->up_ml[k + 1] < u))
+        eval = (unsigned char)0;
+
+      break;
+
     case VRNA_DECOMP_ML_COAXIAL:
       if (mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
         eval = (unsigned char)1;

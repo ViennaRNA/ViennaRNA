@@ -288,6 +288,7 @@
 #define VRNA_DECOMP_EXT_L         (unsigned char)21
 #define VRNA_DECOMP_EXT_EXT_L     (unsigned char)22
 
+
 /*
  * currently we do not allow for more than 31 different decomposition types
  * This must be changed as soon as the above macros turn to values above 32
