@@ -3,6 +3,7 @@
 
 #include <ViennaRNA/fold_compound.h>
 #include "ViennaRNA/mfe/multibranch.h"
+#include "ViennaRNA/partfunc/multibranch.h"
 #include <ViennaRNA/probing/basic.h>
 
 /**
@@ -42,5 +43,16 @@ vrna_bt_multibranch_loop_xlink(vrna_fold_compound_t  *fc,
 void
 vrna_sc_xl_update_mfe(vrna_fold_compound_t *fc,
                       unsigned int         i);
+
+
+FLT_OR_DBL
+vrna_pf_multibranch_loop_xlink(vrna_fold_compound_t       *fc,
+                               unsigned int               i,
+                               unsigned int               j,
+                               vrna_mx_pf_aux_ml_t  helpers);
+
+void
+vrna_sc_xl_update_pf(vrna_fold_compound_t *fc,
+                     unsigned int         j);
 
 #endif

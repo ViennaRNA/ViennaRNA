@@ -23,6 +23,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/probing/crosslink.h"
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/combinatorics/basic.h"
 #include "ViennaRNA/eval/exterior.h"
@@ -377,6 +378,10 @@ fill_arrays(vrna_fold_compound_t *fc)
   }
 
   for (j = 2; j <= n; j++) {
+    if ((fc->sc) &&
+        (fc->sc->xlink))
+      vrna_sc_xl_update_pf(fc, j);
+
     for (i = j - 1; i >= 1; i--) {
       ij = my_iindx[i] - j;
 
@@ -475,7 +480,12 @@ decompose_pair(vrna_fold_compound_t *fc,
     /* process internal loop(s) */
     contribution += vrna_exp_E_int_loop(fc, i, j);
     /* process multibranch loop(s) */
-    contribution += vrna_exp_E_mb_loop_fast(fc, i, j, aux_mx_ml);
+    if ((fc->sc) &&
+        (fc->sc->xlink)) {
+      contribution += vrna_pf_multibranch_loop_xlink(fc, i, j, aux_mx_ml);
+    } else {
+      contribution += vrna_exp_E_mb_loop_fast(fc, i, j, aux_mx_ml);
+    }
 
     if (fc->aux_grammar) {
       for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->exp_c); c++) {
