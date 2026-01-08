@@ -737,11 +737,7 @@ main(int  argc,
     if (length1 < wplus)
       wplus = length1;
 
-    /* calc mfe for first sequence (2nd if upmode = 3) */
-    if (cstruc1 != NULL)
-      strncpy(structure, cstruc1, length1 + 1);
-
-    min_en    = fold(s1, structure);
+    /* set pf_scale based on MFE of first sequence */
     pf_scale  = exp(-(sfact * min_en) / RT / length1);
     if (length1 > 2000)
       vrna_log_info("scaling factor %f", pf_scale);
