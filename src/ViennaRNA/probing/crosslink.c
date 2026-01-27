@@ -218,6 +218,24 @@ pf_M2_xlink(vrna_fold_compound_t        *fc,
             struct sc_mb_exp_dat        *sc_wrapper);
 
 
+PRIVATE void
+xl_fill_prms(vrna_fold_compound_t *fc,
+             unsigned int         l,
+             xl_ml_helper_t       *helpers);
+
+
+PRIVATE void
+xl_fill_rs(vrna_fold_compound_t  *fc,
+           unsigned int          l,
+           xl_ml_helper_t        *helpers);
+
+
+PRIVATE void
+xl_fill_s(vrna_fold_compound_t *fc,
+          unsigned int         l,
+          xl_ml_helper_t       *helpers);
+
+
 PUBLIC int
 vrna_sc_xl_load(vrna_fold_compound_t  *fc,
                 const char            *filename)
@@ -1896,6 +1914,13 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
                               size_t                *ov,
                               void                  *helpers)
 {
+  
+  xl_ml_helper_t *h = (xl_ml_helper_t *)helpers;
+
+  xl_fill_prms(fc, l, h);
+  xl_fill_rs(fc, l, h);
+  xl_fill_s(fc, l, h);
+
 
 }
 
@@ -2031,8 +2056,6 @@ xl_fill_prms(vrna_fold_compound_t *fc,
     helpers->prm_lmu2[i] *= expMLclosing;
     helpers->prm_lmm2[i] *= expMLclosing;
   }
-
-
 }
 
 
@@ -2276,5 +2299,243 @@ xl_fill_rs(vrna_fold_compound_t  *fc,
     free(y2);
     free(y3);
     free(y4);
+  }
+}
+
+
+PRIVATE void
+xl_fill_s(vrna_fold_compound_t *fc,
+          unsigned int         l,
+          xl_ml_helper_t       *helpers)
+{
+  short         *S, *S1, s3;
+  unsigned int  i, j, n, u, v, tt, overlap, overlap2;
+  int           *my_iindx, ij, lj1;
+  FLT_OR_DBL    temp, qbt1, qbt2, *probs, *qm, *qb, *scale, *expMLbase, expMLclosing, *L, *M, *M2, *s_lmm;
+  vrna_exp_param_t  *pf_params;
+  vrna_md_t         *md;
+  vrna_hc_t         *hc;
+  struct vrna_crosslink_data_s  *dat;
+  interact_region_s             *r, *r2;
+
+
+  dat = (struct vrna_crosslink_data_s *)fc->sc->xlink_data;
+  r   = dat->overlap[l];
+
+  /* we only compute this part if a < l < b */
+  if ((r) &&
+      (r->a < l) &&
+      (l < r->b)) {
+    n             = fc->length;
+    S             = fc->sequence_encoding2;
+    S1            = fc->sequence_encoding;
+    my_iindx      = fc->iindx;
+    pf_params     = fc->exp_params;
+    md            = &(pf_params->model_details);
+    qb            = fc->exp_matrices->qb;
+    qm            = fc->exp_matrices->qm;
+    probs         = fc->exp_matrices->probs;
+    scale         = fc->exp_matrices->scale;
+    expMLbase     = fc->exp_matrices->expMLbase;
+    expMLclosing  = pf_params->expMLclosing;
+    hc            = fc->hc;
+
+    L   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+    M   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+    M2  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+    s_lmm = helpers->s_lmm;
+
+    /* fill L */
+    for (v = r->b + 1; v < n; v++) {
+      L[v] = 0.;
+
+      for (u = l + 1; u <= r->b; u++) {
+        if (hc->eval_mb(u, v, u, v, VRNA_DECOMP_ML_STEM, hc)) {
+          /* compute closing pair contribution */
+          tt    = vrna_get_ptype_md(S[u], S[v], md);
+          temp  = qb[my_iindx[u] - v] *
+                  vrna_exp_E_multibranch_stem(tt, S1[u - 1], S1[v + 1], pf_params);
+
+          if (hc->eval_mb(l + 1, v, u - 1, u, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[l + 1] - (u - 1)];
+
+            if (helpers->sc_wrapper_mb.decomp_ml)
+              qbt1 *= helpers->sc_wrapper_mb.decomp_ml(l + 1, v, u - 1, u, &(helpers->sc_wrapper_mb));
+
+            L[v] += temp *
+                    qbt1;
+          }
+
+          if (hc->eval_mb(l + 1, v, u, v, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[u - l - 1];
+
+            if (helpers->sc_wrapper_mb.red_ml)
+              qbt1 *= helpers->sc_wrapper_mb.red_ml(l + 1, v, u, v, &(helpers->sc_wrapper_mb));
+
+            L[v] += temp *
+                    qbt1;
+          }
+        }
+      }
+    }
+
+    /* fill Ms */
+    for (j = l + 1; j <= r->d; j++) {
+      M[j] = M2[j] = 0.;
+
+      for (v = r->b + 1; v < r->c; v++) {
+        if (hc->eval_mb(l + 1, j - 1, v, v + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+          qbt1 = qm[my_iindx[v + 1] - (j - 1)];
+
+          if (helpers->sc_wrapper_mb.decomp_ml)
+            qbt1 *= helpers->sc_wrapper_mb.decomp_ml(l + 1, j - 1, v, v + 1, &(helpers->sc_wrapper_mb));
+
+          M2[j] += L[v] *
+                   qbt1;
+        }
+
+        if (hc->eval_mb(l + 1, j - 1, l + 1, v, VRNA_DECOMP_ML_ML, hc)) {
+          qbt1 = expMLbase[j - v - 1];
+
+          if (helpers->sc_wrapper_mb.red_ml)
+            qbt1 *= helpers->sc_wrapper_mb.red_ml(l + 1, j - 1, l + 1, v, &(helpers->sc_wrapper_mb));
+
+          M2[v] += L[v] *
+                   qbt1;          
+        }
+      }
+
+      for (v = r->c; v < j; v++) {
+        if (hc->eval_mb(l + 1, j - 1, v, v + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+          qbt1 = qm[my_iindx[v + 1] - (j - 1)];
+
+          if (helpers->sc_wrapper_mb.decomp_ml)
+            qbt1 *= helpers->sc_wrapper_mb.decomp_ml(l + 1, j - 1, v, v + 1, &(helpers->sc_wrapper_mb));
+
+          M[j] += L[v] *
+                  qbt1;
+        }
+
+        if (hc->eval_mb(l + 1, j - 1, l + 1, v, VRNA_DECOMP_ML_ML, hc)) {
+          qbt1 = expMLbase[j - v - 1];
+
+          if (helpers->sc_wrapper_mb.red_ml)
+            qbt1 *= helpers->sc_wrapper_mb.red_ml(l + 1, j - 1, l + 1, v, &(helpers->sc_wrapper_mb));
+
+          M[v] += L[v] *
+                  qbt1;          
+        }
+      }
+    }
+
+    /* finally, compute S[i] */
+    for (i = 1; i < l; i++) {
+      s_lmm[i] = 0.;
+      overlap  = 0.;
+
+      if (r->a <= i)
+        overlap = 1;
+
+      for (j = l + 1; j <= r->d; j++) {
+        if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
+          /* compute closing pair contribution */
+          tt = vrna_get_ptype_md(S[j], S[i], md);
+
+          temp = probs[my_iindx[i] - j] *
+                 vrna_exp_E_multibranch_stem(tt, S1[j - 1], S1[i + 1], pf_params);
+
+          if (helpers->sc_wrapper_mb.pair)
+            temp *= helpers->sc_wrapper_mb.pair(i, j, &(helpers->sc_wrapper_mb));
+
+          /* first, the obvious cases where no base pair crosses b */
+          qbt2 = 0.;
+
+          if (hc->eval_mb(l + 1, j - 1, r->b, r->b + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[r->b + 1] - (j - 1)] *
+                   qm[my_iindx[l + 1] - r->b];
+
+            if (helpers->sc_wrapper_mb.decomp_ml)
+              qbt1 *= helpers->sc_wrapper_mb.decomp_ml(l + 1, j - 1, r->b, r->b + 1, &(helpers->sc_wrapper_mb));
+
+            qbt2 += qbt1;
+          }
+
+          if (hc->eval_mb(l + 1, j - 1, r->b + 1, j - 1, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[r->b - l] *
+                   qm[my_iindx[r->b + 1] - (j - 1)];
+
+            if (helpers->sc_wrapper_mb.red_ml)
+              qbt1 *= helpers->sc_wrapper_mb.red_ml(l + 1, j - 1, r->b + 1, j - 1, &(helpers->sc_wrapper_mb));
+
+            qbt2 += qbt1;
+          }
+
+          if (hc->eval_mb(l + 1, j - 1, l + 1, r->b, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[l + 1] - r->b] *
+                   expMLbase[j - r->b - 1];
+
+            if (helpers->sc_wrapper_mb.red_ml)
+              qbt1 *= helpers->sc_wrapper_mb.red_ml(l + 1, j - 1, l + 1, r->b, &(helpers->sc_wrapper_mb));
+
+            qbt2 += qbt1;
+          }
+
+          if (r->c <= j)
+            qbt2 *= r->exp_score;
+
+          /* store contributions from obvious cases */
+          s_lmm[i] += temp *
+                      qbt2;
+
+          /* next, the cases where there might be a base pair spanning b */
+          qbt2 = M[j];
+
+          qbt1 = M2[j];
+
+          if ((overlap) &&
+              (r->c <= j))
+            qbt1 *= r->exp_score;
+
+          qbt2 += qbt1;
+
+          s_lmm[i] += temp *
+                      qbt2;
+        }
+      }
+
+      /* now the remaining cases where d < j */
+      overlap2  = 0;
+      r2        = dat->overlap[i];
+
+      if ((r2) &&
+          (r2->a <= i) &&
+          (i <= r2->b))
+        overlap2 = 1;
+      
+      for (j = r->d + 1; j <= n; j++) {
+        if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
+          /* compute closing pair contribution */
+          tt = vrna_get_ptype_md(S[j], S[i], md);
+
+          temp = probs[my_iindx[i] - j] *
+                 vrna_exp_E_multibranch_stem(tt, S1[j - 1], S1[i + 1], pf_params);
+
+          if (helpers->sc_wrapper_mb.pair)
+            temp *= helpers->sc_wrapper_mb.pair(i, j, &(helpers->sc_wrapper_mb));
+
+          if ((overlap) &&
+              (r2->c <= j) &&
+              (j <= r2->d))
+            temp *= r2->exp_score;
+
+          s_lmm[i] += temp *
+                      qm[my_iindx[l + 1] - (j - 1)];
+        }
+      }
+    }
+
+    free(L);
+    free(M);
+    free(M2);
   }
 }
