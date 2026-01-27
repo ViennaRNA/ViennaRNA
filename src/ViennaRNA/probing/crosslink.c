@@ -1914,14 +1914,579 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
                               size_t                *ov,
                               void                  *helpers)
 {
-  
+  short                         *S1, *S;
+  unsigned int                  i, k, n, overlap_5, overlap_3, turn, tt, with_gquad;
+  int                           *my_iindx, kl;
+  FLT_OR_DBL                    qbt1, temp, expMLstemGQ, *qm, *qb, *expMLbase, *prm_lmu, *prm_lmu2, *prm_lmm, *prm_lmm2, *r_lmu, *r_lmm, *s_lmm, *scale, *probs;
+  vrna_exp_param_t              *pf_params;
+  vrna_md_t                     *md;
+  vrna_hc_t         *hc;
+  vrna_smx_csr(FLT_OR_DBL)  *q_gq;
+  struct vrna_crosslink_data_s  *dat;
+  interact_region_s             *r;
+
   xl_ml_helper_t *h = (xl_ml_helper_t *)helpers;
 
   xl_fill_prms(fc, l, h);
   xl_fill_rs(fc, l, h);
   xl_fill_s(fc, l, h);
 
+  dat = (struct vrna_crosslink_data_s *)fc->sc->xlink_data;
 
+  r = dat->overlap[l];
+
+  overlap_5 = 0;
+  overlap_3 = 0;
+
+  if ((r) &&
+      (r->c <= l) &&
+      (l <= r->d))
+    overlap_3 = 1;
+
+  if ((r) &&
+      (r->a <= l) &&
+      (l <= r->b))
+    overlap_5 = 1;
+
+  n         = fc->length;
+  S             = fc->sequence_encoding2;
+  S1            = fc->sequence_encoding;
+  pf_params = fc->exp_params;
+  md        = &(pf_params->model_details);
+  turn      = md->min_loop_size;
+  my_iindx      = fc->iindx;
+  qb            = fc->exp_matrices->qb;
+  qm            = fc->exp_matrices->qm;
+  expMLbase     = fc->exp_matrices->expMLbase;
+  scale         = fc->exp_matrices->scale;
+  probs         = fc->exp_matrices->probs;
+  q_gq          = fc->exp_matrices->q_gq;
+  prm_lmu       = h->prm_lmu;
+  prm_lmu2      = h->prm_lmu2;
+  prm_lmm       = h->prm_lmm;
+  prm_lmm2      = h->prm_lmm2;
+  r_lmu         = h->r_lmu;
+  r_lmm         = h->r_lmm;
+  s_lmm         = h->s_lmm;
+  hc            = fc->hc;
+  with_gquad    = md->gquad ? 1 : 0;
+  expMLstemGQ   = (with_gquad) ? vrna_exp_E_multibranch_stem(0, -1, -1, pf_params) : 0;
+
+  if ((r == NULL) ||
+      (r->a == l) ||
+      (r->b == l)) {
+    /* all enclosing pairs (i,j) must receive crosslink-derived contribution if any */
+    for (k = 2; k + turn < l; k++) {
+      kl = my_iindx[k] - l;
+
+      if (hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc)) {
+        temp = 0.;
+
+        /* contributions from (k,l) being the left-most stem */
+        for (i = 1; i < k; i++) {
+          if (hc->eval_mb(i + 1, l, k, l, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[k - i - 1] *
+                   prm_lmm2[i];
+
+            if (h->sc_wrapper_mb.red_ml)
+              qbt1 *= h->sc_wrapper_mb.red_ml(i + 1, l, k, l, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        /* contributions from (k,l) being the right-most stem or somewhere in the middle */
+        for (i = 1; i < k; i++) {
+          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
+                   (prm_lmu2[i] + prm_lmm2[i]);
+
+            if (h->sc_wrapper_mb.decomp_ml)
+              qbt1 *= h->sc_wrapper_mb.decomp_ml(i + 1, l, k - 1, k, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        /* finally, add contribution of the pair (k,l) itself and store in probs */
+        tt    = vrna_get_ptype_md(S[k], S[l], md);
+        temp  *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+
+        if (h->sc_wrapper_mb.red_stem)
+          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
+
+        probs[kl] += temp *
+                     scale[2];
+
+      }
+      /* what about (k,l) being a G-quad here? */
+    }
+  } else {
+    if ((overlap_5) &&
+        (r->a < l) &&
+        (r->b > l)) {
+      /* add remaining contributions for (k,l) being right-most stem */
+      for (k = 2; k + turn < l; k++) {
+        kl = my_iindx[k] - l;
+
+        if (hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc)) {
+          temp = 0.;
+      
+          for (i = 1; i < k; i++) {
+            if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+              qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
+                     prm_lmu2[i];
+
+              if (h->sc_wrapper_mb.decomp_ml)
+                qbt1 *= h->sc_wrapper_mb.decomp_ml(i + 1, l, k - 1, k, &(h->sc_wrapper_mb));
+
+              temp += qbt1;
+            }
+          }
+
+          /* finally, add contribution of the pair (k,l) itself and store in probs */
+          tt    = vrna_get_ptype_md(S[k], S[l], md);
+          temp  *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+
+          if (h->sc_wrapper_mb.red_stem)
+            temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
+
+          probs[kl] += temp *
+                       scale[2];
+        }
+
+        /* G-quad cases require some attention here */
+      }
+    }
+
+    if (overlap_3) { /* l is located within an interval I' */
+      /* cases where k is located before interval I, so no other base pair can connected the same interval pair as the enclosing pair (i,j) */
+      for (k = 2; k < r->a; k++) {
+        kl = my_iindx[k] - l;
+        tt    = vrna_get_ptype_md(S[k], S[l], md);
+        temp  = 0.;
+
+        /* skip this if (k,l) doesn't close a base pair or delimits a gquad */
+        if (with_gquad) {
+          if ((!tt) &&
+#ifndef VRNA_DISABLE_C11_FEATURES
+            (vrna_smx_csr_get(q_gq, k, l, 0.) == 0.))
+#else
+            (vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) == 0.))
+#endif
+          continue;
+        } else if ((qb[my_iindx[k] - l] == 0.) ||
+                   (!hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc))) {
+          continue;
+        }
+
+        /* contributions from (k,l) being the left-most stem */
+        for (i = 1; i < k; i++) {
+          if (hc->eval_mb(i + 1, l, k, l, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[k - i - 1] *
+                   prm_lmm2[i];
+
+            if (h->sc_wrapper_mb.red_ml)
+              qbt1 *= h->sc_wrapper_mb.red_ml(i + 1, l, k, l, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        /* (k,l) is the right-most stem or somewhere in the middle */
+        for (i = 1; i < k; i++) {
+          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
+                   (prm_lmu2[i] + prm_lmm2[i]);
+
+            if (h->sc_wrapper_mb.decomp_ml)
+              qbt1 *= h->sc_wrapper_mb.decomp_ml(i + 1, l, k - 1, k, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        if ((with_gquad) &&
+            (qb[my_iindx[k] - l] == 0.)) {
+          temp *= expMLstemGQ;
+        } else {
+          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+        }
+
+        if (h->sc_wrapper_mb.red_stem)
+          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
+
+        probs[kl] += temp *
+                     scale[2];
+      }
+
+
+      /* cases where k is located within interval I */
+      for (k = r->a; k <= r->b; k++) {
+        kl = my_iindx[k] - l;
+        tt    = vrna_get_ptype_md(S[k], S[l], md);
+        temp  = 0.;
+      
+        /* skip this if (k,l) doesn't close a base pair or delimits a gquad */
+        if (with_gquad) {
+          if ((!tt) &&
+#ifndef VRNA_DISABLE_C11_FEATURES
+            (vrna_smx_csr_get(q_gq, k, l, 0.) == 0.))
+#else
+            (vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) == 0.))
+#endif
+          continue;
+        } else if ((qb[my_iindx[k] - l] == 0.) ||
+                   (!hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc))) {
+          continue;
+        }
+
+        for (i = 1; i < r->a; i++) {
+          /* (k,l) is left-most stem */
+          if (hc->eval_mb(i + 1, l, k, l, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[k - i - 1] *
+                   prm_lmm2[i];
+
+            if (h->sc_wrapper_mb.red_ml)
+              qbt1 *= h->sc_wrapper_mb.red_ml(i + 1, l, k, l, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+
+          /* (k,l) is right-most stem or in the middle */
+          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
+                   (prm_lmu2[i] + prm_lmm2[i]);
+
+            if (h->sc_wrapper_mb.decomp_ml)
+              qbt1 *= h->sc_wrapper_mb.decomp_ml(i + 1, l, k - 1, k, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        for (i = r->a; i < k; i++) {
+          /* (k,l) is left-most stem */
+          if (hc->eval_mb(i + 1, l, k, l, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[k - i - 1] *
+                   prm_lmm[i];
+
+            if (h->sc_wrapper_mb.red_ml)
+              qbt1 *= h->sc_wrapper_mb.red_ml(i + 1, l, k, l, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+
+          /* (k,l) is right-most stem or in the middle */
+          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
+                   (prm_lmu[i] + prm_lmm[i]);
+
+            if (h->sc_wrapper_mb.decomp_ml)
+              qbt1 *= h->sc_wrapper_mb.decomp_ml(i + 1, l, k - 1, k, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        if ((with_gquad) &&
+            (qb[my_iindx[k] - l] == 0.)) {
+          temp *= expMLstemGQ;
+        } else {
+          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+        }
+
+        if (h->sc_wrapper_mb.red_stem)
+          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
+
+        probs[kl] += temp *
+                     scale[2];
+      }
+
+      /* cases where k is located in between interval I and I' */
+      for (k = r->b + 1; (k < l) && (k <= r->c); k++) {
+        kl = my_iindx[k] - l;
+        tt    = vrna_get_ptype_md(S[k], S[l], md);
+        temp  = 0.;
+      
+        /* skip this if (k,l) doesn't close a base pair or delimits a gquad */
+        if (with_gquad) {
+          if ((!tt) &&
+#ifndef VRNA_DISABLE_C11_FEATURES
+            (vrna_smx_csr_get(q_gq, k, l, 0.) == 0.))
+#else
+            (vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) == 0.))
+#endif
+          continue;
+        } else if ((qb[my_iindx[k] - l] == 0.) ||
+                   (!hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc))) {
+          continue;
+        }
+
+        /* contributions from (k,l) being the left-most stem */
+        for (i = 1; i < k; i++) {
+          if (hc->eval_mb(i + 1, l, k, l, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[k - i - 1] *
+                   prm_lmm2[i];
+
+            if (h->sc_wrapper_mb.red_ml)
+              qbt1 *= h->sc_wrapper_mb.red_ml(i + 1, l, k, l, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        /* (k,l) is the right-most stem or somewhere in the middle */
+        for (i = 1; i < k; i++) {
+          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
+                   (prm_lmu2[i] + prm_lmm2[i]);
+
+            if (h->sc_wrapper_mb.decomp_ml)
+              qbt1 *= h->sc_wrapper_mb.decomp_ml(i + 1, l, k - 1, k, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        if ((with_gquad) &&
+            (qb[my_iindx[k] - l] == 0.)) {
+          temp *= expMLstemGQ;
+        } else {
+          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+        }
+
+        if (h->sc_wrapper_mb.red_stem)
+          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
+
+        probs[kl] += temp *
+                     scale[2];
+      }
+
+      /* cases where k is located on interval I' */
+      for (k = r->c + 1; k < l; k++) {
+        kl = my_iindx[k] - l;
+        tt    = vrna_get_ptype_md(S[k], S[l], md);
+        temp  = 0.;
+      
+        /* skip this if (k,l) doesn't close a base pair or delimits a gquad */
+        if (with_gquad) {
+          if ((!tt) &&
+#ifndef VRNA_DISABLE_C11_FEATURES
+            (vrna_smx_csr_get(q_gq, k, l, 0.) == 0.))
+#else
+            (vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) == 0.))
+#endif
+          continue;
+        } else if ((qb[my_iindx[k] - l] == 0.) ||
+                   (!hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc))) {
+          continue;
+        }
+
+        for (i = 1; i < r->a; i++) {
+          /* contributions from (k,l) being the left-most stem */
+          if (hc->eval_mb(i + 1, l, k, l, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[k - i - 1] *
+                   prm_lmm2[i];
+
+            if (h->sc_wrapper_mb.red_ml)
+              qbt1 *= h->sc_wrapper_mb.red_ml(i + 1, l, k, l, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+
+          /* (k,l) is the right-most stem or somewhere in the middle */
+          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
+                   (prm_lmu2[i] + prm_lmm2[i]);
+
+            if (h->sc_wrapper_mb.decomp_ml)
+              qbt1 *= h->sc_wrapper_mb.decomp_ml(i + 1, l, k - 1, k, &(h->sc_wrapper_mb));
+  
+            temp += qbt1;
+          }
+        }
+
+        /* special cases for (k,l) being right-most stem */
+        temp += r_lmu[k];
+
+        /* special cases for (k,l) being somewhere in the middle */
+        temp += r_lmm[k];
+
+        /* remaining cases for (k,l) being left-most stem */
+        for (i = r->a; i < k; i++) {
+          if (hc->eval_mb(i + 1, l, k, l, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[k - i - 1] *
+                   prm_lmm2[i];
+
+            if (h->sc_wrapper_mb.red_ml)
+              qbt1 *= h->sc_wrapper_mb.red_ml(i + 1, l, k, l, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        if ((with_gquad) &&
+            (qb[my_iindx[k] - l] == 0.)) {
+          temp *= expMLstemGQ;
+        } else {
+          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+        }
+
+        if (h->sc_wrapper_mb.red_stem)
+          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
+
+        probs[kl] += temp *
+                     scale[2];
+      }
+    } else if (overlap_5) {
+      /*
+       * here all the cases where l overlaps with some I
+       * In particular, a < l < b, since l == a and l == b are
+       * already covered above...
+       * The following cases are only required for (k,l) being the
+       * left-most stem, or somewhere in the middle
+       */
+      for (k = 2; k <= r->a; k++) {
+        kl = my_iindx[k] - l;
+        tt    = vrna_get_ptype_md(S[k], S[l], md);
+        temp  = 0.;
+
+        /* skip this if (k,l) doesn't close a base pair or delimits a gquad */
+        if (with_gquad) {
+          if ((!tt) &&
+#ifndef VRNA_DISABLE_C11_FEATURES
+            (vrna_smx_csr_get(q_gq, k, l, 0.) == 0.))
+#else
+            (vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) == 0.))
+#endif
+          continue;
+        } else if ((qb[my_iindx[k] - l] == 0.) ||
+                   (!hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc))) {
+          continue;
+        }
+
+        for (i = 1; i < k; i++) {
+          /* contributions from (k,l) being the left-most stem */
+          if (hc->eval_mb(i + 1, l, k, l, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[k - i - 1] *
+                   prm_lmm2[i];
+
+            if (h->sc_wrapper_mb.red_ml)
+              qbt1 *= h->sc_wrapper_mb.red_ml(i + 1, l, k, l, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+
+          /* (k,l) is somewhere in the middle */
+          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
+                   prm_lmm2[i];
+
+            if (h->sc_wrapper_mb.decomp_ml)
+              qbt1 *= h->sc_wrapper_mb.decomp_ml(i + 1, l, k - 1, k, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        if ((with_gquad) &&
+            (qb[my_iindx[k] - l] == 0.)) {
+          temp *= expMLstemGQ;
+        } else {
+          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+        }
+
+        if (h->sc_wrapper_mb.red_stem)
+          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
+
+        probs[kl] += temp *
+                     scale[2];
+      }
+      
+      for (k = r->a + 1; k < l; k++) {
+        kl = my_iindx[k] - l;
+        tt    = vrna_get_ptype_md(S[k], S[l], md);
+        temp  = 0.;
+
+        /* skip this if (k,l) doesn't close a base pair or delimits a gquad */
+        if (with_gquad) {
+          if ((!tt) &&
+#ifndef VRNA_DISABLE_C11_FEATURES
+            (vrna_smx_csr_get(q_gq, k, l, 0.) == 0.))
+#else
+            (vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) == 0.))
+#endif
+          continue;
+        } else if ((qb[my_iindx[k] - l] == 0.) ||
+                   (!hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc))) {
+          continue;
+        }
+
+        for (i = 1; i < r->a; i++) {
+          /* contributions from (k,l) being the left-most stem */
+          if (hc->eval_mb(i + 1, l, k, l, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[k - i - 1] *
+                   prm_lmm2[i];
+
+            if (h->sc_wrapper_mb.red_ml)
+              qbt1 *= h->sc_wrapper_mb.red_ml(i + 1, l, k, l, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+
+          /* (k,l) is somewhere in the middle */
+          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
+                   prm_lmm2[i];
+
+            if (h->sc_wrapper_mb.decomp_ml)
+              qbt1 *= h->sc_wrapper_mb.decomp_ml(i + 1, l, k - 1, k, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        /* remaining cases for (k,l) being left-most stem or somewhere in the middle */
+        for (i = r->a; i < k; i++) {
+          if (hc->eval_mb(i + 1, l, k, l, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[k - i - 1] *
+                   s_lmm[i];
+
+            if (h->sc_wrapper_mb.red_ml)
+              qbt1 *= h->sc_wrapper_mb.red_ml(i + 1, l, k, l, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+
+          /* (k,l) is somewhere in the middle */
+          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
+                   s_lmm[i];
+
+            if (h->sc_wrapper_mb.decomp_ml)
+              qbt1 *= h->sc_wrapper_mb.decomp_ml(i + 1, l, k - 1, k, &(h->sc_wrapper_mb));
+
+            temp += qbt1;
+          }
+        }
+
+        if ((with_gquad) &&
+            (qb[my_iindx[k] - l] == 0.)) {
+          temp *= expMLstemGQ;
+        } else {
+          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+        }
+
+        if (h->sc_wrapper_mb.red_stem)
+          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
+
+        probs[kl] += temp *
+                     scale[2];
+      }
+    }
+
+  }
 }
 
 
