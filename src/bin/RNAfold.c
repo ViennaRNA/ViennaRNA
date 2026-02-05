@@ -40,7 +40,7 @@
 #include "ViennaRNA/structures/mea.h"
 #include "ViennaRNA/structures/pairtable.h"
 #include "ViennaRNA/structures/benchmark.h"
-#include "ViennaRNA/sequences/alphabet.c"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/probing/SHAPE.h"
