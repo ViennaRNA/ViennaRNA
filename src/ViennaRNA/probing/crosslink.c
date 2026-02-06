@@ -26,6 +26,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/probing/basic.h"
+#include "ViennaRNA/probabilities/basepairs.h"
 
 
 #include "ViennaRNA/eval/multibranch.h"
@@ -234,6 +235,21 @@ PRIVATE void
 xl_fill_s(vrna_fold_compound_t *fc,
           unsigned int         l,
           xl_ml_helper_t       *helpers);
+
+
+PRIVATE void
+compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
+                              unsigned int          l,
+                              FLT_OR_DBL            *Qmax,
+                              size_t                *ov,
+                              void                  *helpers);
+
+PRIVATE xl_ml_helper_t *
+get_xl_ml_outside_helpers(vrna_fold_compound_t *fc);
+
+
+PRIVATE void
+free_xl_ml_outside_helpers(void *helpers);
 
 
 PUBLIC int
@@ -1906,6 +1922,24 @@ vrna_sc_xl_update_pf(vrna_fold_compound_t *fc,
 }
 
 
+PUBLIC vrna_bp_probs_f
+vrna_sc_xl_get_outside_cb(vrna_fold_compound_t  *fc,
+                          void                  **cb_data,
+                          vrna_auxdata_free_f   *cb_data_free)
+{
+  if ((fc) &&
+      (cb_data) &&
+      (cb_data_free)) {
+    *cb_data      = (void *)get_xl_ml_outside_helpers(fc);
+    *cb_data_free = free_xl_ml_outside_helpers;
+    return compute_bpp_multibranch_xlink;
+  }
+
+  return NULL;
+}
+
+
+
 /* Outside partition function, i.e. base pair probabilities below */
 PRIVATE void
 compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
@@ -2513,17 +2547,18 @@ get_xl_ml_outside_helpers(vrna_fold_compound_t *fc)
 
 
 PRIVATE void
-free_xl_ml_outside_helpers(xl_ml_helper_t *helpers)
+free_xl_ml_outside_helpers(void *helpers)
 {
   if (helpers) {
-    free(helpers->prm_lmu);
-    free(helpers->prm_lmu2);
-    free(helpers->prm_lmm);
-    free(helpers->prm_lmm2);
-    free(helpers->r_lmu);
-    free(helpers->r_lmm);
-    free(helpers->s_lmm);
-    free_sc_mb_exp(&(helpers->sc_wrapper_mb));
+    xl_ml_helper_t *h = (xl_ml_helper_t *)helpers;
+    free(h->prm_lmu);
+    free(h->prm_lmu2);
+    free(h->prm_lmm);
+    free(h->prm_lmm2);
+    free(h->r_lmu);
+    free(h->r_lmm);
+    free(h->s_lmm);
+    free_sc_mb_exp(&(h->sc_wrapper_mb));
 
     free(helpers);
   }

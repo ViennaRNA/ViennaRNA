@@ -4,6 +4,7 @@
 #include <ViennaRNA/fold_compound.h>
 #include "ViennaRNA/mfe/multibranch.h"
 #include "ViennaRNA/partfunc/multibranch.h"
+#include <ViennaRNA/probabilities/basepairs.h>
 #include <ViennaRNA/probing/basic.h>
 
 /**
@@ -59,5 +60,10 @@ void
 vrna_sc_xl_update_pf(vrna_fold_compound_t *fc,
                      unsigned int         j);
 
+
+vrna_bp_probs_f
+vrna_sc_xl_get_outside_cb(vrna_fold_compound_t  *fc,
+                          void                  **cb_data,
+                          vrna_auxdata_free_f   *cb_data_free);
 
 #endif
