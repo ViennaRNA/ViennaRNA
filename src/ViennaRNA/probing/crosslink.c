@@ -1941,6 +1941,52 @@ vrna_sc_xl_get_outside_cb(vrna_fold_compound_t  *fc,
 
 
 /* Outside partition function, i.e. base pair probabilities below */
+PRIVATE INLINE FLT_OR_DBL
+contrib_enclosing_pair(unsigned int     i,
+                       unsigned int     j,
+                       vrna_md_t        *md,
+                       vrna_exp_param_t *pf_params,
+                       short            *S,
+                       short            *S1,
+                       xl_ml_helper_t   *helpers)
+{
+  FLT_OR_DBL    q;
+  unsigned int  tt;
+
+  tt = vrna_get_ptype_md(S[j], S[i], md);
+
+  q = vrna_exp_E_multibranch_stem(tt, S1[j - 1], S1[i + 1], pf_params);
+
+  if (helpers->sc_wrapper_mb.pair)
+    q *= helpers->sc_wrapper_mb.pair(i, j, &(helpers->sc_wrapper_mb));
+
+  return q;
+}
+
+
+PRIVATE INLINE FLT_OR_DBL
+contrib_enclosed_pair(unsigned int     i,
+                      unsigned int     j,
+                      vrna_md_t        *md,
+                      vrna_exp_param_t *pf_params,
+                      short            *S,
+                      short            *S1,
+                      xl_ml_helper_t   *helpers)
+{
+  FLT_OR_DBL    q;
+  unsigned int  tt;
+
+  tt = vrna_get_ptype_md(S[i], S[j], md);
+
+  q = vrna_exp_E_multibranch_stem(tt, S1[i - 1], S1[j + 1], pf_params);
+
+  if (helpers->sc_wrapper_mb.red_stem)
+    q *= helpers->sc_wrapper_mb.red_stem(i, j, i, j, &(helpers->sc_wrapper_mb));
+
+  return q;
+}
+
+
 PRIVATE void
 compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
                               unsigned int          l,
@@ -2030,7 +2076,7 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
         }
 
         /* contributions from (k,l) being the right-most stem or somewhere in the middle */
-        for (i = 1; i < k; i++) {
+        for (i = 1; i + 1 < k; i++) {
           if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
             qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
                    (prm_lmu2[i] + prm_lmm2[i]);
@@ -2043,11 +2089,7 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
         }
 
         /* finally, add contribution of the pair (k,l) itself and store in probs */
-        tt    = vrna_get_ptype_md(S[k], S[l], md);
-        temp  *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
-
-        if (h->sc_wrapper_mb.red_stem)
-          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
+        temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
 
         probs[kl] += temp *
                      scale[2];
@@ -2066,7 +2108,7 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
         if (hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc)) {
           temp = 0.;
       
-          for (i = 1; i < k; i++) {
+          for (i = 1; i + 1 < k; i++) {
             if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
               qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
                      prm_lmu2[i];
@@ -2079,11 +2121,7 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           }
 
           /* finally, add contribution of the pair (k,l) itself and store in probs */
-          tt    = vrna_get_ptype_md(S[k], S[l], md);
-          temp  *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
-
-          if (h->sc_wrapper_mb.red_stem)
-            temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
+          temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
 
           probs[kl] += temp *
                        scale[2];
@@ -2128,7 +2166,7 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
         }
 
         /* (k,l) is the right-most stem or somewhere in the middle */
-        for (i = 1; i < k; i++) {
+        for (i = 1; i + 1 < k; i++) {
           if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
             qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
                    (prm_lmu2[i] + prm_lmm2[i]);
@@ -2144,11 +2182,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
             (qb[my_iindx[k] - l] == 0.)) {
           temp *= expMLstemGQ;
         } else {
-          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+          temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
-
-        if (h->sc_wrapper_mb.red_stem)
-          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
 
         probs[kl] += temp *
                      scale[2];
@@ -2188,7 +2223,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           }
 
           /* (k,l) is right-most stem or in the middle */
-          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+          if ((i + 1 < k) &&
+              (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc))) {
             qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
                    (prm_lmu2[i] + prm_lmm2[i]);
 
@@ -2212,7 +2248,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           }
 
           /* (k,l) is right-most stem or in the middle */
-          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+          if ((i + 1 < k) &&
+              (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc))) {
             qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
                    (prm_lmu[i] + prm_lmm[i]);
 
@@ -2227,11 +2264,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
             (qb[my_iindx[k] - l] == 0.)) {
           temp *= expMLstemGQ;
         } else {
-          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+          temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
-
-        if (h->sc_wrapper_mb.red_stem)
-          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
 
         probs[kl] += temp *
                      scale[2];
@@ -2271,7 +2305,7 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
         }
 
         /* (k,l) is the right-most stem or somewhere in the middle */
-        for (i = 1; i < k; i++) {
+        for (i = 1; i + 1 < k; i++) {
           if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
             qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
                    (prm_lmu2[i] + prm_lmm2[i]);
@@ -2287,11 +2321,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
             (qb[my_iindx[k] - l] == 0.)) {
           temp *= expMLstemGQ;
         } else {
-          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+          temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
-
-        if (h->sc_wrapper_mb.red_stem)
-          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
 
         probs[kl] += temp *
                      scale[2];
@@ -2330,7 +2361,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           }
 
           /* (k,l) is the right-most stem or somewhere in the middle */
-          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+          if ((i + 1 < k) &&
+              (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc))) {
             qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
                    (prm_lmu2[i] + prm_lmm2[i]);
 
@@ -2364,11 +2396,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
             (qb[my_iindx[k] - l] == 0.)) {
           temp *= expMLstemGQ;
         } else {
-          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+          temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
-
-        if (h->sc_wrapper_mb.red_stem)
-          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
 
         probs[kl] += temp *
                      scale[2];
@@ -2413,7 +2442,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           }
 
           /* (k,l) is somewhere in the middle */
-          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+          if ((i + 1 < k) &&
+              (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc))) {
             qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
                    prm_lmm2[i];
 
@@ -2428,11 +2458,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
             (qb[my_iindx[k] - l] == 0.)) {
           temp *= expMLstemGQ;
         } else {
-          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+          temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
-
-        if (h->sc_wrapper_mb.red_stem)
-          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
 
         probs[kl] += temp *
                      scale[2];
@@ -2470,7 +2497,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           }
 
           /* (k,l) is somewhere in the middle */
-          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+          if ((i + 1 < k) &&
+              (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc))) {
             qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
                    prm_lmm2[i];
 
@@ -2494,7 +2522,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           }
 
           /* (k,l) is somewhere in the middle */
-          if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+          if ((i + 1 < k) &&
+              (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc))) {
             qbt1 = qm[my_iindx[i + 1] - (k - 1)] *
                    s_lmm[i];
 
@@ -2509,11 +2538,8 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
             (qb[my_iindx[k] - l] == 0.)) {
           temp *= expMLstemGQ;
         } else {
-          temp *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+          temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
-
-        if (h->sc_wrapper_mb.red_stem)
-          temp *= h->sc_wrapper_mb.red_stem(k, l, k, l, &(h->sc_wrapper_mb));
 
         probs[kl] += temp *
                      scale[2];
@@ -2617,22 +2643,17 @@ xl_fill_prms(vrna_fold_compound_t *fc,
         prm_lmu = prm_lmm = 0.;
 
         /* compute closing pair contribution */
-        tt = vrna_get_ptype_md(S[j], S[i], md);
-
         temp = probs[ij] *
-               vrna_exp_E_multibranch_stem(tt, S1[j - 1], s3, pf_params);
-
-        if (helpers->sc_wrapper_mb.pair)
-          temp *= helpers->sc_wrapper_mb.pair(i, j, &(helpers->sc_wrapper_mb));
+               contrib_enclosing_pair(i, j, md, pf_params, S, S1, helpers);
 
         /* compute total helper contributions */
         if (hc->eval_mb(i + 1, j - 1, i + 1, l, VRNA_DECOMP_ML_ML, hc))
           prm_lmu = expMLbase[u] *
                     temp;
 
-        if ((j > l + 1) &&
+        if ((l + 1 < j) &&
             (hc->eval_mb(i + 1, j - 1, l, l + 1, VRNA_DECOMP_ML_ML_ML, hc)))
-          prm_lmm = qm[lj1] *
+          prm_lmm = qm[my_iindx[l + 1] - (j - 1)] *
                     temp;
 
         /* add total helper contributions */
@@ -2655,6 +2676,11 @@ xl_fill_prms(vrna_fold_compound_t *fc,
     helpers->prm_lmm[i] *= expMLclosing;
     helpers->prm_lmu2[i] *= expMLclosing;
     helpers->prm_lmm2[i] *= expMLclosing;
+
+    vrna_log_debug("prm_lmu[%u] = %g", i, helpers->prm_lmu[i]);
+    vrna_log_debug("prm_lmm[%u] = %g", i, helpers->prm_lmm[i]);
+    vrna_log_debug("prm_lmu2[%u] = %g", i, helpers->prm_lmu2[i]);
+    vrna_log_debug("prm_lmm2[%u] = %g", i, helpers->prm_lmm2[i]);
   }
 }
 
@@ -2719,7 +2745,8 @@ xl_fill_rs(vrna_fold_compound_t  *fc,
         temp = 0.;
 
         /* [i + 1 : u - 1] harbors at least one more stem */
-        if (hc->eval_mb(i + 1, l, u - 1, u, VRNA_DECOMP_ML_ML_ML, hc)) {
+        if ((i + 1 < u) &&
+            (hc->eval_mb(i + 1, l, u - 1, u, VRNA_DECOMP_ML_ML_ML, hc))) {
           qbt1 = qm[my_iindx[i + 1] - (u - 1)];
 
           if (helpers->sc_wrapper_mb.decomp_ml)
@@ -2730,7 +2757,7 @@ xl_fill_rs(vrna_fold_compound_t  *fc,
 
         /* [i + 1 : u - 1] is unpaired */
         if (hc->eval_mb(i + 1, l, u, l, VRNA_DECOMP_ML_ML, hc)) {
-          qbt1 += expMLbase[u - i - 1];
+          qbt1 = expMLbase[u - i - 1];
 
           if (helpers->sc_wrapper_mb.red_ml)
             qbt1 *= helpers->sc_wrapper_mb.red_ml(i + 1, l, u, l, &(helpers->sc_wrapper_mb));
@@ -2762,9 +2789,8 @@ xl_fill_rs(vrna_fold_compound_t  *fc,
 
       for (u = r->a + 1; u <= r->b; u++) {
         if (hc->eval_mb(u, v, u, v, VRNA_DECOMP_ML_STEM, hc)) {
-          tt = vrna_get_ptype_md(S[u], S[v], md);
           temp = qb[my_iindx[u] - v] *
-                 vrna_exp_E_multibranch_stem(tt, S1[u - 1], S1[v + 1], pf_params);
+                 contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers);
 
           y[v] += temp *
                   x[u];
@@ -2869,7 +2895,8 @@ xl_fill_rs(vrna_fold_compound_t  *fc,
             temp += qbt1;
           }
 
-          if  (hc->eval_mb(v + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+          if ((v + 1 < k) &&
+              (hc->eval_mb(v + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc))) {
             qbt1 = qm[my_iindx[v + 1] - (k - 1)];
 
             if (helpers->sc_wrapper_mb.decomp_ml)
@@ -2885,9 +2912,8 @@ xl_fill_rs(vrna_fold_compound_t  *fc,
                                y3[v];
         }
 
-        tt = vrna_get_ptype_md(S[k], S[l], md);
-        helpers->r_lmu[k] *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
-        helpers->r_lmm[k] *= vrna_exp_E_multibranch_stem(tt, S1[k - 1], S1[l + 1], pf_params);
+        //helpers->r_lmu[k] *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
+        //helpers->r_lmm[k] *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
       }
     }
 
@@ -2952,11 +2978,11 @@ xl_fill_s(vrna_fold_compound_t *fc,
       for (u = l + 1; u <= r->b; u++) {
         if (hc->eval_mb(u, v, u, v, VRNA_DECOMP_ML_STEM, hc)) {
           /* compute closing pair contribution */
-          tt    = vrna_get_ptype_md(S[u], S[v], md);
           temp  = qb[my_iindx[u] - v] *
-                  vrna_exp_E_multibranch_stem(tt, S1[u - 1], S1[v + 1], pf_params);
+                  contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers);
 
-          if (hc->eval_mb(l + 1, v, u - 1, u, VRNA_DECOMP_ML_ML_ML, hc)) {
+          if ((l + 1 < u) &&
+              (hc->eval_mb(l + 1, v, u - 1, u, VRNA_DECOMP_ML_ML_ML, hc))) {
             qbt1 = qm[my_iindx[l + 1] - (u - 1)];
 
             if (helpers->sc_wrapper_mb.decomp_ml)
@@ -2984,7 +3010,8 @@ xl_fill_s(vrna_fold_compound_t *fc,
       M[j] = M2[j] = 0.;
 
       for (v = r->b + 1; v < r->c; v++) {
-        if (hc->eval_mb(l + 1, j - 1, v, v + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+        if ((v + 1 < j) &&
+            (hc->eval_mb(l + 1, j - 1, v, v + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
           qbt1 = qm[my_iindx[v + 1] - (j - 1)];
 
           if (helpers->sc_wrapper_mb.decomp_ml)
@@ -3000,13 +3027,14 @@ xl_fill_s(vrna_fold_compound_t *fc,
           if (helpers->sc_wrapper_mb.red_ml)
             qbt1 *= helpers->sc_wrapper_mb.red_ml(l + 1, j - 1, l + 1, v, &(helpers->sc_wrapper_mb));
 
-          M2[v] += L[v] *
+          M2[j] += L[v] *
                    qbt1;          
         }
       }
 
       for (v = r->c; v < j; v++) {
-        if (hc->eval_mb(l + 1, j - 1, v, v + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+        if ((v + 1 < j) &&
+            (hc->eval_mb(l + 1, j - 1, v, v + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
           qbt1 = qm[my_iindx[v + 1] - (j - 1)];
 
           if (helpers->sc_wrapper_mb.decomp_ml)
@@ -3022,7 +3050,7 @@ xl_fill_s(vrna_fold_compound_t *fc,
           if (helpers->sc_wrapper_mb.red_ml)
             qbt1 *= helpers->sc_wrapper_mb.red_ml(l + 1, j - 1, l + 1, v, &(helpers->sc_wrapper_mb));
 
-          M[v] += L[v] *
+          M[j] += L[v] *
                   qbt1;          
         }
       }
@@ -3039,18 +3067,15 @@ xl_fill_s(vrna_fold_compound_t *fc,
       for (j = l + 1; j <= r->d; j++) {
         if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
           /* compute closing pair contribution */
-          tt = vrna_get_ptype_md(S[j], S[i], md);
-
           temp = probs[my_iindx[i] - j] *
-                 vrna_exp_E_multibranch_stem(tt, S1[j - 1], S1[i + 1], pf_params);
-
-          if (helpers->sc_wrapper_mb.pair)
-            temp *= helpers->sc_wrapper_mb.pair(i, j, &(helpers->sc_wrapper_mb));
+                 contrib_enclosing_pair(i, j, md, pf_params, S, S1, helpers) *
+                 expMLclosing;;
 
           /* first, the obvious cases where no base pair crosses b */
           qbt2 = 0.;
 
-          if (hc->eval_mb(l + 1, j - 1, r->b, r->b + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+          if ((r->b + 1 < j) &&
+              (hc->eval_mb(l + 1, j - 1, r->b, r->b + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
             qbt1 = qm[my_iindx[r->b + 1] - (j - 1)] *
                    qm[my_iindx[l + 1] - r->b];
 
@@ -3060,7 +3085,8 @@ xl_fill_s(vrna_fold_compound_t *fc,
             qbt2 += qbt1;
           }
 
-          if (hc->eval_mb(l + 1, j - 1, r->b + 1, j - 1, VRNA_DECOMP_ML_ML, hc)) {
+          if ((r->b + 1 < j) &&
+              (hc->eval_mb(l + 1, j - 1, r->b + 1, j - 1, VRNA_DECOMP_ML_ML, hc))) {
             qbt1 = expMLbase[r->b - l] *
                    qm[my_iindx[r->b + 1] - (j - 1)];
 
@@ -3115,15 +3141,10 @@ xl_fill_s(vrna_fold_compound_t *fc,
       for (j = r->d + 1; j <= n; j++) {
         if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
           /* compute closing pair contribution */
-          tt = vrna_get_ptype_md(S[j], S[i], md);
-
           temp = probs[my_iindx[i] - j] *
-                 vrna_exp_E_multibranch_stem(tt, S1[j - 1], S1[i + 1], pf_params);
+                 contrib_enclosing_pair(i, j, md, pf_params, S, S1, helpers);
 
-          if (helpers->sc_wrapper_mb.pair)
-            temp *= helpers->sc_wrapper_mb.pair(i, j, &(helpers->sc_wrapper_mb));
-
-          if ((overlap) &&
+          if ((overlap2) &&
               (r2->c <= j) &&
               (j <= r2->d))
             temp *= r2->exp_score;
