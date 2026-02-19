@@ -740,8 +740,8 @@ make_pair(int   i,
 
 PRIVATE void
 make_gquad(unsigned int i,
-           unsigned int L,
            unsigned int n,
+           unsigned int L,
            unsigned int l[3],
            STATE        *state)
 {

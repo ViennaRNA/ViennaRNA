@@ -220,7 +220,7 @@ get_gquad_pattern_exhaustive(short        *S,
                             &gquad_pos_exhaustive,
                             (void *)(&threshold),
                             (void *)P,
-                            (void *)&L,
+                            (void *)L,
                             (void *)l);
 
   gg += i - 1;
@@ -270,7 +270,7 @@ gquad_pos_exhaustive(unsigned int  i,
                      void *Lex,
                      void *lex)
 {
-  int cnt;
+  unsigned int cnt;
   int cc = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]];
 
   if (cc <= *((int *)data)) {
