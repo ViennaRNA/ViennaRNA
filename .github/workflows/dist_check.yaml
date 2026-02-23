@@ -34,6 +34,7 @@ jobs:
           help2man \
           bison \
           flex \
+          libnsl2 \
           libtool \
           check \
           liblapacke \
