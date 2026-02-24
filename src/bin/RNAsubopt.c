@@ -425,7 +425,7 @@ main(int  argc,
                                  l);
               goto exit_fail;
             }
-            vrna_string_append_cstring(constraint, *ptr);
+            constraint = vrna_string_append_cstring(constraint, *ptr);
 
             i += l;
           }
