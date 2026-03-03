@@ -1500,17 +1500,16 @@ xlink_hp_en(vrna_fold_compound_t  *fc,
 {
   int                           energy  = 0;
   struct vrna_crosslink_data_s  *dat    = (struct vrna_crosslink_data_s *)data;
+  interact_region_s *r;
 
   /* go through each interval that overlaps with position i to check whether j connects both segments */
-  if (dat->overlap[i]) {
-    interact_region_s *r = dat->overlap[i];
-    if ((r->a <= i) &&
-        (r->b >= i) &&
-        (r->b < j) &&
-        (r->c <= j) &&
-        (r->d >= j))
-      energy += r->score;
-  }
+  if ((r = dat->overlap[i]) &&
+      (r->a <= i) &&
+      (r->b >= i) &&
+      (r->b < j) &&
+      (r->c <= j) &&
+      (r->d >= j))
+    energy += r->score;
 
   return energy;
 }
@@ -1524,7 +1523,19 @@ xlink_hp_exp_en(vrna_fold_compound_t  *fc,
                 int                   l,
                 void                  *data)
 {
-  return exp(-(FLT_OR_DBL)xlink_hp_en(fc, i, j, k, l, data) * 10. / fc->exp_params->kT);
+  struct vrna_crosslink_data_s  *dat    = (struct vrna_crosslink_data_s *)data;
+  interact_region_s *r;
+
+  /* go through each interval that overlaps with position i to check whether j connects both segments */
+  if ((r = dat->overlap[i]) &&
+      (r->a <= i) &&
+      (r->b >= i) &&
+      (r->b < j) &&
+      (r->c <= j) &&
+      (r->d >= j))
+    return r->exp_score;
+
+  return 1.0;
 }
 
 
@@ -1538,18 +1549,17 @@ xlink_il_en(vrna_fold_compound_t  *fc,
 {
   int                           energy  = 0;
   struct vrna_crosslink_data_s  *dat    = (struct vrna_crosslink_data_s *)data;
+  interact_region_s *r;
 
   /*  go through each interval that overlaps with position i to check whether
    *  k does not overlap with the 5' interval and j connects both segments */
-  if (dat->overlap[i]) {
-    interact_region_s *r = dat->overlap[i];
-    if ((r->a <= i) &&
-        (r->b >= i) &&
-        (r->b < k) &&
-        (r->c <= j) &&
-        (r->d >= j))
-      energy += r->score;
-  }
+  if ((r = dat->overlap[j]) &&
+      (r->a <= i) &&
+      (r->b >= i) &&
+      (r->b < k) &&
+      (r->c <= j) &&
+      (r->d >= j))
+    energy += r->score;
 
   return energy;
 }
@@ -1563,7 +1573,20 @@ xlink_il_exp_en(vrna_fold_compound_t  *fc,
                 int                   l,
                 void                  *data)
 {
-  return exp(-(FLT_OR_DBL)xlink_il_en(fc, i, j, k, l, data) * 10. / fc->exp_params->kT);
+  struct vrna_crosslink_data_s  *dat    = (struct vrna_crosslink_data_s *)data;
+  interact_region_s *r;
+
+  /*  go through each interval that overlaps with position i to check whether
+   *  k does not overlap with the 5' interval and j connects both segments */
+  if ((r = dat->overlap[j]) &&
+      (r->a <= i) &&
+      (r->b >= i) &&
+      (r->b < k) &&
+      (r->c <= j) &&
+      (r->d >= j))
+    return r->exp_score;
+
+  return 1.0;
 }
 
 
@@ -2031,7 +2054,7 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
   short                         *S1, *S;
   unsigned int                  i, k, n, overlap_5, overlap_3, turn, tt, with_gquad;
   int                           *my_iindx, kl;
-  FLT_OR_DBL                    qbt1, temp, expMLstemGQ, *qm, *qb, *expMLbase, *prm_lmu, *prm_lmu2, *prm_lmm, *prm_lmm2, *r_lmu, *r_lmm, *s_lmm, *scale, *probs, *ptot;
+  FLT_OR_DBL                    qbt1, temp, expMLstemGQ, *qm, *qb, *expMLbase, *prm_lmu, *prm_lmu2, *prm_lmm, *prm_lmm2, *r_lmu, *r_lmm, *s_lmm, *scale, *probs;
   vrna_exp_param_t              *pf_params;
   vrna_md_t                     *md;
   vrna_hc_t         *hc;
@@ -2086,8 +2109,6 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
   with_gquad    = md->gquad ? 1 : 0;
   expMLstemGQ   = (with_gquad) ? vrna_exp_E_multibranch_stem(0, -1, -1, pf_params) : 0;
 
-  ptot = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
-
   if ((r == NULL) ||
       (r->a == l) ||
       (r->b == l)) {
@@ -2127,9 +2148,6 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
         /* finally, add contribution of the pair (k,l) itself and store in probs */
         temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
 
-//        vrna_log_error("p^M[%u,%u] = %g [1]", k, l, temp * scale[2]);
-        ptot[k] += temp * scale[2];
-
         probs[kl] += temp *
                      scale[2];
 
@@ -2162,8 +2180,6 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           /* finally, add contribution of the pair (k,l) itself and store in probs */
           temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
 
-//          vrna_log_error("p^M[%u,%u] = %g [2]", k, l, temp * scale[2]);
-          ptot[k] += temp * scale[2];
           probs[kl] += temp *
                        scale[2];
         }
@@ -2226,8 +2242,6 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
 
-//        vrna_log_error("p^M[%u,%u] = %g [3]", k, l, temp * scale[2]);
-        ptot[k] += temp * scale[2];
         probs[kl] += temp *
                      scale[2];
       }
@@ -2310,8 +2324,6 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
 
-//        vrna_log_error("p^M[%u,%u] = %g [4]", k, l, temp * scale[2]);
-        ptot[k] += temp * scale[2];
         probs[kl] += temp *
                      scale[2];
       }
@@ -2369,8 +2381,6 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
 
-//        vrna_log_error("p^M[%u,%u] = %g [5]", k, l, temp * scale[2]);
-        ptot[k] += temp * scale[2];
         probs[kl] += temp *
                      scale[2];
       }
@@ -2445,8 +2455,6 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
 
-//        vrna_log_error("p^M[%u,%u] = %g [6]", k, l, temp * scale[2]);
-        ptot[k] += temp * scale[2];
         probs[kl] += temp *
                      scale[2];
       }
@@ -2509,8 +2517,6 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
 
-//        vrna_log_error("p^M[%u,%u] = %g [7]", k, l, temp * scale[2]);
-        ptot[k] += temp * scale[2];
         probs[kl] += temp *
                      scale[2];
       }
@@ -2591,22 +2597,11 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
           temp  *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers);
         }
 
-//        vrna_log_error("p^M[%u,%u] = %g [8]", k, l, temp * scale[2]);
-        ptot[k] += temp * scale[2];
         probs[kl] += temp *
                      scale[2];
       }
     }
   }
-#if 0
-
-  for (k = 2; k + turn < l; k++) {
-    if (ptot[k] > 0.)
-      vrna_log_error("p^M[%u,%u] = %g", k, l, ptot[k]);
-  }
-#endif
-
-  free(ptot);
 }
 
 
