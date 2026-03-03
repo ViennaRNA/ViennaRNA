@@ -70,20 +70,22 @@ wrap_hc_mb_cb(int            i,
              unsigned char  d,
              vrna_hc_t *hc)
 {
-  unsigned char         eval;
-  unsigned int          n, di, dj, u;
+  unsigned char         eval, *mx;
+  unsigned int          n, di, dj, u, *up_ml;
 
   eval  = (unsigned char)0;
   di    = k - i;
   dj    = j - l;
   n     = hc->n;
+  mx    = hc->mx;
+  up_ml = hc->up_ml;
 
   switch (d) {
     case VRNA_DECOMP_ML_ML_ML:
       u     = l - k - 1;
       eval  = (unsigned char)1;
       if ((u != 0) &&
-          (hc->up_ml[k + 1] < u))
+          (up_ml[k + 1] < u))
         eval = (unsigned char)0;
 
       break;
@@ -92,56 +94,56 @@ wrap_hc_mb_cb(int            i,
       eval = (unsigned char)1;
 
       if ((di != 0) &&
-          (hc->up_ml[i] < di))
+          (up_ml[i] < di))
         eval = (unsigned char)0;
 
       if ((dj != 0) &&
-          (hc->up_ml[l + 1] < dj))
+          (up_ml[l + 1] < dj))
         eval = (unsigned char)0;
 
       break;
 
     case VRNA_DECOMP_ML_STEM:
-      if (hc->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+      if (mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
         eval = (unsigned char)1;
         if ((di != 0) &&
-            (hc->up_ml[i] < di))
+            (up_ml[i] < di))
           eval = (unsigned char)0;
 
         if ((dj != 0) &&
-            (hc->up_ml[l + 1] < dj))
+            (up_ml[l + 1] < dj))
           eval = (unsigned char)0;
       }
 
       break;
 
     case VRNA_DECOMP_PAIR_ML:
-      if (hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+      if (mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
         eval = (unsigned char)1;
         di--;
         dj--;
         if ((di != 0) &&
-            (hc->up_ml[i + 1] < di))
+            (up_ml[i + 1] < di))
           eval = (unsigned char)0;
 
         if ((dj != 0) &&
-            (hc->up_ml[l + 1] < dj))
+            (up_ml[l + 1] < dj))
           eval = (unsigned char)0;
       }
 
       break;
 
     case VRNA_DECOMP_PAIR_ML_EXT:
-      if (hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+      if (mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
         eval = (unsigned char)1;
         di++;
         dj++;
         if ((di != 0) &&
-            (hc->up_ml[k + 1] < di))
+            (up_ml[k + 1] < di))
           eval = (unsigned char)0;
 
         if ((dj != 0) &&
-            (hc->up_ml[j + 1] < dj))
+            (up_ml[j + 1] < dj))
           eval = (unsigned char)0;
       }
 
@@ -149,23 +151,33 @@ wrap_hc_mb_cb(int            i,
 
     case VRNA_DECOMP_ML_ML_STEM:
       u     = l - k - 1;
-      if (hc->mx[n * j + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
+      if (mx[n * j + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
         eval = (unsigned char)1;
 
-      if ((u != 0) && (hc->up_ml[k + 1] < u))
+      if ((u != 0) && (up_ml[k + 1] < u))
+        eval = (unsigned char)0;
+
+      break;
+
+    case VRNA_DECOMP_ML_STEM_ML:
+      u     = l - k - 1;
+      if (mx[n * i + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
+        eval = (unsigned char)1;
+
+      if ((u != 0) && (up_ml[k + 1] < u))
         eval = (unsigned char)0;
 
       break;
 
     case VRNA_DECOMP_ML_COAXIAL:
-      if (hc->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
+      if (mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
         eval = (unsigned char)1;
 
       break;
 
     case VRNA_DECOMP_ML_COAXIAL_ENC:
-      if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) &&
-          (hc->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC))
+      if ((mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) &&
+          (mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC))
         eval = (unsigned char)1;
 
       break;
@@ -195,6 +207,10 @@ hc_mb_cb_sn(int           i,
   switch (d) {
     case VRNA_DECOMP_ML_ML_ML:
       /* fall through */
+
+    case VRNA_DECOMP_ML_STEM_ML:
+      /* fall through */
+
     case VRNA_DECOMP_ML_ML_STEM:
       if (sn[k] == sn[l])
         eval = (unsigned char)1;
