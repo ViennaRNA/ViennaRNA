@@ -1060,7 +1060,6 @@ backtrack_outside:
 backtrack_inside:
   bp[0].i = b;
 
-  vrna_log_error("Added %d bps", b);
   return vrna_backtrack_from_intervals(fc, bp, bt_stack, s);
 
 backtrack_fail:
