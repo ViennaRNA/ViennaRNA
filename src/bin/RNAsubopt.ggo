@@ -338,6 +338,19 @@ off
 dependon="constraint"
 
 
+option  "motif"   -
+"Specify stabilizing energy of a ligand binding to a particular sequence/structure motif.\n"
+details="Some ligands binding to RNAs require and/or induce particular sequence and structure motifs. For\
+ instance they bind to an internal loop, or small hairpin loop. If for such cases a binding free energy is\
+ known, the binding and therefore stabilizing effect of the ligand can be included in the folding recursions.\
+ Interior loop motifs are specified as concatenations of 5' and 3' motif, separated by an '&' character.\n\
+ Energy contributions must be specified in kcal/mol.\nSee the manpage for an example usage of this option.\n\n"
+string
+typestr="SEQUENCE,STRUCTURE,ENERGY"
+optional
+hidden
+
+
 option  "commands"   -
 "Read additional commands from file\n"
 details="Commands include hard and soft constraints, but also structure motifs in hairpin and internal\
