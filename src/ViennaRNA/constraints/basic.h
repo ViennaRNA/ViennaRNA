@@ -148,6 +148,8 @@
  */
 #define VRNA_DECOMP_ML_ML_STEM (unsigned char)9
 
+#define VRNA_DECOMP_ML_STEM_ML (unsigned char)24
+
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
  *

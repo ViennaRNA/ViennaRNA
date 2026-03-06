@@ -30,8 +30,9 @@
 #include "ViennaRNA/subopt/zuker.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/basic.h"
-#include "ViennaRNA/probing/SHAPE.h"
+#include "ViennaRNA/constraints/ligand.h"
 #include "ViennaRNA/constraints/soft_special.h"
+#include "ViennaRNA/probing/SHAPE.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/io/commands.h"
@@ -68,6 +69,13 @@ print_samples_en(const char *structure,
                  void       *data);
 
 
+static void
+add_ligand_motif(vrna_fold_compound_t *vc,
+                 char                 *motifstring,
+                 int                  verbose,
+                 unsigned int         options);
+
+
 int
 main(int  argc,
      char *argv[])
@@ -76,7 +84,7 @@ main(int  argc,
   struct          RNAsubopt_args_info args_info;
   char                                *rec_sequence, *rec_id,
                                       **rec_rest, *orig_sequence, *constraints_file, *cstruc,
-                                      *structure, *infile, *outfile, *filename_delim;
+                                      *structure, *infile, *outfile, *filename_delim, *ligandMotif;
   unsigned int                        rec_type, read_opt;
   int                                 i, length, cl, istty, delta, n_back, noconv, dos, zuker,
                                       verbose, enforceConstraints, st_back_en, batch,
@@ -106,6 +114,7 @@ main(int  argc,
   nonRedundant        = 0;
   mod_params          = NULL;
   probing_data        = NULL;
+  ligandMotif         = NULL;
 
   set_model_details(&md);
 
@@ -268,6 +277,10 @@ main(int  argc,
 
   /* collect probing data */
   ggo_get_probing_data(argc, argv, args_info, probing_data);
+
+  /* get hi-motif */
+  if (args_info.motif_given)
+    ligandMotif = strdup(args_info.motif_arg);
 
   /* free allocated memory of command line data structure */
   RNAsubopt_cmdline_parser_free(&args_info);
@@ -462,6 +475,13 @@ main(int  argc,
     }
 #endif
 
+    if (ligandMotif) {
+      add_ligand_motif(vc,
+                       ligandMotif,
+                       verbose,
+                       VRNA_OPTION_MFE);
+    }
+
     if (commands)
       vrna_commands_apply(vc,
                           commands,
@@ -651,6 +671,8 @@ main(int  argc,
 
   probing_data_free(probing_data);
 
+  free(ligandMotif);
+
   if (vrna_log_fp() != stderr)
     fclose(vrna_log_fp());
 
@@ -706,3 +728,70 @@ putoutzuker(FILE                    *output,
   }
   return;
 }
+
+
+static void
+add_ligand_motif(vrna_fold_compound_t *vc,
+                 char                 *motifstring,
+                 int                  verbose,
+                 unsigned int         options)
+{
+  int   r, l, error;
+  char  *seq, *str, *ptr;
+  float energy;
+
+  l   = strlen(motifstring);
+  seq = vrna_alloc(sizeof(char) * (l + 1));
+  str = vrna_alloc(sizeof(char) * (l + 1));
+
+  error = 1;
+
+  if (motifstring) {
+    error = 0;
+    /* parse sequence */
+    for (r = 0, ptr = motifstring; *ptr != '\0'; ptr++) {
+      if (*ptr == ',')
+        break;
+
+      seq[r++] = toupper(*ptr);
+    }
+    seq[r]  = '\0';
+    seq     = vrna_realloc(seq, sizeof(char) * (strlen(seq) + 1));
+
+    for (ptr++, r = 0; *ptr != '\0'; ptr++) {
+      if (*ptr == ',')
+        break;
+
+      str[r++] = *ptr;
+    }
+    str[r]  = '\0';
+    str     = vrna_realloc(str, sizeof(char) * (strlen(seq) + 1));
+
+    ptr++;
+    if (!(sscanf(ptr, "%f", &energy) == 1)) {
+      vrna_log_warning("Energy contribution in ligand motif missing!");
+      error = 1;
+    }
+
+    if (strlen(seq) != strlen(str)) {
+      vrna_log_warning("Sequence and structure length in ligand motif have unequal lengths!");
+      error = 1;
+    }
+
+    if (strlen(seq) == 0) {
+      vrna_log_warning("Sequence length in ligand motif is zero!");
+      error = 1;
+    }
+
+    if (!error && verbose)
+      vrna_log_info("Read ligand motif: %s, %s, %f", seq, str, energy);
+  }
+
+  if (error || (!vrna_sc_add_hi_motif(vc, seq, str, energy, options)))
+    vrna_log_warning("Malformatted ligand motif! Skipping stabilizing motif.");
+
+  free(seq);
+  free(str);
+}
+
+

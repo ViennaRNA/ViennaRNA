@@ -26,11 +26,14 @@ wrap_hc_int_cb(int   i,
               int   l,
               vrna_hc_t *hc)
 {
-  unsigned char pij, pkl;
-  unsigned int  u1, u2, u3;
+  unsigned char pij, pkl, *mx;
+  unsigned int  u1, u2, u3, n, *up_int;
 
-  pij = hc->mx[hc->n * i + j];
-  pkl = hc->mx[hc->n * k + l];
+  n       = hc->n;
+  up_int  = hc->up_int;
+  mx      = hc->mx;
+  pij     = mx[n * i + j];
+  pkl     = mx[n * k + l];
 
   if ((pij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
       (pkl & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) {
@@ -38,18 +41,18 @@ wrap_hc_int_cb(int   i,
       /* circular RNA */
       u1 = i - 1;
       u2 = k - j;
-      u3 = hc->n - l;
+      u3 = n - l;
 
       if ((u1) &&
-          (hc->up_int[1] < u1))
+          (up_int[1] < u1))
         return (unsigned char)0;
 
       if ((u2) &&
-          (hc->up_int[j + 1] < u2))
+          (up_int[j + 1] < u2))
         return (unsigned char)0;
 
       if ((u3) &&
-         (hc->up_int[l + 1] < u3))
+         (up_int[l + 1] < u3))
         return (unsigned char)0;
 
     } else {
@@ -58,11 +61,11 @@ wrap_hc_int_cb(int   i,
       u2 = j - l - 1;
 
       if ((u1) &&
-          (hc->up_int[i + 1] < u1))
+          (up_int[i + 1] < u1))
         return (unsigned char)0;
 
       if ((u2) &&
-          (hc->up_int[l + 1] < u2))
+          (up_int[l + 1] < u2))
         return (unsigned char)0;
     }
 

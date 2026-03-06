@@ -1079,34 +1079,47 @@ fork_state(int          i,
 
 
 PRIVATE void
-fork_int_state(int        i,
-               int        j,
-               int        p,
-               int        q,
-               STATE      *s,
-               int        e,
-               subopt_env *env)
+fork_int_state(int              i,
+               int              j,
+               int              p,
+               int              q,
+               vrna_basepair_t  *aux_bps,
+               STATE            *s,
+               int              e,
+               subopt_env       *env)
 {
+  vrna_basepair_t *ptr;
+
   STATE *s_new = derive_new_state(p, q, s, e, VRNA_MX_FLAG_C);
 
   make_pair(i, j, s_new);
   make_pair(p, q, s_new);
+
+  for (ptr = aux_bps; (ptr) && (ptr->i != 0); ptr++)
+    make_pair(ptr->i, ptr->j, s_new);
+
   push(env->Stack, s_new);
   env->nopush = false;
 }
 
 
 PRIVATE void
-fork_state_pair(int         i,
-                int         j,
-                STATE       *s,
-                int         e,
-                subopt_env  *env)
+fork_state_pair(int             i,
+                int             j,
+                vrna_basepair_t *aux_bps,
+                STATE           *s,
+                int             e,
+                subopt_env      *env)
 {
-  STATE *new_state;
+  vrna_basepair_t *ptr;
+  STATE           *new_state;
 
   new_state = copy_state(s);
   make_pair(i, j, new_state);
+
+  for (ptr = aux_bps; (ptr) && (ptr->i != 0); ptr++)
+    make_pair(ptr->i, ptr->j, new_state);
+
   new_state->partial_energy += e;
   push(env->Stack, new_state);
   env->nopush = false;
@@ -2935,9 +2948,23 @@ repeat(vrna_fold_compound_t *fc,
 
           new = energy + c[indx[q] + p];
 
-          if (new + best_energy <= threshold)
+          if (new + best_energy <= threshold) {
             /* stack, bulge, or internal loop */
-            fork_int_state(i, j, p, q, state, part_energy + energy, env);
+            vrna_basepair_t *aux_bps = NULL;
+
+            if ((sc) &&
+                (sc->bt))
+              aux_bps = sc->bt(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+
+            fork_int_state(i, j,
+                           p, q,
+                           aux_bps,
+                           state,
+                           part_energy + energy,
+                           env);
+
+            free(aux_bps);
+          }
         } /*end of if block */
       }   /* end of q-loop */
     }     /* end of p-loop */
@@ -2976,6 +3003,7 @@ repeat(vrna_fold_compound_t *fc,
         if (element_energy + best_energy <= threshold) {
           fork_state_pair(i,
                           j,
+                          NULL,
                           state,
                           part_energy + element_energy,
                           env);
@@ -3088,9 +3116,22 @@ repeat(vrna_fold_compound_t *fc,
       element_energy = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_DEFAULT);
 
       if (element_energy != INF) {
-        if (element_energy + best_energy <= threshold)
+        if (element_energy + best_energy <= threshold) {
+          vrna_basepair_t *aux_bps = NULL;
+
+          if ((sc) &&
+              (sc->bt))
+            aux_bps = sc->bt(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
+
           /* hairpin structure */
-          fork_state_pair(i, j, state, part_energy + element_energy, env);
+          fork_state_pair(i, j,
+                          aux_bps,
+                          state,
+                          part_energy + element_energy,
+                          env);
+
+          free(aux_bps);
+        }
       }
     }
 
