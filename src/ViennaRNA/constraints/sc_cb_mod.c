@@ -473,31 +473,54 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
       /* increase return value per modified base we found */
       ret++;
 
-      /* allow for all pairing partners specified in the input */
-      for (unsigned int j = 1; j < msite; j++) {
-        if ((sn[msite] != sn[j]) ||
-            ((msite - j - 1) >= (unsigned int)md->min_loop_size)) {
-          for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
-            unsigned int pp_enc = params->pairing_partners_encoding[cnt];
-            if ((unsigned int)fc->sequence_encoding[j] == pp_enc) {
-              vrna_hc_add_bp(fc,
-                             j,
-                             msite,
-                             VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+      if (params->num_ptypes > 0) {
+        /* remove all canonical base pairing for the modified base(s) */
+        for (unsigned int j = 1; j < msite; j++) {
+          if ((sn[msite] != sn[j]) ||
+              ((msite - j - 1) >= (unsigned int)md->min_loop_size)) {
+                vrna_hc_add_bp(fc,
+                               j,
+                               msite,
+                               VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+          }
+        }
+
+        for (unsigned int j = msite + 1; j <= fc->length; j++) {
+          if ((sn[msite] != sn[j]) ||
+              ((j - msite - 1) >= (unsigned int)md->min_loop_size)) {
+                vrna_hc_add_bp(fc,
+                               msite,
+                               j,
+                               VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+          }
+        }
+
+        /* allow for all pairing partners specified in the input */
+        for (unsigned int j = 1; j < msite; j++) {
+          if ((sn[msite] != sn[j]) ||
+              ((msite - j - 1) >= (unsigned int)md->min_loop_size)) {
+            for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
+              unsigned int pp_enc = params->pairing_partners_encoding[cnt];
+              if ((unsigned int)fc->sequence_encoding[j] == pp_enc) {
+                vrna_hc_add_bp(fc,
+                               j,
+                               msite,
+                               VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+              }
             }
           }
         }
-      }
-      for (unsigned int j = msite + 1; j <= fc->length; j++) {
-        if ((sn[msite] != sn[j]) ||
-            ((j - msite - 1) >= (unsigned int)md->min_loop_size)) {
-          for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
-            unsigned int pp_enc = params->pairing_partners_encoding[cnt];
-            if ((unsigned int)fc->sequence_encoding[j] == pp_enc) {
-              vrna_hc_add_bp(fc,
-                             msite,
-                             j,
-                             VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+        for (unsigned int j = msite + 1; j <= fc->length; j++) {
+          if ((sn[msite] != sn[j]) ||
+              ((j - msite - 1) >= (unsigned int)md->min_loop_size)) {
+            for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
+              unsigned int pp_enc = params->pairing_partners_encoding[cnt];
+              if ((unsigned int)fc->sequence_encoding[j] == pp_enc) {
+                vrna_hc_add_bp(fc,
+                               msite,
+                               j,
+                               VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+              }
             }
           }
         }
