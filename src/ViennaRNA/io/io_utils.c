@@ -165,7 +165,8 @@ vrna_mkdir_p(const char *path)
 PUBLIC char *
 vrna_basename(const char *path)
 {
-  char *name, *ptr;
+  char        *name;
+  const char  *ptr;
 
   name = NULL;
 

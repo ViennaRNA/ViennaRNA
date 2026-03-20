@@ -653,7 +653,7 @@ vrna_strchr(const char  *str,
             size_t       n)
 {
   size_t  str_len, pos_num, *positions  = NULL;
-  char    *ptr, *ptr2;
+  const char    *ptr, *ptr2;
 
   if (str) {
     str_len   = strlen(str);

@@ -210,7 +210,8 @@ rnaplot_EPS(const char          *seq,
   float     *X, *Y;
   FILE      *xyplot;
   short     *pair_table;
-  char      *c, *string;
+  const char  *c;
+  char        *string;
   vrna_md_t md;
 
   if (!md_p) {
