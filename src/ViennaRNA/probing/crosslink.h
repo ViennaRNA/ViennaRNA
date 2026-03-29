@@ -20,8 +20,21 @@
  *  @ingroup probing_data
  */
 int
-vrna_sc_xl_load(vrna_fold_compound_t  *fc,
-                const char            *filename);
+vrna_sc_xl(vrna_fold_compound_t *fc);
+
+
+int
+vrna_sc_xl_add(vrna_fold_compound_t *fc,
+               unsigned int         i,
+               unsigned int         j,
+               unsigned int         k,
+               unsigned int         l,
+               double               energy,
+               unsigned int         options);
+
+int
+vrna_sc_xl_load_file(vrna_fold_compound_t  *fc,
+                     const char            *filename);
 
 
 int

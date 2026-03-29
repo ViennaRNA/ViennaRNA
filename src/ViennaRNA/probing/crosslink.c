@@ -253,16 +253,89 @@ free_xl_ml_outside_helpers(void *helpers);
 
 
 PUBLIC int
-vrna_sc_xl_load(vrna_fold_compound_t  *fc,
-                const char            *filename)
+vrna_sc_xl(vrna_fold_compound_t *fc)
 {
   int                           ret;
   FILE                          *fp;
   struct vrna_crosslink_data_s  *data;
 
-  vrna_array(interact_region_s) regions;
+  ret = 0;
+
+  if (fc) {
+    ret   = 1;
+    data  = (struct vrna_crosslink_data_s *)vrna_alloc(sizeof(struct vrna_crosslink_data_s));
+
+    data->overlap = NULL;
+
+    vrna_array_init_size(data->regions, 42);
+
+    if (fc->sc == NULL)
+      vrna_sc_init(fc);
+
+    fc->sc->xlink                     = 1;
+    fc->sc->xlink_data                = (void *)data;
+    fc->params->model_details.uniq_ML = 1;
+
+    ret &= vrna_sc_multi_cb_add(fc,
+                                xlink_hp_en,
+                                xlink_hp_exp_en,
+                                (void *)data,
+                                NULL,
+                                NULL,
+                                VRNA_DECOMP_PAIR_HP);
+    ret &= vrna_sc_multi_cb_add(fc,
+                                xlink_il_en,
+                                xlink_il_exp_en,
+                                (void *)data,
+                                NULL,
+                                NULL,
+                                VRNA_DECOMP_PAIR_IL);
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
+vrna_sc_xl_add(vrna_fold_compound_t *fc,
+               unsigned int         i,
+               unsigned int         j,
+               unsigned int         k,
+               unsigned int         l,
+               double               energy,
+               unsigned int         options)
+{
+  int                           ret;
+  FILE                          *fp;
+  struct vrna_crosslink_data_s  *data;
 
   ret = 0;
+
+  if ((fc) &&
+      (fc->sc) &&
+      (fc->sc->xlink)) {
+    ret   = 1;
+    data  = fc->sc->xlink_data;
+
+    vrna_array_append(data->regions, ((interact_region_s){
+      .a      = i,
+      .b      = j,
+      .c      = k,
+      .d      = l,
+      .score  = (int)(energy * 100.)
+    }));
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
+vrna_sc_xl_load_file(vrna_fold_compound_t  *fc,
+                     const char            *filename)
+{
+  int   ret = 0;
+  FILE  *fp;
 
   if ((fc) &&
       (filename)) {
@@ -272,38 +345,28 @@ vrna_sc_xl_load(vrna_fold_compound_t  *fc,
       return 0;
     }
 
-    regions = parse_crosslink_data(fp);
-
-    if (regions) {
-      vrna_sc_init(fc);
-      fc->sc->xlink = 1;
-      ret           = 1;
-
-      data = (struct vrna_crosslink_data_s *)vrna_alloc(sizeof(struct vrna_crosslink_data_s));
-
-      data->regions = regions;
-      data->overlap = NULL;
-
-      fc->sc->xlink_data                = (void *)data;
-      fc->params->model_details.uniq_ML = 1;
-
-      ret &= vrna_sc_multi_cb_add(fc,
-                                  xlink_hp_en,
-                                  xlink_hp_exp_en,
-                                  (void *)data,
-                                  NULL,
-                                  NULL,
-                                  VRNA_DECOMP_PAIR_HP);
-      ret &= vrna_sc_multi_cb_add(fc,
-                                  xlink_il_en,
-                                  xlink_il_exp_en,
-                                  (void *)data,
-                                  NULL,
-                                  NULL,
-                                  VRNA_DECOMP_PAIR_IL);
-    }
+    vrna_array(interact_region_s) regions = parse_crosslink_data(fp);
 
     fclose(fp);
+
+    if (regions) {
+      if ((fc->sc == NULL) ||
+        (!fc->sc->xlink))
+        ret = vrna_sc_xl(fc);
+      else
+        ret = 1;
+
+      for (size_t i = 0; i < vrna_array_size(regions); i++)
+        ret &= vrna_sc_xl_add(fc,
+                              regions[i].a,
+                              regions[i].b,
+                              regions[i].c,
+                              regions[i].d,
+                              (double)regions[i].score / 100.,
+                              0);
+    }
+
+    vrna_array_free(regions);
   }
 
   return ret;

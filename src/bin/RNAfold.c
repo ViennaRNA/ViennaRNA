@@ -1096,7 +1096,7 @@ process_record(struct record_data *record)
                   opt->mod_params);
 
   if (opt->xlink) {
-    if (!vrna_sc_xl_load(vc, opt->xlink_file))
+    if (!vrna_sc_xl_load_file(vc, opt->xlink_file))
       vrna_log_error("failed to load crosslink data from \"%s\"\n", opt->xlink_file);
   }
 
