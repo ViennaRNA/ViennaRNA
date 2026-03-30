@@ -328,7 +328,7 @@ vrna_sc_prepare(vrna_fold_compound_t  *fc,
 
         if ((fc->sc) &&
             (fc->sc->xlink))
-          vrna_sc_xl_prepare(fc);
+          vrna_sc_iip_prepare(fc);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:

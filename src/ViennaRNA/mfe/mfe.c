@@ -480,7 +480,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
 
     if ((fc->sc) &&
         (fc->sc->xlink))
-      vrna_sc_xl_update_mfe(fc, i);
+      vrna_sc_iip_update_mfe(fc, i);
 
     for (j = i + 1; j <= length; j++) {
       ij = indx[j] + i;

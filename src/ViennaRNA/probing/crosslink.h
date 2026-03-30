@@ -20,25 +20,25 @@
  *  @ingroup probing_data
  */
 int
-vrna_sc_xl(vrna_fold_compound_t *fc);
+vrna_sc_iip(vrna_fold_compound_t *fc);
 
 
 int
-vrna_sc_xl_add(vrna_fold_compound_t *fc,
-               unsigned int         i,
-               unsigned int         j,
-               unsigned int         k,
-               unsigned int         l,
-               double               energy,
-               unsigned int         options);
+vrna_sc_add_iip(vrna_fold_compound_t  *fc,
+                unsigned int          i,
+                unsigned int          j,
+                unsigned int          k,
+                unsigned int          l,
+                double                energy,
+                unsigned int          options);
 
 int
-vrna_sc_xl_load_file(vrna_fold_compound_t  *fc,
+vrna_sc_add_iip_file(vrna_fold_compound_t  *fc,
                      const char            *filename);
 
 
 int
-vrna_sc_xl_prepare(vrna_fold_compound_t *fc);
+vrna_sc_iip_prepare(vrna_fold_compound_t *fc);
 
 
 int
@@ -58,7 +58,7 @@ vrna_bt_multibranch_loop_xlink(vrna_fold_compound_t *fc,
 
 
 void
-vrna_sc_xl_update_mfe(vrna_fold_compound_t  *fc,
+vrna_sc_iip_update_mfe(vrna_fold_compound_t  *fc,
                       unsigned int          i);
 
 
@@ -70,13 +70,13 @@ vrna_pf_multibranch_loop_xlink(vrna_fold_compound_t *fc,
 
 
 void
-vrna_sc_xl_update_pf(vrna_fold_compound_t *fc,
+vrna_sc_iip_update_pf(vrna_fold_compound_t *fc,
                      unsigned int         j);
 
 
 vrna_bp_probs_f
-vrna_sc_xl_get_outside_cb(vrna_fold_compound_t  *fc,
-                          void                  **cb_data,
-                          vrna_auxdata_free_f   *cb_data_free);
+vrna_sc_iip_get_outside_cb(vrna_fold_compound_t  *fc,
+                           void                  **cb_data,
+                           vrna_auxdata_free_f   *cb_data_free);
 
 #endif

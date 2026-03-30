@@ -253,7 +253,7 @@ free_xl_ml_outside_helpers(void *helpers);
 
 
 PUBLIC int
-vrna_sc_xl(vrna_fold_compound_t *fc)
+vrna_sc_iip(vrna_fold_compound_t *fc)
 {
   int                           ret;
   FILE                          *fp;
@@ -297,13 +297,13 @@ vrna_sc_xl(vrna_fold_compound_t *fc)
 
 
 PUBLIC int
-vrna_sc_xl_add(vrna_fold_compound_t *fc,
-               unsigned int         i,
-               unsigned int         j,
-               unsigned int         k,
-               unsigned int         l,
-               double               energy,
-               unsigned int         options)
+vrna_sc_add_iip(vrna_fold_compound_t  *fc,
+                unsigned int          i,
+                unsigned int          j,
+                unsigned int          k,
+                unsigned int          l,
+                double                energy,
+                unsigned int          options)
 {
   int                           ret;
   FILE                          *fp;
@@ -331,7 +331,7 @@ vrna_sc_xl_add(vrna_fold_compound_t *fc,
 
 
 PUBLIC int
-vrna_sc_xl_load_file(vrna_fold_compound_t  *fc,
+vrna_sc_add_iip_file(vrna_fold_compound_t  *fc,
                      const char            *filename)
 {
   int   ret = 0;
@@ -352,18 +352,18 @@ vrna_sc_xl_load_file(vrna_fold_compound_t  *fc,
     if (regions) {
       if ((fc->sc == NULL) ||
         (!fc->sc->xlink))
-        ret = vrna_sc_xl(fc);
+        ret = vrna_sc_iip(fc);
       else
         ret = 1;
 
       for (size_t i = 0; i < vrna_array_size(regions); i++)
-        ret &= vrna_sc_xl_add(fc,
-                              regions[i].a,
-                              regions[i].b,
-                              regions[i].c,
-                              regions[i].d,
-                              (double)regions[i].score / 100.,
-                              0);
+        ret &= vrna_sc_add_iip(fc,
+                               regions[i].a,
+                               regions[i].b,
+                               regions[i].c,
+                               regions[i].d,
+                               (double)regions[i].score / 100.,
+                               0);
     }
 
     vrna_array_free(regions);
@@ -374,7 +374,7 @@ vrna_sc_xl_load_file(vrna_fold_compound_t  *fc,
 
 
 PUBLIC int
-vrna_sc_xl_prepare(vrna_fold_compound_t *fc)
+vrna_sc_iip_prepare(vrna_fold_compound_t *fc)
 {
   if ((fc) &&
       (fc->sc) &&
@@ -1444,7 +1444,7 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
 
 
 PUBLIC void
-vrna_sc_xl_update_mfe(vrna_fold_compound_t  *fc,
+vrna_sc_iip_update_mfe(vrna_fold_compound_t  *fc,
                       unsigned int          i)
 {
   short                         *S, *S2, si1, sj1;
@@ -1940,7 +1940,7 @@ pf_M2_xlink(vrna_fold_compound_t        *fc,
 
 
 PUBLIC void
-vrna_sc_xl_update_pf(vrna_fold_compound_t *fc,
+vrna_sc_iip_update_pf(vrna_fold_compound_t *fc,
                      unsigned int         j)
 {
   short                         *S, *S2, si1, sj1;
@@ -2043,7 +2043,7 @@ vrna_sc_xl_update_pf(vrna_fold_compound_t *fc,
 
 
 PUBLIC vrna_bp_probs_f
-vrna_sc_xl_get_outside_cb(vrna_fold_compound_t  *fc,
+vrna_sc_iip_get_outside_cb(vrna_fold_compound_t  *fc,
                           void                  **cb_data,
                           vrna_auxdata_free_f   *cb_data_free)
 {

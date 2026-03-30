@@ -380,7 +380,7 @@ fill_arrays(vrna_fold_compound_t *fc)
   for (j = 2; j <= n; j++) {
     if ((fc->sc) &&
         (fc->sc->xlink))
-      vrna_sc_xl_update_pf(fc, j);
+      vrna_sc_iip_update_pf(fc, j);
 
     for (i = j - 1; i >= 1; i--) {
       ij = my_iindx[i] - j;
