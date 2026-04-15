@@ -222,8 +222,10 @@ vrna_en_bulge(unsigned int n,
 
   energy = INF;
 
-  if ((P) &&
-      (n > 0)) {
+  if (n == 0)
+    return vrna_en_stack(type, type_2, P);
+
+  if (P) {
     if ((P->model_details.noGUclosure) &&
         ((type_2 == 3) || (type_2 == 4) || (type == 3) || (type == 4)))
       return energy;

@@ -327,7 +327,9 @@ mfe_bulges(vrna_fold_compound_t *fc,
 
         k   = i + 2;
         kl  = (sliding_window) ? 0 : idx[l] + k;
-        s2l = S2[l];
+
+        if (fc->type == VRNA_FC_TYPE_SINGLE)
+          s2l = S2[l];
 
         hc_mx += n * l;
 
@@ -391,7 +393,10 @@ mfe_bulges(vrna_fold_compound_t *fc,
           first_l = j - 1 - MAXLOOP;
 
         u2    = 1;
-        s2k   = S2[k];
+
+        if (fc->type == VRNA_FC_TYPE_SINGLE)
+          s2k   = S2[k];
+
         hc_mx += n * k;
 
         for (l = j - 2; l >= first_l; l--, u2++) {
@@ -535,8 +540,11 @@ mfe_internal_loop(vrna_fold_compound_t  *fc,
         first_l = j - 1 - MAXLOOP;
 
       u2  = 1;
-      si1 = S[i + 1];
-      s1j = S[j - 1];
+
+      if (fc->type == VRNA_FC_TYPE_SINGLE) {
+        si1 = S[i + 1];
+        s1j = S[j - 1];
+      }
 
       for (l = j - 2; l >= first_l; l--, u2++) {
         if (u2 > hc_up[l + 1])
@@ -552,8 +560,12 @@ mfe_internal_loop(vrna_fold_compound_t  *fc,
 
         u1    = 1;
         k     = i + 2;
-        sl1   = S[l + 1];
-        s2l   = S2[l];
+
+        if (fc->type == VRNA_FC_TYPE_SINGLE) {
+          sl1   = S[l + 1];
+          s2l   = S2[l];
+        }
+
         hc_mx += n * l;
 
         kl  = (sliding_window) ? 0 : idx[l] + k;
