@@ -20,6 +20,7 @@ typedef struct  vrna_sc_s vrna_sc_t;
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/constraints/basic.h>
+#include <ViennaRNA/probing/crosslink.h>
 
 /**
  * @brief Callback to retrieve pseudo energy contribution for soft constraint feature
@@ -238,8 +239,6 @@ struct vrna_sc_s {
   const vrna_sc_type_e  type; /**< @brief Type of the soft constraints data structure */
   unsigned int          n;    /**< @brief Length of the sequence this soft constraints data structure belongs to */
 
-  unsigned int          xlink;  /* contains cross-link data */
-  void                  *xlink_data;
 
   unsigned char         state; /**< @brief  Current state of the soft constraints data structure */
 
@@ -249,8 +248,11 @@ struct vrna_sc_s {
   double                *up_storage;      /**<  @brief  Storage container for energy contributions per unpaired nucleotide in units of 0.01 kcal/mol */
   vrna_sc_bp_storage_t  **bp_storage;     /**<  @brief  Storage container for energy contributions per base pair */
 
-  int           *energy_stack;                    /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
-  FLT_OR_DBL    *exp_energy_stack;                /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
+  int                   *energy_stack;      /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
+  FLT_OR_DBL            *exp_energy_stack;  /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
+
+  vrna_sc_iip_t         iip;               /**<  @brief  Data for interacting interval pairs */
+
   /**
    *  @}
    *

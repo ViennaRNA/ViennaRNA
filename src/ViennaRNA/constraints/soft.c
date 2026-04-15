@@ -327,7 +327,7 @@ vrna_sc_prepare(vrna_fold_compound_t  *fc,
         ret &= prepare_sc_user_cb(fc, fc->sc, options);
 
         if ((fc->sc) &&
-            (fc->sc->xlink))
+            (fc->sc->iip))
           vrna_sc_iip_prepare(fc);
         break;
 
@@ -2160,15 +2160,13 @@ nullify(vrna_sc_t *sc)
   if (sc) {
     sc->state             = STATE_CLEAN;
 
-    sc->xlink             = 0;
-    sc->xlink_data        = NULL;
-
     sc->up_storage        = NULL;
     sc->bp_storage        = NULL;
     sc->energy_up         = NULL;
     sc->energy_stack      = NULL;
     sc->exp_energy_stack  = NULL;
     sc->exp_energy_up     = NULL;
+    sc->iip               = NULL;
 
     sc->f             = NULL;
     sc->exp_f         = NULL;

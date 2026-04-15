@@ -479,7 +479,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
       update_fms3_arrays(fc, sn[i + 1], ms_dat);
 
     if ((fc->sc) &&
-        (fc->sc->xlink))
+        (fc->sc->iip))
       vrna_sc_iip_update_mfe(fc, i);
 
     for (j = i + 1; j <= length; j++) {

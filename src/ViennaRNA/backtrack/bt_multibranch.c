@@ -127,7 +127,7 @@ vrna_bt_multibranch_loop(vrna_fold_compound_t  *fc,
 
     if ((fc->type == VRNA_FC_TYPE_SINGLE) &&
         (fc->sc) &&
-        (fc->sc->xlink))
+        (fc->sc->iip))
       return vrna_bt_multibranch_loop_xlink(fc, i, j, en, bp_stack, bt_stack);
 
     return bt_mb_loop(fc, i, j, en, bp_stack, bt_stack);

@@ -15,6 +15,8 @@
  *          by means of soft constraints and grammar extensions
  */
 
+typedef struct vrna_crosslink_data_s  *vrna_sc_iip_t;
+
 
 /**
  *  @ingroup probing_data
