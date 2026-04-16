@@ -35,6 +35,31 @@
  */
 
 PRIVATE INLINE int
+en_stack(unsigned int type,
+         unsigned int type_2,
+         vrna_param_t *P);
+
+
+PRIVATE INLINE int
+en_bulge(unsigned int n,
+         unsigned int type,
+         unsigned int type_2,
+         vrna_param_t *P);
+
+
+PRIVATE INLINE int
+en_internal(unsigned int n1,
+            unsigned int n2,
+            unsigned int type,
+            unsigned int type_2,
+            unsigned int si1,
+            unsigned int sj1,
+            unsigned int sp1,
+            unsigned int sq1,
+            vrna_param_t *P);
+
+
+PRIVATE INLINE int
 eval_int_loop(vrna_fold_compound_t  *fc,
               unsigned int          i,
               unsigned int          j,
@@ -75,7 +100,10 @@ vrna_E_internal(unsigned int  n1,
                 int           sq1,
                 vrna_param_t  *P)
 {
-  return vrna_en_internal(n1, n2, type, type_2, si1, sj1, sp1, sq1, P);
+  if (P)
+    return en_internal(n1, n2, type, type_2, si1, sj1, sp1, sq1, P);
+
+  return INF;
 }
 
 
@@ -90,123 +118,10 @@ vrna_en_internal(unsigned int n1,
                  unsigned int sq1,
                  vrna_param_t *P)
 {
-  /* compute energy of degree 2 loop (stack bulge or internal) */
-  unsigned int  nl, ns, u, backbones, no_close;
-  int           energy, salt_stack_correction, salt_loop_correction;
+  if (P)
+    return en_internal(n1, n2, type, type_2, si1, sj1, sp1, sq1, P);
 
-  energy = INF;
-
-  if (P) {
-    no_close              = 0;
-    salt_stack_correction = P->SaltStack;
-
-    if ((P->model_details.noGUclosure) &&
-        ((type_2 == 3) || (type_2 == 4) || (type == 3) || (type == 4)))
-      no_close = 1;
-
-    if (n1 > n2) {
-      nl  = n1;
-      ns  = n2;
-    } else {
-      nl  = n2;
-      ns  = n1;
-    }
-
-    if (nl == 0)  /* stack */
-      return P->stack[type][type_2] +
-             salt_stack_correction;
-
-    if (no_close)
-      return INF;
-
-    energy = 0;
-
-    switch (ns) {
-      case 0:
-        /* bulge */
-        energy = (nl <= MAXLOOP) ?
-                 P->bulge[nl] :
-                 (P->bulge[30] + (int)(P->lxc * log(nl / 30.)));
-        if (nl == 1) {
-          /* add stacking energy for 1-bulges */
-          energy += P->stack[type][type_2];
-        } else {
-          if (type > 2)
-            energy += P->TerminalAU;
-
-          if (type_2 > 2)
-            energy += P->TerminalAU;
-        }
-
-        break;
-
-      case 1:
-        if (nl == 1) {
-          /* 1x1 loop */
-          energy = P->int11[type][type_2][si1][sj1];
-        } else if (nl == 2) {
-          /* 2x1 loop */
-          if (n1 == 1)
-            energy = P->int21[type][type_2][si1][sq1][sj1];
-          else
-            energy = P->int21[type_2][type][sq1][si1][sp1];
-        } else {
-          /* 1xn loop */
-          energy = (nl + 1 <= MAXLOOP) ?
-                   (P->internal_loop[nl + 1]) :
-                   (P->internal_loop[30] + (int)(P->lxc * log((nl + 1) / 30.)));
-          energy  += MIN2(MAX_NINIO, (int)(nl - ns) * P->ninio[2]);
-          energy  += P->mismatch1nI[type][si1][sj1] +
-                     P->mismatch1nI[type_2][sq1][sp1];
-        }
-
-        break;
-
-      case 2:
-        if (nl == 2) {
-          /* 2x2 loop */
-          energy = P->int22[type][type_2][si1][sp1][sq1][sj1];
-          break;
-        } else if (nl == 3) {
-          /* 2x3 loop */
-          energy = P->internal_loop[5] +
-                   P->ninio[2];
-          energy += P->mismatch23I[type][si1][sj1] +
-                    P->mismatch23I[type_2][sq1][sp1];
-          break;
-        }
-
-      /* fall through */
-
-      default:
-        /* generic internal loop (no else here!)*/
-        u       = nl + ns;
-        energy  += (u <= MAXLOOP) ?
-                   (P->internal_loop[u]) :
-                   (P->internal_loop[30] + (int)(P->lxc * log((u) / 30.)));
-
-        energy += MIN2(MAX_NINIO, (int)(nl - ns) * P->ninio[2]);
-
-        energy += P->mismatchI[type][si1][sj1] +
-                  P->mismatchI[type_2][sq1][sp1];
-
-        break;
-    }
-
-    if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
-      /* salt correction for loop */
-      backbones = nl + ns + 2;
-      if (backbones <= MAXLOOP + 1)
-        energy += P->SaltLoop[backbones];
-      else
-        energy += vrna_salt_loop_int(backbones,
-                                     P->model_details.salt,
-                                     P->temperature + K0,
-                                     P->model_details.backbone_length);
-    }
-  }
-
-  return energy;
+  return INF;
 }
 
 
@@ -216,49 +131,14 @@ vrna_en_bulge(unsigned int n,
               unsigned int type_2,
               vrna_param_t *P)
 {
-  /* compute energy of a bulge loop */
-  unsigned int  backbones;
-  int           energy;
-
-  energy = INF;
-
-  if (n == 0)
-    return vrna_en_stack(type, type_2, P);
-
   if (P) {
-    if ((P->model_details.noGUclosure) &&
-        ((type_2 == 3) || (type_2 == 4) || (type == 3) || (type == 4)))
-      return energy;
-
-    energy  = (n <= MAXLOOP) ?
-                P->bulge[n] :
-                (P->bulge[30] + (int)(P->lxc * log(n / 30.)));
-
-    if (n == 1) {
-      /* add stacking energy for 1-bulges */
-      energy += P->stack[type][type_2];
-    } else {
-      if (type > 2)
-        energy += P->TerminalAU;
-
-      if (type_2 > 2)
-        energy += P->TerminalAU;
-    }
-
-    if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
-      /* salt correction for loop */
-      backbones = n + 2;
-
-      energy += (backbones <= MAXLOOP + 1) ?
-                  P->SaltLoop[backbones] :
-                  vrna_salt_loop_int(backbones,
-                                     P->model_details.salt,
-                                     P->temperature + K0,
-                                     P->model_details.backbone_length);
-    }
+    if (n == 0)
+      return en_stack(type, type_2, P);
+    else 
+      return en_bulge(n, type, type_2, P);
   }
 
-  return energy;
+  return INF;
 }
 
 
@@ -269,8 +149,7 @@ vrna_en_stack(unsigned int type,
 {
   /* return energy of stack */
   if (P)
-    return P->stack[type][type_2] +
-           P->SaltStack;
+    return en_stack(type, type_2, P);
 
   return INF;
 }
@@ -328,6 +207,170 @@ vrna_eval_stack(vrna_fold_compound_t  *fc,
  #####################################
  */
 PRIVATE INLINE int
+en_stack(unsigned int type,
+         unsigned int type_2,
+         vrna_param_t *P)
+{
+  return P->stack[type][type_2] +
+         P->SaltStack;
+}
+
+
+PRIVATE INLINE int
+en_bulge(unsigned int n,
+         unsigned int type,
+         unsigned int type_2,
+         vrna_param_t *P)
+{
+  /* compute energy of a bulge loop */
+  unsigned int  backbones;
+  int           energy;
+
+
+  if ((P->model_details.noGUclosure) &&
+      ((type_2 == 3) || (type_2 == 4) || (type == 3) || (type == 4)))
+    return INF;
+
+  energy  = (n <= MAXLOOP) ?
+              P->bulge[n] :
+              (P->bulge[30] + (int)(P->lxc * log(n / 30.)));
+
+  if (n == 1) {
+    /* add stacking energy for 1-bulges */
+    energy += P->stack[type][type_2];
+  } else {
+    if (type > 2)
+      energy += P->TerminalAU;
+
+    if (type_2 > 2)
+      energy += P->TerminalAU;
+  }
+
+  if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
+    /* salt correction for loop */
+    backbones = n + 2;
+
+    energy += (backbones <= MAXLOOP + 1) ?
+                P->SaltLoop[backbones] :
+                vrna_salt_loop_int(backbones,
+                                   P->model_details.salt,
+                                   P->temperature + K0,
+                                   P->model_details.backbone_length);
+  }
+
+  return energy;
+}
+
+
+PRIVATE INLINE int
+en_internal(unsigned int n1,
+            unsigned int n2,
+            unsigned int type,
+            unsigned int type_2,
+            unsigned int si1,
+            unsigned int sj1,
+            unsigned int sp1,
+            unsigned int sq1,
+            vrna_param_t *P)
+{
+  /* compute energy of degree 2 loop (stack, bulge or true internal) */
+  unsigned int  nl, ns, u, backbones;
+  int           energy, salt_loop_correction;
+
+  if ((n1 + n2) == 0) /* stack */
+    return en_stack(type, type_2, P);
+  else if (n1 == 0)   /* bulge on 3' side */
+    return en_bulge(n2, type, type_2, P);
+  else if (n2 == 0)   /* bulge on 5' side */
+    return en_bulge(n1, type, type_2, P);
+
+  /* forbidden loop ? */
+  if ((P->model_details.noGUclosure) &&
+      ((type_2 == 3) || (type_2 == 4) || (type == 3) || (type == 4)))
+    return INF;
+
+  /* get smaller and larger loop size */
+  if (n1 > n2) {
+    nl  = n1;
+    ns  = n2;
+  } else {
+    nl  = n2;
+    ns  = n1;
+  }
+
+  energy = 0;
+
+  switch (ns) {
+    case 1:
+      if (nl == 1) {
+        /* 1x1 loop */
+        energy = P->int11[type][type_2][si1][sj1];
+      } else if (nl == 2) {
+        /* 2x1 loop */
+        if (n1 == 1)
+          energy = P->int21[type][type_2][si1][sq1][sj1];
+        else
+          energy = P->int21[type_2][type][sq1][si1][sp1];
+      } else {
+        /* 1xn loop */
+        energy = (nl + 1 <= MAXLOOP) ?
+                 (P->internal_loop[nl + 1]) :
+                 (P->internal_loop[30] + (int)(P->lxc * log((nl + 1) / 30.)));
+        energy  += MIN2(MAX_NINIO, (int)(nl - ns) * P->ninio[2]);
+        energy  += P->mismatch1nI[type][si1][sj1] +
+                   P->mismatch1nI[type_2][sq1][sp1];
+      }
+
+      break;
+
+    case 2:
+      if (nl == 2) {
+        /* 2x2 loop */
+        energy = P->int22[type][type_2][si1][sp1][sq1][sj1];
+        break;
+      } else if (nl == 3) {
+        /* 2x3 loop */
+        energy = P->internal_loop[5] +
+                 P->ninio[2];
+        energy += P->mismatch23I[type][si1][sj1] +
+                  P->mismatch23I[type_2][sq1][sp1];
+        break;
+      }
+
+      /* fall through for 2xN loops with N > 3 */
+
+    default:
+      /* generic internal loop (no else here!)*/
+      u       = nl + ns;
+      energy  += (u <= MAXLOOP) ?
+                 (P->internal_loop[u]) :
+                 (P->internal_loop[30] + (int)(P->lxc * log((u) / 30.)));
+
+      energy += MIN2(MAX_NINIO, (int)(nl - ns) * P->ninio[2]);
+
+      energy += P->mismatchI[type][si1][sj1] +
+                P->mismatchI[type_2][sq1][sp1];
+
+      break;
+  }
+
+  if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
+    /* salt correction for loop */
+    backbones = nl + ns + 2;
+    if (backbones <= MAXLOOP + 1)
+      energy += P->SaltLoop[backbones];
+    else
+      energy += vrna_salt_loop_int(backbones,
+                                   P->model_details.salt,
+                                   P->temperature + K0,
+                                   P->model_details.backbone_length);
+  }
+
+  return energy;
+}
+
+
+PRIVATE INLINE int
 eval_int_loop(vrna_fold_compound_t  *fc,
               unsigned int          i,
               unsigned int          j,
@@ -336,23 +379,16 @@ eval_int_loop(vrna_fold_compound_t  *fc,
               unsigned int          options)
 {
   short             *S, *S2, **SS, **S5, **S3;
-  unsigned int      *sn, n_seq, s, **a2s, u1, u2, type, type2, with_ud;
+  unsigned int      *sn, s, **a2s, u1, u2, type, type2, with_ud;
   int               e, e5, e3;
   vrna_param_t      *P;
   vrna_md_t         *md;
   vrna_ud_t         *domains_up;
   struct sc_int_dat sc_wrapper;
 
-  n_seq       = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   P           = fc->params;
   md          = &(P->model_details);
   sn          = fc->strand_number;
-  S           = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : NULL;
-  S2          = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
-  SS          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
-  S5          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
-  S3          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
-  a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
   domains_up  = fc->domains_up;
   with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0;
   e           = INF;
@@ -363,6 +399,8 @@ eval_int_loop(vrna_fold_compound_t  *fc,
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
+      S     = fc->sequence_encoding;
+      S2    = fc->sequence_encoding2;
       type  = vrna_get_ptype_md(S2[i], S2[j], md);
       type2 = vrna_get_ptype_md(S2[l], S2[k], md);
 
@@ -370,18 +408,38 @@ eval_int_loop(vrna_fold_compound_t  *fc,
       u2  = j - l - 1;
 
       /* regular internal loop */
-      e = vrna_E_internal(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
+      e = en_internal(u1,
+                      u2,
+                      type,
+                      type2,
+                      S[i + 1],
+                      S[j - 1],
+                      S[k - 1],
+                      S[l + 1],
+                      P);
 
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
-      e = 0;
-      for (s = 0; s < n_seq; s++) {
+      SS  = fc->S;
+      S5  = fc->S5;
+      S3  = fc->S3;
+      a2s = fc->a2s;
+      e   = 0;
+      for (s = 0; s < fc->n_seq; s++) {
         type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
         type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
         u1    = a2s[s][k - 1] - a2s[s][i];
         u2    = a2s[s][j - 1] - a2s[s][l];
-        e     += vrna_E_internal(u1, u2, type, type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l], P);
+        e     += en_internal(u1,
+                             u2,
+                             type,
+                             type2,
+                             S3[s][i],
+                             S5[s][j],
+                             S5[s][k],
+                             S3[s][l],
+                             P);
       }
 
       break;
@@ -437,7 +495,7 @@ eval_ext_int_loop(vrna_fold_compound_t  *fc,
                   unsigned int          l,
                   unsigned int          options)
 {
-  unsigned int      n, n_seq, s, **a2s, type, type2, with_ud, u1, u2, u3;
+  unsigned int      n, s, **a2s, type, type2, with_ud, u1, u2, u3;
   int               e, energy, e5, e3;
   short             *S, *S2, **SS, **S5, **S3;
   vrna_param_t      *P;
@@ -446,42 +504,41 @@ eval_ext_int_loop(vrna_fold_compound_t  *fc,
   struct sc_int_dat sc_wrapper;
 
   n           = fc->length;
-  n_seq       = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   P           = fc->params;
   md          = &(P->model_details);
-  S           = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : NULL;
-  S2          = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
-  SS          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
-  S5          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
-  S3          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
-  a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
   domains_up  = fc->domains_up;
   with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0;
   e           = INF;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_COMPARATIVE:
+      SS    = fc->S;
+      S5    = fc->S5;
+      S3    = fc->S3;
+      a2s   = fc->a2s;
       energy = 0;
-      for (s = 0; s < n_seq; s++) {
+      for (s = 0; s < fc->n_seq; s++) {
         type    = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
         type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
         u1      = a2s[s][i - 1];
         u2      = a2s[s][k - 1] - a2s[s][j];
         u3      = a2s[s][n] - a2s[s][l];
-        energy  += vrna_E_internal(u2,
-                                   u1 + u3,
-                                   type,
-                                   type2,
-                                   S3[s][j],
-                                   S5[s][i],
-                                   S5[s][k],
-                                   S3[s][l],
-                                   P);
+        energy  += en_internal(u2,
+                               u1 + u3,
+                               type,
+                               type2,
+                               S3[s][j],
+                               S5[s][i],
+                               S5[s][k],
+                               S3[s][l],
+                               P);
       }
 
       break;
 
     default:
+      S     = fc->sequence_encoding;
+      S2    = fc->sequence_encoding2;
       type  = vrna_get_ptype_md(S2[j], S2[i], md);
       type2 = vrna_get_ptype_md(S2[l], S2[k], md);
 
@@ -490,15 +547,15 @@ eval_ext_int_loop(vrna_fold_compound_t  *fc,
       u3  = n - l;
 
       /* regular internal loop */
-      energy = vrna_E_internal(u2,
-                               u1 + u3,
-                               type,
-                               type2,
-                               S[j + 1],
-                               S[i - 1],
-                               S[k - 1],
-                               S[l + 1],
-                               P);
+      energy = en_internal(u2,
+                           u1 + u3,
+                           type,
+                           type2,
+                           S[j + 1],
+                           S[i - 1],
+                           S[k - 1],
+                           S[l + 1],
+                           P);
 
       break;
   }
@@ -554,10 +611,9 @@ eval_stack(vrna_fold_compound_t *fc,
            unsigned int         options)
 {
   unsigned char     sliding_window;
-  char              *ptype, **ptype_local;
   short             **SS;
   unsigned int      p, q, s, n_seq, *sn, type, type_2;
-  int               e, ij, pq, *rtype, *indx;
+  int               e, *rtype, *indx;
   vrna_param_t      *P;
   vrna_md_t         *md;
   struct sc_int_dat sc_wrapper;
@@ -566,21 +622,9 @@ eval_stack(vrna_fold_compound_t *fc,
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   p               = i + 1;
   q               = j - 1;
-  n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   sn              = fc->strand_number;
-  SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
-  ptype           = (fc->type == VRNA_FC_TYPE_SINGLE) ?
-                    (sliding_window ? NULL : fc->ptype) :
-                    NULL;
-  ptype_local = (fc->type == VRNA_FC_TYPE_SINGLE) ?
-                (sliding_window ? fc->ptype_local : NULL) :
-                NULL;
-  P     = fc->params;
-  md    = &(P->model_details);
-  rtype = &(md->rtype[0]);
-  indx  = (sliding_window) ? NULL : fc->jindx;
-  ij    = (sliding_window) ? 0 : indx[j] + i;
-  pq    = (sliding_window) ? 0 : indx[q] + p;
+  P               = fc->params;
+  md              = &(P->model_details);
 
   if ((sn[p] != sn[i]) ||
       (sn[j] != sn[q]))
@@ -588,23 +632,27 @@ eval_stack(vrna_fold_compound_t *fc,
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
-      type = sliding_window ?
-             vrna_get_ptype_window(i, j, ptype_local) :
-             vrna_get_ptype(ij, ptype);
-      type_2 = sliding_window ?
-               rtype[vrna_get_ptype_window(p, q, ptype_local)] :
-               rtype[vrna_get_ptype(pq, ptype)];
+      indx    = (sliding_window) ? NULL : fc->jindx;
+      rtype   = &(md->rtype[0]);
+      type    = sliding_window ?
+                vrna_get_ptype_window(i, j, fc->ptype_local) :
+                vrna_get_ptype(indx[j] + i, fc->ptype);
+      type_2  = sliding_window ?
+                rtype[vrna_get_ptype_window(p, q, fc->ptype_local)] :
+                rtype[vrna_get_ptype(indx[q] + p, fc->ptype)];
 
-      e = P->stack[type][type_2];
+      e = en_stack(type, type_2, P);
 
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
-      e = 0;
+      n_seq = fc->n_seq;
+      SS    = fc->S;
+      e     = 0;
       for (s = 0; s < n_seq; s++) {
         type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
         type_2  = vrna_get_ptype_md(SS[s][q], SS[s][p], md);  /* q,p not p,q! */
-        e       += P->stack[type][type_2];
+        e       += en_stack(type, type_2, P);
       }
 
       break;
