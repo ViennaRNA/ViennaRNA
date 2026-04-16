@@ -331,8 +331,6 @@ mfe_bulges(vrna_fold_compound_t *fc,
         if (fc->type == VRNA_FC_TYPE_SINGLE)
           s2l = S2[l];
 
-        hc_mx += n * l;
-
         for (; k <= last_k; k++, u1++, kl++) {
           if (hc->eval_int(i, j, k, l, hc)) {
             eee = (sliding_window) ? c_local[k][l - k] : c[kl];
@@ -380,8 +378,6 @@ mfe_bulges(vrna_fold_compound_t *fc,
             }
           }
         }
-
-        hc_mx -= n * l;
       }
 
       /* handle bulges in 3' side */
@@ -396,8 +392,6 @@ mfe_bulges(vrna_fold_compound_t *fc,
 
         if (fc->type == VRNA_FC_TYPE_SINGLE)
           s2k   = S2[k];
-
-        hc_mx += n * k;
 
         for (l = j - 2; l >= first_l; l--, u2++) {
           if (u2 > hc_up[l + 1])
@@ -450,8 +444,6 @@ mfe_bulges(vrna_fold_compound_t *fc,
             }
           }
         }
-
-        hc_mx -= n * k;
       }
     }
   }
@@ -566,8 +558,6 @@ mfe_internal_loop(vrna_fold_compound_t  *fc,
           s2l   = S2[l];
         }
 
-        hc_mx += n * l;
-
         kl  = (sliding_window) ? 0 : idx[l] + k;
         for (; k <= last_k; k++, u1++, kl++) {
           if (hc->eval_int(i, j, k, l, hc)) {
@@ -641,8 +631,6 @@ mfe_internal_loop(vrna_fold_compound_t  *fc,
             }
           }
         }
-
-        hc_mx -= n * l;
       }
 
       if (with_gquad) {
