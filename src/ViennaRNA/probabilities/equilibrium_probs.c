@@ -1028,21 +1028,21 @@ compute_bpp_external(vrna_fold_compound_t *fc,
 
     i = 1;
     for (u = 1; u <= MIN2(max_u, n - 1); u++)
-      if (evaluate(1, n, 1 + u, n, VRNA_DECOMP_EXT_EXT, hc_dat)) {
+      if (hc->eval_ext(1, n, 1 + u, n, VRNA_DECOMP_EXT_EXT, hc)) {
         pue[1][u] = qln[1 + u] /
                     q1k[n];
         pue[1][u] *= contrib_up(fc, 1, 1 + u - 1, constraints);
       }
 
     if (max_u >= n)
-      if (evaluate(1, n, 1, n, VRNA_DECOMP_EXT_UP, hc_dat)) {
+      if (hc->eval_ext(1, n, 1, n, VRNA_DECOMP_EXT_UP, hc)) {
         pue[1][n] = contrib_up(fc, 1, n, constraints) /
                     q1k[n];
       }
 
     for (u = 1; u <= max_u; u++)
       for (i = 2; i + u <= n; i++)
-        if (evaluate(1, n, i - 1, i + u, VRNA_DECOMP_EXT_EXT_EXT, hc_dat)) {
+        if (hc->eval_ext(1, n, i - 1, i + u, VRNA_DECOMP_EXT_EXT_EXT, hc)) {
           pue[i][u] = q1k[i - 1] *
                       qln[i + u] /
                       q1k[n];
@@ -1051,7 +1051,7 @@ compute_bpp_external(vrna_fold_compound_t *fc,
 
     for (u = 1; u <= MIN2(max_u, n); u++) {
       i = n - u + 1;
-      if (evaluate(1, n, 1, i - 1, VRNA_DECOMP_EXT_EXT, hc_dat)) {
+      if (hc->eval_ext(1, n, 1, i - 1, VRNA_DECOMP_EXT_EXT, hc)) {
         pue[i][u] = q1k[i - 1] /
                     q1k[n];
         pue[i][u] *= contrib_up(fc, i, n, constraints);
@@ -1558,8 +1558,7 @@ compute_up_hp(vrna_fold_compound_t *fc,
   vrna_ud_t             *domains_up;
   unsigned int          i, j, n, lsize;
   int                   *my_iindx;
-  struct hc_hp_def_dat  *hc_dat_local;
-  vrna_hc_eval_f        evaluate;
+  vrna_hc_t             *hc;
   struct sc_hp_exp_dat  *sc_wrapper_hp;
 
   n           = fc->length;
@@ -1571,9 +1570,8 @@ compute_up_hp(vrna_fold_compound_t *fc,
   my_iindx  = fc->iindx;
   max_u     = dp_helpers->u;
   puh       = dp_helpers->puh;
+  hc        = fc->hc;
 
-  hc_dat_local  = &(constraints->hc_dat_hp);
-  evaluate      = constraints->hc_eval_hp;
   sc_wrapper_hp = &(constraints->sc_wrapper_hp);
   Quh           = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * l);
 
@@ -1585,7 +1583,7 @@ compute_up_hp(vrna_fold_compound_t *fc,
     if (probs[ij] == 0.)
       continue;
 
-    if (evaluate(i, j, i, j, VRNA_DECOMP_PAIR_HP, hc_dat_local)) {
+    if (hc->eval_hp(i, j, hc)) {
       q = 0.;
       switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
@@ -1653,7 +1651,7 @@ compute_up_hp(vrna_fold_compound_t *fc,
     if (probs[ij] == 0.)
       continue;
 
-    if (evaluate(i, j, i, j, VRNA_DECOMP_PAIR_HP, hc_dat_local)) {
+    if (hc->eval_hp(i, j, hc)) {
       q = 0.;
       switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
