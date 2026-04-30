@@ -42,7 +42,7 @@
 #include "ViennaRNA/constraints/multibranch_sc_pf.inc"
 
 
-#include "ViennaRNA/probing/crosslink.h"
+#include "ViennaRNA/constraints/soft_iip.h"
 
 /* re-definition of vrna_mx_mfe_aux_ml_s to use its internals, see also mfe_multibrnch.c  */
 struct vrna_mx_mfe_aux_ml_s {

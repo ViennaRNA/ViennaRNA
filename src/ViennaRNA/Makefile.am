@@ -273,12 +273,12 @@ vrna_constraints_HEADERS = \
     constraints/hard.h \
     constraints/SHAPE.h \
     constraints/soft.h \
+    constraints/soft_iip.h \
     constraints/soft_special.h
 
 
 vrna_probing_HEADERS = \
     probing/basic.h \
-    probing/crosslink.h \
     probing/SHAPE.h \
     probing/strategy_deigan.h \
     probing/strategy_eddy.h \
@@ -527,6 +527,7 @@ libRNA_constraints_la_SOURCES = \
     constraints/hard.c \
     constraints/soft.c \
     constraints/soft_cb_multi.c \
+    constraints/soft_iip.c \
     constraints/sc_cb_mod.c \
     constraints/sc_cb_mod_parser.c \
     constraints/sc_cb_mod_wrappers.c \
@@ -535,7 +536,6 @@ libRNA_constraints_la_SOURCES = \
 
 libRNA_probing_la_SOURCES = \
     probing/probing.c \
-    probing/crosslink.c \
     probing/strategy_chain.c \
     probing/strategy_deigan.c \
     probing/strategy_eddy.c \

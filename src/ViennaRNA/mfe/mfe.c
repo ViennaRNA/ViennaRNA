@@ -31,6 +31,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/constraints/soft_iip.h"
 #include "ViennaRNA/mfe/gquad.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
@@ -49,7 +50,6 @@
 #include "ViennaRNA/backtrack/gquad.h"
 #include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/mfe/global.h"
-#include "ViennaRNA/probing/crosslink.h"
 
 #include "ViennaRNA/intern/grammar_dat.h"
 

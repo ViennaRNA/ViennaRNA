@@ -22,7 +22,7 @@
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/probing/SHAPE.h"
-#include "ViennaRNA/probing/crosslink.h"
+#include "ViennaRNA/constraints/soft_iip.h"
 #include "ViennaRNA/constraints/soft.h"
 
 

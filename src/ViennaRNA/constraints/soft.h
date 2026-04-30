@@ -20,7 +20,7 @@ typedef struct  vrna_sc_s vrna_sc_t;
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/constraints/basic.h>
-#include <ViennaRNA/probing/crosslink.h>
+#include <ViennaRNA/constraints/soft_iip.h>
 
 /**
  * @brief Callback to retrieve pseudo energy contribution for soft constraint feature

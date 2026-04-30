@@ -23,7 +23,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/probing/crosslink.h"
+#include "ViennaRNA/constraints/soft_iip.h"
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/combinatorics/basic.h"
 #include "ViennaRNA/eval/exterior.h"
