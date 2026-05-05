@@ -421,6 +421,42 @@ my_params_load_from_string(std::string parameters,
 
 %include <ViennaRNA/params/salt.h>
 
+%ignore get_ribosum;
+%ignore readribosum;
+
+%rename (ribosum_mx)  my_ribosum_mx;
+
+#ifdef SWIGPYTHON
+%feature("autodoc")my_ribosum_mx;
+%feature("kwargs")my_ribosum_mx;
+#endif
+%{
+
+  std::vector<std::vector<double> >
+  my_ribosum_mx(double min_identity_pct,
+                double max_identity_pct)
+  {
+    std::vector<std::vector<double> >  mx;
+
+    double **rmx = vrna_ribosum_mx(min_identity_pct, max_identity_pct);
+
+    for (size_t i = 0; i < 7; i++) {
+      std::vector<double> line(rmx[i], rmx[i] + 7);
+      mx.push_back(line);
+      free(rmx[i]);
+    }    
+
+    free(rmx);
+
+    return mx;
+  }
+%}
+
+std::vector<std::vector<double> >
+my_ribosum_mx(double min_identity_pct,
+              double max_identity_pct);
+
+%include <ViennaRNA/params/ribosum.h>
 /**********************************************/
 /* BEGIN interface for energy constants       */
 /**********************************************/

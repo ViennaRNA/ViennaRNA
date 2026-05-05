@@ -54,6 +54,7 @@ extern "C" {
 #include  <ViennaRNA/params/io.h>
 #include  <ViennaRNA/params/salt.h>
 #include  <ViennaRNA/params/default.h>
+#include  <ViennaRNA/params/ribosum.h>
 
 #include  <ViennaRNA/constraints/basic.h>
 #include  <ViennaRNA/constraints/hard.h>

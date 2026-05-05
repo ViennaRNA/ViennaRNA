@@ -7,6 +7,12 @@
  *  @brief  Parse RiboSum Scoring Matrices for Covariance Scoring of Alignments
  */
 
+
+double **
+vrna_ribosum_mx(double min_identity_pct,
+                double max_identity_pct);
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**

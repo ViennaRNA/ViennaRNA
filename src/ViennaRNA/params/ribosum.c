@@ -729,6 +729,386 @@ static float  dm_20_19[7][7] = { { 0, 0,        0,        0,        0,        0,
                                  { 0, 2.356499, 2.304699, 1.714175, 0.194186, 1.898882, 0.292298 } };
 
 
+PUBLIC double **
+vrna_ribosum_mx(double min_identity_pct,
+                double max_identity_pct)
+{
+  int     min, max;
+  float   (*scores)[7][7];
+  double  **rscore;
+  
+  if (min_identity_pct > 100.)
+    min_identity_pct = 100.;
+
+  if (min_identity_pct < 0.)
+    min_identity_pct = 0.;
+
+  if (max_identity_pct > 100.)
+    max_identity_pct = 100.;
+
+  if (max_identity_pct < 0.)
+    max_identity_pct = 0.;
+
+  min = (int)(min_identity_pct + 0.5) / 5;
+  max = (int)(max_identity_pct + 0.5) / 5;
+
+  if (max < 12)
+    max = 12;
+
+  if (min < 5)
+    min = 5;
+
+  if (min >= max)
+    min = max - 1;
+
+  switch (max) {
+    case 12:
+      switch (min) {
+        case 5:
+          scores = &dm_12_5;
+          break;
+        case 6:
+          scores = &dm_12_6;
+          break;
+        case 7:
+          scores = &dm_12_7;
+          break;
+        case 8:
+          scores = &dm_12_8;
+          break;
+        case 9:
+          scores = &dm_12_9;
+          break;
+        case 10:
+          scores = &dm_12_10;
+          break;
+        case 11:
+          scores = &dm_12_11;
+          break;
+      }
+      break;
+    case 13:
+      switch (min) {
+        case 5:
+          scores = &dm_13_5;
+          break;
+        case 6:
+          scores = &dm_13_6;
+          break;
+        case 7:
+          scores = &dm_13_7;
+          break;
+        case 8:
+          scores = &dm_13_8;
+          break;
+        case 9:
+          scores = &dm_13_9;
+          break;
+        case 10:
+          scores = &dm_13_10;
+          break;
+        case 11:
+          scores = &dm_13_11;
+          break;
+        case 12:
+          scores = &dm_13_12;
+          break;
+      }
+      break;
+    case 14:
+      switch (min) {
+        case 5:
+          scores = &dm_14_5;
+          break;
+        case 6:
+          scores = &dm_14_6;
+          break;
+        case 7:
+          scores = &dm_14_7;
+          break;
+        case 8:
+          scores = &dm_14_8;
+          break;
+        case 9:
+          scores = &dm_14_9;
+          break;
+        case 10:
+          scores = &dm_14_10;
+          break;
+        case 11:
+          scores = &dm_14_11;
+          break;
+        case 12:
+          scores = &dm_14_12;
+          break;
+        case 13:
+          scores = &dm_14_13;
+          break;
+      }
+      break;
+    case 15:
+      switch (min) {
+        case 5:
+          scores = &dm_15_5;
+          break;
+        case 6:
+          scores = &dm_15_6;
+          break;
+        case 7:
+          scores = &dm_15_7;
+          break;
+        case 8:
+          scores = &dm_15_8;
+          break;
+        case 9:
+          scores = &dm_15_9;
+          break;
+        case 10:
+          scores = &dm_15_10;
+          break;
+        case 11:
+          scores = &dm_15_11;
+          break;
+        case 12:
+          scores = &dm_15_12;
+          break;
+        case 13:
+          scores = &dm_15_13;
+          break;
+        case 14:
+          scores = &dm_15_14;
+          break;
+      }
+      break;
+    case 16:
+      switch (min) {
+        case 5:
+          scores = &dm_16_5;
+          break;
+        case 6:
+          scores = &dm_16_6;
+          break;
+        case 7:
+          scores = &dm_16_7;
+          break;
+        case 8:
+          scores = &dm_16_8;
+          break;
+        case 9:
+          scores = &dm_16_9;
+          break;
+        case 10:
+          scores = &dm_16_10;
+          break;
+        case 11:
+          scores = &dm_16_11;
+          break;
+        case 12:
+          scores = &dm_16_12;
+          break;
+        case 13:
+          scores = &dm_16_13;
+          break;
+        case 14:
+          scores = &dm_16_14;
+          break;
+        case 15:
+          scores = &dm_16_15;
+          break;
+      }
+      break;
+    case 17:
+      switch (min) {
+        case 5:
+          scores = &dm_17_5;
+          break;
+        case 6:
+          scores = &dm_17_6;
+          break;
+        case 7:
+          scores = &dm_17_7;
+          break;
+        case 8:
+          scores = &dm_17_8;
+          break;
+        case 9:
+          scores = &dm_17_9;
+          break;
+        case 10:
+          scores = &dm_17_10;
+          break;
+        case 11:
+          scores = &dm_17_11;
+          break;
+        case 12:
+          scores = &dm_17_12;
+          break;
+        case 13:
+          scores = &dm_17_13;
+          break;
+        case 14:
+          scores = &dm_17_14;
+          break;
+        case 15:
+          scores = &dm_17_15;
+          break;
+        case 16:
+          scores = &dm_17_16;
+          break;
+      }
+      break;
+    case 18:
+      switch (min) {
+        case 5:
+          scores = &dm_18_5;
+          break;
+        case 6:
+          scores = &dm_18_6;
+          break;
+        case 7:
+          scores = &dm_18_7;
+          break;
+        case 8:
+          scores = &dm_18_8;
+          break;
+        case 9:
+          scores = &dm_18_9;
+          break;
+        case 10:
+          scores = &dm_18_10;
+          break;
+        case 11:
+          scores = &dm_18_11;
+          break;
+        case 12:
+          scores = &dm_18_12;
+          break;
+        case 13:
+          scores = &dm_18_13;
+          break;
+        case 14:
+          scores = &dm_18_14;
+          break;
+        case 15:
+          scores = &dm_18_15;
+          break;
+        case 16:
+          scores = &dm_18_16;
+          break;
+        case 17:
+          scores = &dm_18_17;
+          break;
+      }
+      break;
+    case 19:
+      switch (min) {
+        case 5:
+          scores = &dm_19_5;
+          break;
+        case 6:
+          scores = &dm_19_6;
+          break;
+        case 7:
+          scores = &dm_19_7;
+          break;
+        case 8:
+          scores = &dm_19_8;
+          break;
+        case 9:
+          scores = &dm_19_9;
+          break;
+        case 10:
+          scores = &dm_19_10;
+          break;
+        case 11:
+          scores = &dm_19_11;
+          break;
+        case 12:
+          scores = &dm_19_12;
+          break;
+        case 13:
+          scores = &dm_19_13;
+          break;
+        case 14:
+          scores = &dm_19_14;
+          break;
+        case 15:
+          scores = &dm_19_15;
+          break;
+        case 16:
+          scores = &dm_19_16;
+          break;
+        case 17:
+          scores = &dm_19_17;
+          break;
+        case 18:
+          scores = &dm_19_18;
+          break;
+      }
+      break;
+    case 20:
+      switch (min) {
+        case 5:
+          scores = &dm_20_5;
+          break;
+        case 6:
+          scores = &dm_20_6;
+          break;
+        case 7:
+          scores = &dm_20_7;
+          break;
+        case 8:
+          scores = &dm_20_8;
+          break;
+        case 9:
+          scores = &dm_20_9;
+          break;
+        case 10:
+          scores = &dm_20_10;
+          break;
+        case 11:
+          scores = &dm_20_11;
+          break;
+        case 12:
+          scores = &dm_20_12;
+          break;
+        case 13:
+          scores = &dm_20_13;
+          break;
+        case 14:
+          scores = &dm_20_14;
+          break;
+        case 15:
+          scores = &dm_20_15;
+          break;
+        case 16:
+          scores = &dm_20_16;
+          break;
+        case 17:
+          scores = &dm_20_17;
+          break;
+        case 18:
+          scores = &dm_20_18;
+          break;
+        case 19:
+          scores = &dm_20_19;
+          break;
+      }
+      break;
+  }
+
+  rscore = (double **)vrna_alloc(7 * sizeof(double *));
+  for (size_t i = 0; i < 7; i++)
+    rscore[i] = (double *)vrna_alloc(7 * sizeof(double));
+
+  for (size_t i = 0; i < 7; i++)
+    for (size_t j = 0; j < 7; j++)
+      rscore[i][j] = (double)(*scores)[i][j];
+
+  return rscore;
+}
+
+
 float **
 get_ribosum(const char  **Alseq,
             int         n_seq,
@@ -745,6 +1125,8 @@ get_ribosum(const char  **Alseq,
   ribo = (float **)vrna_alloc(7 * sizeof(float *));
   for (i = 0; i < 7; i++)
     ribo[i] = (float *)vrna_alloc(7 * sizeof(float));
+
+  /* identify min/max pairwise distances, normalized per nucleotide (aln column) */
   for (j = 0; j < n_seq - 1; j++)
     for (k = j + 1; k < n_seq; k++) {
       ident = length - vrna_hamming_distance(Alseq[k], Alseq[j]);
@@ -754,12 +1136,17 @@ get_ribosum(const char  **Alseq,
       if ((ident / (length)) > maximum)
         maximum = ident / (float)(length);
     }
-  /*+2.5 for ALWAYS round up*/
+
+  /*  express min/max in terms of percent identity
+   *  +0.5 to ALWAYS round up
+   */
   minimum *= 100;
   maximum *= 100;
   minimum += 0.5;
   maximum += 0.5;
-  if (n_seq == 1 || minimum > 100.45) {
+
+  if ((n_seq == 1) ||
+      (minimum > 100.45)) {
     for (i = 0; i < 7; i++)
       for (j = 0; j < 7; j++)
         ribo[i][j] = 0.;
