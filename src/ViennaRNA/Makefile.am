@@ -803,6 +803,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               constraints/wrap_multibranch_hc.inc \
               constraints/multibranch_sc.inc \
               constraints/multibranch_sc_pf.inc \
+              params/ribosum_scores.inc \
               params/svm_model_avg.inc \
               params/svm_model_sd.inc \
               sampling/data_structures_nonred.inc \
