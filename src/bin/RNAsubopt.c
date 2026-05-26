@@ -495,9 +495,9 @@ main(int  argc,
 
     if (istty) {
       if (vc->strands == 1) {
-        printf("length = %d", length);
+        vrna_log_info("length = %d", length);
       } else {
-        printf("length1 = %d\nlength2 = %d",
+        vrna_log_info("length1 = %d\nlength2 = %d",
                cut_point - 1,
                length - cut_point + 1);
       }

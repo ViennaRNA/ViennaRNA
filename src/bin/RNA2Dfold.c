@@ -260,7 +260,7 @@ main(int  argc,
     vrna_seq_toupper(string);
 
     if (istty)
-      printf("length = %d\n", length);
+      vrna_log_info("length = %d", length);
 
     vrna_fold_compound_t *vc_global = vrna_fold_compound(string, &md, VRNA_OPTION_MFE);
 

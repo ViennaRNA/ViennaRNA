@@ -373,7 +373,7 @@ main(int  argc,
     vrna_seq_toupper(rec_sequence);
 
     if (!tofile && istty)
-      printf("length = %d", length);
+      vrna_log_info("length = %d", length);
 
     /*
      ########################################################

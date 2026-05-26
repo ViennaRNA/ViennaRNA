@@ -469,7 +469,7 @@ process_record(struct record_data *record)
   o_stream->err = vrna_cstr(n, stderr);
 
   if (record->tty)
-    printf("length = %d", n);
+    vrna_log_info("length = %d", n);
 
   /*
    ########################################################

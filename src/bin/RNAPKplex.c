@@ -194,8 +194,8 @@ main(int  argc,
     vrna_seq_toupper(s1);
 
     printf("%s\n", orig_s1);
-    if (verbose)
-      printf("length = %d\n", length);
+    if (istty)
+      vrna_log_info("length = %d", length);
 
     /*
      ########################################################

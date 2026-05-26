@@ -738,9 +738,9 @@ process_record(struct record_data *record)
 
   if (record->tty) {
     if (vc->strands == 1) {
-      printf("length = %u", n);
+      vrna_log_info("length = %u", n);
     } else {
-      printf("length1 = %d\nlength2 = %d",
+      vrna_log_info("length1 = %u\nlength2 = %u",
              vc->nucleotides[0].length,
              vc->nucleotides[1].length);
     }

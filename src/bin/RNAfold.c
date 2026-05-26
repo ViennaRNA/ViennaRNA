@@ -999,7 +999,7 @@ process_record(struct record_data *record)
                                record->input_filename);
 
   if (record->tty)
-    vrna_log_info("length = %d\n", length);
+    vrna_log_info("length = %d", length);
 
   mfe_structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
 

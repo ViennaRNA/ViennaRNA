@@ -242,7 +242,7 @@ main(int  argc,
 
     str2 = (char *)vrna_alloc((unsigned)length + 1);
     if (istty)
-      printf("length = %d", length);
+      vrna_log_info("length = %d", length);
 
     if (repeat != 0)
       found = (repeat > 0) ? repeat : (-repeat);
