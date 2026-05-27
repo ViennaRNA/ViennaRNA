@@ -90,6 +90,7 @@ DEPRECATED(typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
 
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/structures/problist.h>
+#include <ViennaRNA/probabilities/basic.h>
 
 /**
  *  @brief  Exterior loop

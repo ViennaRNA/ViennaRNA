@@ -31,6 +31,7 @@
 #include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/partfunc/global.h"
+#include "ViennaRNA/probabilities/basic.h"
 #include "ViennaRNA/probabilities/basepairs.h"
 
 #include "ViennaRNA/constraints/exterior_sc_pf.inc"
@@ -315,6 +316,25 @@ vrna_unpaired_probs(vrna_fold_compound_t *fc,
 {
   if (fc)
     return pf_create_bppm(fc, structure, u);
+
+  return 0;
+}
+
+
+PUBLIC int
+vrna_eqm_probabilities(vrna_fold_compound_t   *fc,
+                       vrna_eqm_probs_f       cb,
+                       vrna_eqm_probs_data_t  cb_data,
+                       vrna_eqm_probs_opt_t   options)
+{
+  if ((fc) &&
+      (cb)) {
+
+    if (options.mode == 0)
+      options.mode = VRNA_EQM_PROBS_BPP;
+
+    return 1;
+  }
 
   return 0;
 }
