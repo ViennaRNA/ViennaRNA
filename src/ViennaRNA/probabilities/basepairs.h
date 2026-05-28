@@ -41,7 +41,6 @@ vrna_pairing_probs(vrna_fold_compound_t *fc,
 
 int
 vrna_unpaired_probs(vrna_fold_compound_t *fc,
-                    char                 *structure,
                     unsigned int         u);
 
 /**
