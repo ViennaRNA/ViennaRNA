@@ -290,11 +290,11 @@ vrna_hc_prepare(vrna_fold_compound_t  *fc,
         default_hc_bp(fc, options);
       }
 
-      if (fc->hc->state & STATE_DIRTY_UP)
-        prepare_hc_up(fc, options);
-
       if (fc->hc->state & STATE_DIRTY_BP)
         prepare_hc_bp(fc, options);
+
+      if (fc->hc->state & STATE_DIRTY_UP)
+        prepare_hc_up(fc, options);
 
       if (fc->hc->state & ~STATE_CLEAN)
         hc_update_up(fc);
@@ -949,79 +949,85 @@ prepare_hc_up(vrna_fold_compound_t  *fc,
     if ((depot) && (depot->up)) {
       for (s = 0; s < depot->strands; s++) {
         for (k = 1; k <= depot->up_size[s]; k++) {
-          /* process nucleotide-specific constraint */
           option  = depot->up[s][k].context;
           i       = ss[s] + k - 1; /* constraint position in current strand order */
 
-          if (depot->up[s][k].nonspec) {
-            /* this is actually a must-pair constraint */
-            type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-            /* acknowledge pairing direction */
-            t1  = (depot->up[s][k].direction <= 0) ? type : VRNA_CONSTRAINT_CONTEXT_NONE;
-            t2  = (depot->up[s][k].direction >= 0) ? type : VRNA_CONSTRAINT_CONTEXT_NONE;
-
-            if (option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE) {
-              /* only allow for possibly non-canonical pairs, do not enforce them */
-              for (j = 1; j < i; j++) {
-                hc->mx[n * i + j] |= t1;
-                hc->mx[n * j + i] |= t1;
-              }
-              for (j = i + 1; j <= n; j++) {
-                hc->mx[n * i + j] |= t2;
-                hc->mx[n * j + i] |= t2;
-              }
-            } else {
-              /* force pairing direction */
-              for (j = 1; j < i; j++) {
-                hc->mx[n * i + j] &= t1;
-                hc->mx[n * j + i] &= t1;
-              }
-              for (j = i + 1; j <= n; j++) {
-                hc->mx[n * i + j] &= t2;
-                hc->mx[n * j + i] &= t2;
-              }
-            }
-
-            /* nucleotide mustn't be unpaired */
-            if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE)
-              hc->mx[n * i + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+          if (depot->up[s][k].def) {
+            /* assuming that mx is already initialized */
+            hc->mx[n * i + i] &= VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
           } else {
-            /* 'regular' nucleotide-specific constraint */
-            if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
-              /*
-               * force nucleotide to appear unpaired within a certain type of loop
-               * do not allow i to be paired with any other nucleotide
-               */
-              if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+            /* process nucleotide-specific constraint */
+
+            if (depot->up[s][k].nonspec) {
+              /* this is actually a must-pair constraint */
+              type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+              /* acknowledge pairing direction */
+              t1  = (depot->up[s][k].direction <= 0) ? type : VRNA_CONSTRAINT_CONTEXT_NONE;
+              t2  = (depot->up[s][k].direction >= 0) ? type : VRNA_CONSTRAINT_CONTEXT_NONE;
+
+              if (option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE) {
+                /* only allow for possibly non-canonical pairs, do not enforce them */
                 for (j = 1; j < i; j++) {
-                  hc->mx[n * i + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
-                  hc->mx[n * j + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+                  hc->mx[n * i + j] |= t1;
+                  hc->mx[n * j + i] |= t1;
                 }
                 for (j = i + 1; j <= n; j++) {
-                  hc->mx[n * i + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
-                  hc->mx[n * j + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+                  hc->mx[n * i + j] |= t2;
+                  hc->mx[n * j + i] |= t2;
+                }
+              } else {
+                /* force pairing direction */
+                for (j = 1; j < i; j++) {
+                  hc->mx[n * i + j] &= t1;
+                  hc->mx[n * j + i] &= t1;
+                }
+                for (j = i + 1; j <= n; j++) {
+                  hc->mx[n * i + j] &= t2;
+                  hc->mx[n * j + i] &= t2;
                 }
               }
 
-              type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-
-              hc->mx[n * i + i] = type;
+              /* nucleotide mustn't be unpaired */
+              if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE)
+                hc->mx[n * i + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
             } else {
-              type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+              /* 'regular' nucleotide-specific constraint */
+              if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
+                /*
+                 * force nucleotide to appear unpaired within a certain type of loop
+                 * do not allow i to be paired with any other nucleotide
+                 */
+                if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+                  for (j = 1; j < i; j++) {
+                    hc->mx[n * i + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
+                    hc->mx[n * j + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+                  }
+                  for (j = i + 1; j <= n; j++) {
+                    hc->mx[n * i + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
+                    hc->mx[n * j + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+                  }
+                }
 
-              /* do not allow i to be paired with any other nucleotide (in context type) */
-              if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
-                for (j = 1; j < i; j++) {
-                  hc->mx[n * i + j] &= ~type;
-                  hc->mx[n * j + i] &= ~type;
+                type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+
+                hc->mx[n * i + i] = type;
+              } else {
+                type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+
+                /* do not allow i to be paired with any other nucleotide (in context type) */
+                if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+                  for (j = 1; j < i; j++) {
+                    hc->mx[n * i + j] &= ~type;
+                    hc->mx[n * j + i] &= ~type;
+                  }
+                  for (j = i + 1; j <= n; j++) {
+                    hc->mx[n * i + j] &= ~type;
+                    hc->mx[n * j + i] &= ~type;
+                  }
                 }
-                for (j = i + 1; j <= n; j++) {
-                  hc->mx[n * i + j] &= ~type;
-                  hc->mx[n * j + i] &= ~type;
-                }
+
+                hc->mx[n * i + i] = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
               }
-
-              hc->mx[n * i + i] = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
             }
           }
         }

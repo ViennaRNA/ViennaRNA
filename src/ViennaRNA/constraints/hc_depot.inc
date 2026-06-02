@@ -12,6 +12,7 @@ struct hc_nuc {
   int           direction;
   unsigned char context;
   unsigned char nonspec;
+  unsigned char def;
 };
 
 
@@ -136,12 +137,14 @@ hc_depot_store_up(vrna_fold_compound_t  *fc,
       hc->depot->up[strand][k].context   = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
       hc->depot->up[strand][k].direction = 0;
       hc->depot->up[strand][k].nonspec   = 0;
+      hc->depot->up[strand][k].def       = 1;
     }
   }
 
   hc->depot->up[strand][i].context   = context;
   hc->depot->up[strand][i].direction = 0;
   hc->depot->up[strand][i].nonspec   = 0;
+  hc->depot->up[strand][i].def       = 0;
 }
 
 
@@ -168,12 +171,14 @@ hc_depot_store_nonspec(vrna_fold_compound_t  *fc,
       hc->depot->up[strand][k].context   = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
       hc->depot->up[strand][k].direction = 0;
       hc->depot->up[strand][k].nonspec   = 0;
+      hc->depot->up[strand][k].def       = 1;
     }
   }
 
   hc->depot->up[strand][i].context   = context;
   hc->depot->up[strand][i].direction = d;
   hc->depot->up[strand][i].nonspec   = 1;
+  hc->depot->up[strand][i].def       = 0;
 }
 
 
