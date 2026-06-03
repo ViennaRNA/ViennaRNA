@@ -1465,8 +1465,11 @@ scan_mb(vrna_fold_compound_t  *fc,
           (sn[i] == sn[j])) {
         element_energy = vrna_E_multibranch_stem(0, -1, -1, P) + P->MLbase * up;
 
+        if (sc_red_ml)
+          element_energy += sc_red_ml(i, j, k, j, sc_dat);
+
         if (sc_red_stem)
-          element_energy += sc_red_stem(i, j, k, j, sc_dat);
+          element_energy += sc_red_stem(k, j, k, j, sc_dat);
 
         if (e_gq + element_energy + best_energy <= threshold) {
           repeat_gquad(fc,
@@ -1501,8 +1504,11 @@ scan_mb(vrna_fold_compound_t  *fc,
 
         element_energy += P->MLbase * up;
 
+        if (sc_red_ml)
+          element_energy += sc_red_ml(i, j, k, j, sc_dat);
+
         if (sc_red_stem)
-          element_energy += sc_red_stem(i, j, k, j, sc_dat);
+          element_energy += sc_red_stem(k, j, k, j, sc_dat);
 
         if (c[kj] + element_energy + best_energy <= threshold) {
           repeat(fc,
