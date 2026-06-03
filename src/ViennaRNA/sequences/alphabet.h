@@ -53,8 +53,8 @@ vrna_ptypes_prepare(vrna_fold_compound_t  *fc,
  *
  */
 char *
-vrna_ptypes(const short *S,
-            vrna_md_t   *md);
+vrna_ptypes(const short       *S,
+            const vrna_md_t   *md);
 
 
 /**
@@ -66,7 +66,7 @@ vrna_ptypes(const short *S,
  */
 short *
 vrna_seq_encode(const char  *sequence,
-                vrna_md_t   *md);
+                const vrna_md_t   *md);
 
 
 /**
@@ -75,7 +75,7 @@ vrna_seq_encode(const char  *sequence,
  */
 short *
 vrna_seq_encode_simple(const char *sequence,
-                       vrna_md_t  *md);
+                       const vrna_md_t  *md);
 
 
 /**
@@ -90,8 +90,8 @@ vrna_seq_encode_simple(const char *sequence,
  *  @return     The encoded nucleotide
  */
 int
-vrna_nucleotide_encode(char       c,
-                       vrna_md_t  *md);
+vrna_nucleotide_encode(char             c,
+                       const vrna_md_t  *md);
 
 
 /**
@@ -106,24 +106,24 @@ vrna_nucleotide_encode(char       c,
  *  @return     The decoded nucleotide character
  */
 char
-vrna_nucleotide_decode(int        enc,
-                       vrna_md_t  *md);
+vrna_nucleotide_decode(int              enc,
+                       const vrna_md_t  *md);
 
 
 void
-vrna_aln_encode(const char    *sequence,
-                short         **S_p,
-                short         **s5_p,
-                short         **s3_p,
-                char          **ss_p,
-                unsigned int  **as_p,
-                vrna_md_t     *md);
+vrna_aln_encode(const char       *sequence,
+                short            **S_p,
+                short            **s5_p,
+                short            **s3_p,
+                char             **ss_p,
+                unsigned int     **as_p,
+                const vrna_md_t  *md);
 
 
 unsigned int
-vrna_get_ptype_md(int       i,
-                  int       j,
-                  vrna_md_t *md);
+vrna_get_ptype_md(int             i,
+                  int             j,
+                  const vrna_md_t *md);
 
 
 unsigned int
@@ -143,10 +143,10 @@ vrna_get_ptype_window(int   i,
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-DEPRECATED(char *get_ptypes(const short   *S,
-                            vrna_md_t     *md,
-                            unsigned int  idx_type),
-           "Use vrna_pytpes() instead");
+DEPRECATED(char *get_ptypes(const short      *S,
+                            const vrna_md_t  *md,
+                            unsigned int     idx_type),
+           "Use vrna_ptypes() instead");
 
 #endif
 
