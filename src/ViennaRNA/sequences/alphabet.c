@@ -60,8 +60,8 @@ PRIVATE const char Law_and_Order[] = "_ACGUTXKI";
  #################################
  */
 PRIVATE char *
-wrap_get_ptypes(const short *S,
-                vrna_md_t   *md);                               /* provides backward compatibility for old ptypes array in pf computations */
+wrap_get_ptypes(const short       *S,
+                const vrna_md_t   *md);                               /* provides backward compatibility for old ptypes array in pf computations */
 
 
 /*
@@ -237,8 +237,8 @@ vrna_ptypes_prepare(vrna_fold_compound_t  *fc,
 
 
 PUBLIC char *
-vrna_ptypes(const short *S,
-            vrna_md_t   *md)
+vrna_ptypes(const short       *S,
+            const vrna_md_t   *md)
 {
   char  *ptype;
   int   n, i, j, k, l, *idx;
@@ -285,7 +285,7 @@ vrna_ptypes(const short *S,
 
 PUBLIC short *
 vrna_seq_encode(const char  *sequence,
-                vrna_md_t   *md)
+                const vrna_md_t   *md)
 {
   unsigned int  i, l;
   short         *S = NULL;
@@ -308,7 +308,7 @@ vrna_seq_encode(const char  *sequence,
 
 PUBLIC short *
 vrna_seq_encode_simple(const char *sequence,
-                       vrna_md_t  *md)
+                       const vrna_md_t  *md)
 {
   unsigned int  i, l;
   short         *S = NULL;
@@ -329,8 +329,8 @@ vrna_seq_encode_simple(const char *sequence,
 
 
 PUBLIC int
-vrna_nucleotide_encode(char       c,
-                       vrna_md_t  *md)
+vrna_nucleotide_encode(char             c,
+                       const vrna_md_t  *md)
 {
   /* return numerical representation of nucleotide used e.g. in vrna_md_t.pair[][] */
   int code = -1;
@@ -361,8 +361,8 @@ vrna_nucleotide_encode(char       c,
 
 
 PUBLIC char
-vrna_nucleotide_decode(int        enc,
-                       vrna_md_t  *md)
+vrna_nucleotide_decode(int              enc,
+                       const vrna_md_t  *md)
 {
   if (md) {
     if (md->energy_set > 0)
@@ -376,13 +376,13 @@ vrna_nucleotide_decode(int        enc,
 
 
 PUBLIC void
-vrna_aln_encode(const char    *sequence,
-                short         **S_p,
-                short         **s5_p,
-                short         **s3_p,
-                char          **ss_p,
-                unsigned int  **as_p,
-                vrna_md_t     *md)
+vrna_aln_encode(const char       *sequence,
+                short            **S_p,
+                short            **s5_p,
+                short            **s3_p,
+                char             **ss_p,
+                unsigned int     **as_p,
+                const vrna_md_t  *md)
 {
   unsigned int i, l, p;
 
@@ -468,9 +468,9 @@ vrna_aln_encode(const char    *sequence,
 
 
 PUBLIC unsigned int
-vrna_get_ptype_md(int       i,
-                  int       j,
-                  vrna_md_t *md)
+vrna_get_ptype_md(int             i,
+                  int             j,
+                  const vrna_md_t *md)
 {
   unsigned int tt = (unsigned int)md->pair[i][j];
 
@@ -500,8 +500,8 @@ vrna_get_ptype_window(int   i,
 
 
 PRIVATE char *
-wrap_get_ptypes(const short *S,
-                vrna_md_t   *md)
+wrap_get_ptypes(const short      *S,
+                const vrna_md_t  *md)
 {
   char  *ptype;
   int   n, i, j, k, l, *idx;
@@ -548,9 +548,9 @@ wrap_get_ptypes(const short *S,
  */
 
 PUBLIC char *
-get_ptypes(const short  *S,
-           vrna_md_t    *md,
-           unsigned int idx_type)
+get_ptypes(const short      *S,
+           const vrna_md_t  *md,
+           unsigned int     idx_type)
 {
   if (S) {
     if ((unsigned int)S[0] > vrna_sequence_length_max(VRNA_OPTION_DEFAULT)) {
