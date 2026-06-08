@@ -694,38 +694,41 @@ pf_create_bppm(vrna_fold_compound_t   *vc,
     /* done computing the outside partition function */
 
     /* add inside contributions to transform probs[ij] into base pair probabilities */
-    for (i = 1; i <= n; i++)
-      for (j = i + 1; j <= n; j++) {
-        ij = my_iindx[i] - j;
+    if (!(options.mode & VRNA_EQM_PROBS_STORE_OUTSIDE)) {
+      for (i = 1; i <= n; i++) {
+        for (j = i + 1; j <= n; j++) {
+          ij = my_iindx[i] - j;
 
-        if (with_gquad) {
-          if (qb[ij] > 0.) {
-            probs[ij] *= qb[ij];
-            if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
-              probs[ij] *= exp(-pscore[jindx[j] + i] / kTn);
-          } else {
+          if (with_gquad) {
+            if (qb[ij] > 0.) {
+              probs[ij] *= qb[ij];
+              if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
+                probs[ij] *= exp(-pscore[jindx[j] + i] / kTn);
+            } else {
 #ifndef VRNA_DISABLE_C11_FEATURES
-            q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
+              q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
 #else
-            q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, i, j, 0.);
+              q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, i, j, 0.);
 #endif
-            if (q_g != 0.) {
-              if (!md->circ)
-                probs[ij] += q1k[i - 1] *
-                             qln[j + 1] / q1k[n];
-
-              probs[ij] *= q_g;
+              if (q_g != 0.) {
+                if (!md->circ)
+                  probs[ij] += q1k[i - 1] *
+                               qln[j + 1] / q1k[n];
+  
+                probs[ij] *= q_g;
+              }
             }
-          }
-        } else {
-          if (qb[ij] > 0.) {
-            probs[ij] *= qb[ij];
+          } else {
+            if (qb[ij] > 0.) {
+              probs[ij] *= qb[ij];
 
-            if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
-              probs[ij] *= exp(-pscore[jindx[j] + i] / kTn);
+              if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
+                probs[ij] *= exp(-pscore[jindx[j] + i] / kTn);
+            }
           }
         }
       }
+    }
 
 
     if (ov > 0)
