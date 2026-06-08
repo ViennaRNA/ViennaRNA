@@ -29,7 +29,7 @@
 /**
  *  @brief  Hairpin loop
  */
-#define VRNA_LOOP_TYPE_ HP    (unsigned int)(1<<1)
+#define VRNA_LOOP_TYPE_HP     (unsigned int)(1<<1)
 
 /**
  *  @brief  Internal loop
@@ -105,20 +105,20 @@
  */
 #define VRNA_EQM_PROBS_SPLIT  (unsigned int)(1 << 15)
 
-
+#define VRNA_EQM_PROBS_MASK   (VRNA_EQM_PROBS_BPP | VRNA_EQM_PROBS_UP | VRNA_EQM_PROBS_HX)
 
 typedef struct {
   unsigned int  mode;
   unsigned int  up_length;
-  double        cutoff;
 } vrna_eqm_probs_opt_t;
 
 typedef void *vrna_eqm_probs_data_t;
 
-typedef void (*vrna_eqm_probs_f)(FLT_OR_DBL             *pr,
+typedef void (*vrna_eqm_probs_f)(vrna_fold_compound_t   *fc,
+                                 FLT_OR_DBL             *pr,
                                  unsigned int           j,
-                                 unsigned int           start,
-                                 unsigned int           end,
+                                 unsigned int           a,
+                                 unsigned int           b,
                                  unsigned int           type,
                                  vrna_eqm_probs_data_t  data);
 
