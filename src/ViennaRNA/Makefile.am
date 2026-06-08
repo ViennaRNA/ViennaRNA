@@ -663,7 +663,8 @@ libRNA_partfunc_la_SOURCES = \
 
 libRNA_probabilities_la_SOURCES = \
     probabilities/equilibrium_probs.c \
-    probabilities/probs_structures.c
+    probabilities/probs_structures.c \
+    probabilities/prob_wrappers.c
 
 
 libRNA_subopt_la_SOURCES = \

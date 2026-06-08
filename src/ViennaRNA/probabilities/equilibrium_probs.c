@@ -105,12 +105,6 @@ struct helper_arrays {
 };
 
 
-typedef struct {
-  vrna_array(vrna_ep_t) probs;
-  double                cutoff;
-} up_storage_default;
-
-
 /* default options for pf_create_bppm() */
 static vrna_eqm_probs_opt_t default_options = {
   .mode = VRNA_EQM_PROBS_BPP
@@ -144,14 +138,6 @@ compute_accessibility(vrna_fold_compound_t  *fc,
                       unsigned int          l,
                       helper_arrays_t       dp_helpers);
 
-PRIVATE void
-accessibility_cb_default(vrna_fold_compound_t   *fc,
-                         FLT_OR_DBL             *pr,
-                         unsigned int           i,
-                         unsigned int           a,
-                         unsigned int           b,
-                         unsigned int           type,
-                         vrna_eqm_probs_data_t  data);
 
 PRIVATE INLINE void
 bppm_circ(vrna_fold_compound_t  *fc,
@@ -387,43 +373,6 @@ vrna_pairing_probs(vrna_fold_compound_t *vc,
 }
 
 
-PUBLIC vrna_array(vrna_ep_t)
-vrna_eqm_probs_up(vrna_fold_compound_t *fc,
-                  unsigned int         max_u,
-                  double               cutoff)
-{
-  vrna_ep_t *result = NULL;
-
-  if (fc) {
-    if (max_u == 0)
-      max_u = fc->length;
-
-    vrna_eqm_probs_opt_t o = {
-      .mode       = VRNA_EQM_PROBS_UP,
-      .up_length  = max_u
-    };
-
-    up_storage_default payload = {
-      .probs = NULL,
-      .cutoff = cutoff
-    };
-
-    vrna_array_init_size(payload.probs, fc->length);
-
-    if (vrna_eqm_probabilities(fc,
-                               accessibility_cb_default,
-                               (void *)&payload,
-                               o)) {
-      result = payload.probs;
-    } else {
-      vrna_array_free(payload.probs);
-    }
-  }
-
-  return result;
-}
-
-
 PUBLIC vrna_ep_t *
 vrna_stack_prob(vrna_fold_compound_t  *vc,
                 double                cutoff)
@@ -597,30 +546,6 @@ compute_accessibility(vrna_fold_compound_t  *fc,
                                  dp_helpers->access_mb[u];
 
   cb(fc, dp_helpers->access_ext, l, 1, end, VRNA_EQM_PROBS_UP | VRNA_LOOP_TYPE_ANY, cb_data);
-}
-
-
-PRIVATE void
-accessibility_cb_default(vrna_fold_compound_t   *fc,
-                         FLT_OR_DBL             *pr,
-                         unsigned int           i,
-                         unsigned int           a,
-                         unsigned int           b,
-                         unsigned int           type,
-                         vrna_eqm_probs_data_t  data)
-{
-  if ((type & VRNA_EQM_PROBS_UP) &&
-      (type & VRNA_LOOP_TYPE_ANY)) {
-    for (unsigned int k = a; k <= b; k++)
-      if (pr[k] >= ((up_storage_default *)data)->cutoff)
-        vrna_array_append(((up_storage_default *)data)->probs,
-                          ((vrna_ep_t){
-                            .i = i,
-                            .j = k,
-                            .p = pr[k],
-                            .type = VRNA_PLIST_TYPE_UNPAIRED
-                          }));
-  }
 }
 
 

@@ -105,6 +105,9 @@
  */
 #define VRNA_EQM_PROBS_SPLIT  (unsigned int)(1 << 15)
 
+#define VRNA_EQM_PROBS_STORE_OUTSIDE  (unsigned int)(1 << 16)
+
+
 #define VRNA_EQM_PROBS_MASK   (VRNA_EQM_PROBS_BPP | VRNA_EQM_PROBS_UP | VRNA_EQM_PROBS_HX)
 
 typedef struct {
