@@ -42,8 +42,17 @@ vrna_pairing_probs(vrna_fold_compound_t *fc,
 
 vrna_array(vrna_ep_t)
 vrna_eqm_probs_up(vrna_fold_compound_t *fc,
+                  unsigned int         min_u,
                   unsigned int         max_u,
                   double               cutoff);
+
+
+vrna_array(vrna_ep_t)
+vrna_eqm_probs_hx(vrna_fold_compound_t *fc,
+                  unsigned int         min_size,
+                  unsigned int         max_size,
+                  double               cutoff);
+
 
 /**
  *  @brief  Compute stacking probabilities

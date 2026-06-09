@@ -235,6 +235,12 @@ vrna_exp_eval_internal(vrna_fold_compound_t *fc,
                        unsigned int         options);
 
 
+FLT_OR_DBL
+vrna_exp_eval_stack(vrna_fold_compound_t  *fc,
+                    unsigned int          i,
+                    unsigned int          j,
+                    unsigned int          options);
+
 /* End partition function interface */
 /**@}*/
 

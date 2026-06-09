@@ -107,12 +107,14 @@
 
 #define VRNA_EQM_PROBS_STORE_OUTSIDE  (unsigned int)(1 << 16)
 
+#define VRNA_EQM_PROBS_OUTSIDE_PF     (unsigned int)(1 << 17)
 
 #define VRNA_EQM_PROBS_MASK   (VRNA_EQM_PROBS_BPP | VRNA_EQM_PROBS_UP | VRNA_EQM_PROBS_HX)
 
 typedef struct {
   unsigned int  mode;
   unsigned int  up_length;
+  unsigned int  hx_length;
 } vrna_eqm_probs_opt_t;
 
 typedef void *vrna_eqm_probs_data_t;

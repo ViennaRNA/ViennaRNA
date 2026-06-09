@@ -92,6 +92,8 @@ struct helper_arrays {
   FLT_OR_DBL    *access_int;
   FLT_OR_DBL    *access_mb;
 
+  FLT_OR_DBL    *hxp;
+
   unsigned int  ud_max_size;
   FLT_OR_DBL    **pmlu;
   FLT_OR_DBL    *prm_MLbu;
@@ -137,6 +139,12 @@ PRIVATE void
 compute_accessibility(vrna_fold_compound_t  *fc,
                       unsigned int          l,
                       helper_arrays_t       dp_helpers);
+
+
+PRIVATE void
+compute_hx_prob(vrna_fold_compound_t  *fc,
+                unsigned int          l,
+                helper_arrays_t       dp_helpers);
 
 
 PRIVATE INLINE void
@@ -373,74 +381,6 @@ vrna_pairing_probs(vrna_fold_compound_t *vc,
 }
 
 
-PUBLIC vrna_ep_t *
-vrna_stack_prob(vrna_fold_compound_t  *vc,
-                double                cutoff)
-{
-  vrna_ep_t         *pl;
-  int               i, j, plsize, length, *index, *jindx, *rtype, num;
-  char              *ptype;
-  FLT_OR_DBL        *qb, *probs, *scale, p;
-  vrna_exp_param_t  *pf_params;
-  vrna_mx_pf_t      *matrices;
-
-  plsize  = 256;
-  pl      = NULL;
-  num     = 0;
-
-  if (vc) {
-    pf_params = vc->exp_params;
-    length    = vc->length;
-    index     = vc->iindx;
-    jindx     = vc->jindx;
-    rtype     = &(pf_params->model_details.rtype[0]);
-    ptype     = vc->ptype;
-    matrices  = vc->exp_matrices;
-    qb        = matrices->qb;
-    probs     = matrices->probs;
-    scale     = matrices->scale;
-
-    pl = (vrna_ep_t *)vrna_alloc(plsize * sizeof(vrna_ep_t));
-
-    for (i = 1; i < length; i++)
-      for (j = i + 3; j <= length; j++) {
-        if ((p = probs[index[i] - j]) < cutoff)
-          continue;
-
-        if (qb[index[i + 1] - (j - 1)] < FLT_MIN)
-          continue;
-
-        p *= qb[index[i + 1] - (j - 1)] /
-             qb[index[i] - j];
-        p *= vrna_exp_E_internal(0,
-                           0,
-                           vrna_get_ptype(jindx[j] + i, ptype),
-                           rtype[vrna_get_ptype(jindx[j - 1] + i + 1, ptype)],
-                           0,
-                           0,
-                           0,
-                           0,
-                           pf_params) *
-             scale[2];
-
-        if (p > cutoff) {
-          pl[num].i     = i;
-          pl[num].j     = j;
-          pl[num].type  = VRNA_PLIST_TYPE_STACK;
-          pl[num++].p   = p;
-          if (num >= plsize) {
-            plsize  *= 2;
-            pl      = vrna_realloc(pl, plsize * sizeof(vrna_ep_t));
-          }
-        }
-      }
-    pl[num].i = 0;
-  }
-
-  return pl;
-}
-
-
 PUBLIC void
 vrna_pf_dimer_probs(double                  FAB,
                     double                  FA,
@@ -549,6 +489,72 @@ compute_accessibility(vrna_fold_compound_t  *fc,
 }
 
 
+/*
+ *  Compute helix probabilities for all helices ending at l
+ *  This function assumes probs[kl] contains the outside probabilities for 
+ *  basepair (k,l)
+ *  Helix probabilities are returned by callback(fc, pr, l, k, s, VRNA_EQM_PROBS_HX, data)
+ *  for all helices of size s ending at l and starting at k, if any.
+ */
+PRIVATE void
+compute_hx_prob(vrna_fold_compound_t  *fc,
+                unsigned int          l,
+                helper_arrays_t       dp_helpers)
+{
+  vrna_eqm_probs_f       cb       = dp_helpers->cb;
+  vrna_eqm_probs_data_t  cb_data  = dp_helpers->cb_data;
+
+  unsigned int      k, n, s, start, end;
+  int               *my_iindx, kl;
+  FLT_OR_DBL        *qb, *probs, p, *hxp, qbt1;
+  vrna_mx_pf_t      *matrices;
+
+  n         = fc->length;
+  my_iindx  = fc->iindx;
+  matrices  = fc->exp_matrices;
+  qb        = matrices->qb;
+  probs     = matrices->probs;
+  hxp       = dp_helpers->hxp;
+
+  for (k = 1; k < l; k++) {
+    /* reset probabilities */
+    hxp = memset(hxp, 0, sizeof(FLT_OR_DBL) * (dp_helpers->options.hx_length + 1));
+
+    kl = my_iindx[k] - l;
+    s  = 1;
+
+    /* get initial probs, i.e. base pair probabilities */
+    p = probs[kl];
+
+    hxp[s++] = p *
+               qb[kl];
+
+    if (p > FLT_MIN) {
+      /* loop over all helix sizes */
+      for (s = 2; s <= dp_helpers->options.hx_length; s++) {
+        start = k + s - 2;
+        end   = l + 2 - s;
+
+        if (start + 2 >= end)
+          break;
+
+        qbt1 = qb[my_iindx[start + 1] - (end - 1)];
+
+        if (qbt1 < FLT_MIN)
+          break;
+
+        p *= vrna_exp_eval_stack(fc, start, end, VRNA_EVAL_LOOP_DEFAULT);
+
+        hxp[s] = qbt1 *
+                 p;
+      }
+    }
+
+    cb(fc, hxp, l, k, s - 1, VRNA_EQM_PROBS_HX, cb_data);
+  }
+}
+
+
 /* compute outside partition function and corresponding probabilities */
 PRIVATE int
 pf_create_bppm(vrna_fold_compound_t   *vc,
@@ -628,6 +634,9 @@ pf_create_bppm(vrna_fold_compound_t   *vc,
 
       if (options.mode & VRNA_EQM_PROBS_UP)
         compute_accessibility(vc, l, dp_helpers);
+
+      if (options.mode & VRNA_EQM_PROBS_HX)
+        compute_hx_prob(vc, l, dp_helpers);
     }
 
     if (vc->type == VRNA_FC_TYPE_SINGLE) {
@@ -867,6 +876,8 @@ get_dp_helper_arrays(vrna_fold_compound_t *fc,
   dp_helpers->access_int  = NULL;
   dp_helpers->access_mb   = NULL;
 
+  dp_helpers->hxp         = NULL;
+
   dp_helpers->cb = cb;
   dp_helpers->cb_data = cb_data;
   dp_helpers->options = options;
@@ -990,6 +1001,9 @@ get_dp_helper_arrays(vrna_fold_compound_t *fc,
     }
   }
 
+  if (options.mode & VRNA_EQM_PROBS_UP)
+    dp_helpers->hxp = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (options.hx_length + 1));
+
   if (fc->type == VRNA_FC_TYPE_SINGLE) {
     dp_helpers->compute_bpp_int = &compute_bpp_internal;
     dp_helpers->compute_bpp_mul = &compute_bpp_multibranch;
@@ -1051,6 +1065,8 @@ free_dp_helper_arrays(helper_arrays_t dp_helpers)
   free(dp_helpers->access_hp);
   free(dp_helpers->access_int);
   free(dp_helpers->access_mb);
+
+  free(dp_helpers->hxp);
 
   free(dp_helpers->prm_MLbu);
   free(dp_helpers);

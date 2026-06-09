@@ -726,7 +726,8 @@ EPS_print_bpp_data( FILE          *eps,
     for (pl1 = pl; pl1->i>0; pl1++) {
       tmp = sqrt(pl1->p);
       if ((pl1->type == VRNA_PLIST_TYPE_BASEPAIR) ||
-          (pl1->type == VRNA_PLIST_TYPE_TRIPLE))
+          (pl1->type == VRNA_PLIST_TYPE_TRIPLE) ||
+          (pl1->type == VRNA_PLIST_TYPE_STACK))
           fprintf(eps,
                   "%d %d %1.9f ubox\n",
                   (pl1->i < pl1->j) ? pl1->i : pl1->j,
@@ -740,7 +741,8 @@ EPS_print_bpp_data( FILE          *eps,
     for (pl1=mf; pl1->i>0; pl1++) {
       tmp = sqrt(pl1->p);
       if ((pl1->type == VRNA_PLIST_TYPE_BASEPAIR) ||
-          (pl1->type == VRNA_PLIST_TYPE_TRIPLE))
+          (pl1->type == VRNA_PLIST_TYPE_TRIPLE) ||
+          (pl1->type == VRNA_PLIST_TYPE_STACK))
         fprintf(eps,
                 "%d %d %1.7f lbox\n",
                 (pl1->i < pl1->j) ? pl1->i : pl1->j,

@@ -80,6 +80,12 @@ typedef struct vrna_elem_prob_s vrna_ep_t;
 
 
 /**
+ *  @brief  A Helix element
+ */
+#define VRNA_PLIST_TYPE_HELIX         8
+
+
+/**
  *  @brief  Data structure representing a single entry of an element probability list
  *          (e.g. list of pair probabilities)
  *
@@ -91,6 +97,7 @@ typedef struct vrna_elem_prob_s vrna_ep_t;
 struct vrna_elem_prob_s {
   int   i;    /**<  @brief  Start position (usually 5' nucleotide that starts the element, e.g. base pair) */
   int   j;    /**<  @brief  End position (usually 3' nucleotide that ends the element, e.g. base pair) */
+  unsigned int  size; /**< @brief   The size of the element (e.g. number of base pairs that constitute a helix) */
   float p;    /**<  @brief  Probability of the element */
   int   type; /**<  @brief  Type of the element */
 };
