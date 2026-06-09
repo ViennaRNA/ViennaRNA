@@ -1183,8 +1183,10 @@ compute_up_ext(vrna_fold_compound_t *fc,
 
   contrib_up = (fc->type == VRNA_FC_TYPE_SINGLE) ? &contrib_ext_up : &contrib_ext_up_comparative;
 
-  /* compute unpaired probabilities for stretches of size u ending at position l */
+  /* reset data */
+  acc_ext = memset(acc_ext, 0, sizeof(FLT_OR_DBL) * (max_u + 1));
 
+  /* compute unpaired probabilities for stretches of size u ending at position l */
   if (l < n) {
     for (u = 1; u <= max_u; u++) {
       i = l + 1 - u;
@@ -1721,6 +1723,9 @@ compute_up_hp(vrna_fold_compound_t *fc,
 
   sc_wrapper_hp = &(dp_helpers->sc_wrapper_hp);
 
+  /* reset data */
+  puh = memset(puh, 0, sizeof(FLT_OR_DBL) * (max_u + 1));
+
   if (l == n)
     return;
 
@@ -1826,6 +1831,8 @@ compute_up_int(vrna_fold_compound_t *fc,
   hc        = fc->hc;
   sc_wrapper_int  = &(dp_helpers->sc_wrapper_int);
 
+  /* reset data */
+  pui = memset(pui, 0, sizeof(FLT_OR_DBL) * (max_u + 1));
 
   if (l == n)
     return;
@@ -1991,6 +1998,9 @@ compute_up_mb(vrna_fold_compound_t *fc,
   my_iindx  = fc->iindx;
   hc        = fc->hc;
   sc_wrapper  = &(dp_helpers->sc_wrapper_mb);
+
+  /* reset data */
+  pum = memset(pum, 0, sizeof(FLT_OR_DBL) * (max_u + 1));
 
   if (l == n)
     return;
@@ -5472,7 +5482,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
 
             tmp2 += qbt1;
 
-            /* 4. store gquad outside pf */
+            /* 4. store gquad outside probs for all gquads spanning the n,1 junction */
 #ifndef VRNA_DISABLE_C11_FEATURES
             vrna_smx_csr_insert(matrices->p_gq, k, l, tmp2 * q_g / qo);
 
