@@ -621,6 +621,8 @@ pf_create_bppm(vrna_fold_compound_t   *vc,
 
     Qmax = 0;
 
+    /* Begin computing outside probabilities */
+
     /* init diagonal entries unable to pair in pr matrix */
     for (i = 1; i <= n; i++)
       probs[my_iindx[i] - i] = 0.;
@@ -4533,7 +4535,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
     matrices->p_gq = vrna_smx_csr_FLT_OR_DBL_init(n + 1);
   }
 
-  /* 1. exterior pair i,j */
+  /* reset all probabilities */
   for (i = 1; i <= n; i++) {
     for (j = i; j <= n; j++) {
       ij = my_iindx[i] - j;
@@ -4541,6 +4543,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
     }
   }
 
+  /* 1. exterior pair i,j */
   for (i = 1; i <= n; i++) {
     for (j = i + turn + 1; j <= n; j++) {
       ij = my_iindx[i] - j;
@@ -5072,6 +5075,9 @@ bppm_circ(vrna_fold_compound_t  *fc,
     } /* end for j */
   } /* end for i */
 
+  /* Done with outside probabilities for base pairs (i,j) */
+
+  /* Next follows outside probabilities for G-Quadruplexes delimited by [i : j] */
   if (with_gquad) {
     /* first, for all G-Quadruplexes not spanning the n,1 junction */
     for (i = 1; i + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= n; i++) {
@@ -5309,7 +5315,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
       }
     }
 
-    /* finally, probabilities for all Gquads spanning the n,1 junction */
+    /* finally, outside probabilities for all Gquads spanning the n,1 junction */
     kmin = 2;
     if (kmin + VRNA_GQUAD_MAX_BOX_SIZE - 1 <= (unsigned int)n)
       kmin = n - VRNA_GQUAD_MAX_BOX_SIZE + 1;
