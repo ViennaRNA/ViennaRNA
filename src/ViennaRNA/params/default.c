@@ -81,11 +81,11 @@ PUBLIC int MultipleCAdH=340;
 PUBLIC int MultipleCB37=160;
 PUBLIC int MultipleCBdH=760;
 
-PUBLIC int GQuadAlpha37 = -1800;
-PUBLIC int GQuadAlphadH = -11934;
-PUBLIC int GQuadBeta37 = 1200;
+PUBLIC int GQuadAlpha37 = -430;
+PUBLIC int GQuadAlphadH = -2852;
+PUBLIC int GQuadBeta37 = 287;
 PUBLIC int GQuadBetadH = 0;
-PUBLIC int GQuadLayerMismatch37   = 300;
+PUBLIC int GQuadLayerMismatch37   = 72;
 PUBLIC int GQuadLayerMismatchH    = 0;
 PUBLIC int GQuadLayerMismatchMax  = 1;
 
