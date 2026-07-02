@@ -37,6 +37,7 @@ SWIG_misc_src = \
   $(srcdir)/../neighbor.i \
   $(srcdir)/../params.i \
   $(srcdir)/../part_func.i \
+  $(srcdir)/../probabilities.i \
   $(srcdir)/../paths.i \
   $(srcdir)/../pf_window.i \
   $(srcdir)/../plotting.i \

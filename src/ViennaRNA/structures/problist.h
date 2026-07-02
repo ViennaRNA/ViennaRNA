@@ -68,7 +68,7 @@ typedef struct vrna_elem_prob_s vrna_ep_t;
 
 
 /**
- *  @brief  An unpaired base
+ *  @brief  An unpaired base or segment
  */
 #define VRNA_PLIST_TYPE_UNPAIRED      6
 

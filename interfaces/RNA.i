@@ -119,6 +119,7 @@ extern "C" {
 
 #include  <ViennaRNA/sampling/basic.h>
 
+#include  <ViennaRNA/probabilities/basic.h>
 #include  <ViennaRNA/probabilities/basepairs.h>
 #include  <ViennaRNA/probabilities/structures.h>
 
@@ -301,9 +302,12 @@ namespace std {
 %include mfe.i
 %include mfe_window.i
 %include backtrack.i
+
 %include part_func.i
+%include probabilities.i
 %include boltzmann_sampling.i
 %include pf_window.i
+
 %include subopt.i
 %include inverse.i
 %include compare.i

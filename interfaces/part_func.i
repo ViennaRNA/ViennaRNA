@@ -101,16 +101,11 @@ double my_pf_add(double dG1, double dG2, double kT = 0);
 
 %ignore pf_fold_par;
 %ignore update_pf_params_par;
-%ignore export_bppm;
 %ignore get_pf_arrays;
 %ignore get_subseq_F;
-%ignore mean_bp_distance_pr;
-%ignore stackProb;
 %ignore get_centroid_struct_gquad_pr;
-%ignore mean_bp_dist;
 %ignore expHairpinEnergy;
 %ignore expLoopEnergy;
-%ignore assign_plist_gquad_from_pr;
 
 /* tell swig that these functions return objects that require memory management */
 %newobject vrna_fold_compound_t::pf;
@@ -124,76 +119,9 @@ double my_pf_add(double dG1, double dG2, double kT = 0);
     *OUTPUT= vrna_pf($self, structure);
     return structure;
   }
-
-  double
-  mean_bp_distance()
-  {
-    return vrna_mean_bp_distance($self);
-  }
-
-  double
-  ensemble_defect(std::string structure,
-                  unsigned int options = VRNA_BRACKETS_RND)
-  {
-    double ed;
-    short int         *pt;
-
-    pt = vrna_ptable_from_string(structure.c_str(), options);
-
-    ed = vrna_ensemble_defect_pt($self, pt);
-
-    free(pt);
-
-    return ed;
-  }
-
-  double
-  ensemble_defect(std::vector<int> pair_table)
-  {
-    std::vector<short> pt_v_short;
-    transform(pair_table.begin(), pair_table.end(), back_inserter(pt_v_short), convert_vecint2vecshort);
-    return vrna_ensemble_defect_pt($self, (short*)&pt_v_short[0]);
-  }
-
-  double
-  ensemble_defect(var_array<short> const &pt)
-  {
-    return vrna_ensemble_defect_pt($self, pt.data);
-  }
-
-  std::vector<double>
-  positional_entropy(void)
-  {
-    unsigned int        n;
-    double              *pos_ent;
-    std::vector<double> dv;
-
-    n       = $self->length;
-    pos_ent = vrna_positional_entropy($self);
-
-    if (pos_ent)
-      dv.assign(pos_ent, pos_ent + (n + 1));
-
-    return dv;
-  }
-
-  double
-  pr_structure(std::string structure)
-  {
-    return vrna_pr_structure($self, structure.c_str());
-  }
-
-  double
-  pr_energy(double e)
-  {
-    return vrna_pr_energy($self, e);
-  }
 }
 
 %include  <ViennaRNA/partfunc/global.h>
-
-%include  <ViennaRNA/probabilities/basepairs.h>
-%include  <ViennaRNA/probabilities/structures.h>
 
 /**********************************************/
 /* BEGIN interface for cofold partition       */
@@ -291,73 +219,6 @@ char *my_co_pf_fold(char *string, char *constraints, float *OUTPUT, float *OUTPU
 %include  <ViennaRNA/partfunc/internal.h>
 %include  <ViennaRNA/partfunc/multibranch.h>
 %include  <ViennaRNA/partfunc/gquad.h>
-
-%extend vrna_fold_compound_t{
-
-  std::vector<std::vector<double> >
-  bpp(bool symmetric = false)
-  {
-    std::vector<std::vector<double> > probabilities;
-    vrna_fold_compound_t *vc = $self;
-    if(vc->exp_matrices && vc->exp_matrices->probs){
-      int turn, i, j, *idx, n;
-      FLT_OR_DBL *probs;
-
-      n     = vc->length;
-      idx   = vc->iindx;
-      probs = vc->exp_matrices->probs;
-
-      for(i = 0; i <= n; i++)
-        probabilities.push_back(std::vector<double>(n + 1, 0.));
-
-      for(i = 1; i <= n; i++) {
-        for(j = i + 1; j <= n; j++) {
-          probabilities[i][j] = (double)probs[idx[i] - j];
-          if (symmetric)
-            probabilities[j][i] = (double)probs[idx[i] - j];
-        }
-      }
-    }
-
-    return probabilities;
-  }
-
-
-  std::vector<vrna_ep_t>
-  stack_prob(double cutoff = 1e-5)
-  {
-    std::vector<vrna_ep_t > ep_v;
-    vrna_ep_t               *ptr, *plist;
-
-    plist = vrna_stack_prob($self, cutoff);
-
-    for (ptr = plist; ptr->i && ptr->j; ptr++) {
-      vrna_ep_t pl;
-      pl.i = ptr->i;
-      pl.j = ptr->j;
-      pl.p = ptr->p;
-      pl.type = ptr->type;
-      ep_v.push_back(pl);
-    }
-
-    free(plist);
-
-    return ep_v;
-  }
-}
-
-%{
-double
-get_pr(int i,
-       int j)
-{
-  int ii;
-  if (i>j) {ii=i; i=j; j=ii;}
-  return pr[iindx[i]-j];
-}
-%}
-double get_pr(int i, int j);
-/* Get probability of pair i.j from the pr array */
 
 
 /**********************************************/

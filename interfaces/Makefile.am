@@ -39,6 +39,7 @@ SOURCES = \
     neighbor.i \
     params.i \
     part_func.i \
+    probabilities.i \
     pf_window.i \
     plotting.i \
     sequence.i \
@@ -116,6 +117,7 @@ EXTRA_DIST = \
     neighbor.i \
     params.i \
     part_func.i \
+    probabilities.i \
     paths.i \
     pf_window.i \
     plotting.i \
