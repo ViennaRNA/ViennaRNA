@@ -108,6 +108,9 @@ struct options {
   double          benchmark_fp;
   double          benchmark_tn;
   double          benchmark_fn;
+  double          benchmark_compatible;
+  int             benchmark_fuzzy;
+  int             benchmark_relaxed;
 
   int             jobs;
   int             keep_order;
@@ -292,6 +295,9 @@ init_default_options(struct options *opt)
   opt->benchmark_fp       = 0.;
   opt->benchmark_tn       = 0.;
   opt->benchmark_fn       = 0.;
+  opt->benchmark_compatible = 0.;
+  opt->benchmark_fuzzy   = 0;
+  opt->benchmark_relaxed  = 0;
 
   opt->jobs               = 1;
   opt->keep_order         = 1;
@@ -579,8 +585,14 @@ main(int  argc,
     if (args_info.bm_rm_pk_given)
       opt.benchmark |= 1 << 2;
 
+    if (args_info.benchmark_fuzzy_given)
+      opt.benchmark_fuzzy = args_info.benchmark_fuzzy_arg;
+
+    if (args_info.benchmark_relaxed_given)
+      opt.benchmark_relaxed = 1;
+
     fprintf(opt.benchmark_file,
-            "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+            "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
             "ID",
             "TP",
             "FP",
@@ -590,6 +602,15 @@ main(int  argc,
             "PPV",
             "MCC",
             "F1");
+
+    if (opt.benchmark_relaxed)
+      fprintf(opt.benchmark_file,
+              "\t%s\t%s\t%s",
+              "PPV_relaxed",
+              "MCC_relaxed",
+              "F1_relaxed");
+
+    fprintf(opt.benchmark_file, "\n");
 
     fflush(opt.benchmark_file);
 
@@ -762,11 +783,12 @@ main(int  argc,
     vrna_score_t scores = vrna_score_from_confusion_matrix(opt.benchmark_tp,
                                                            opt.benchmark_tn,
                                                            opt.benchmark_fp,
-                                                           opt.benchmark_fn);
+                                                           opt.benchmark_fn,
+                                                           opt.benchmark_compatible);
 
     THREADSAFE_FILE_OUTPUT(({
       fprintf(opt.benchmark_file,
-              "%s\t%.1f\t%.1f\t%.1f\t%.1f\t%f\t%f\t%f\t%f\n",
+              "%s\t%.1f\t%.1f\t%.1f\t%.1f\t%f\t%f\t%f\t%f",
               "TOTAL",
               scores.TP,
               scores.FP,
@@ -776,6 +798,15 @@ main(int  argc,
               scores.PPV,
               scores.MCC,
               scores.F1);
+
+      if (opt.benchmark_relaxed)
+        fprintf(opt.benchmark_file,
+                "\t%f\t%f\t%f",
+                scores.PPV_relaxed,
+                scores.MCC_relaxed,
+                scores.F1_relaxed);
+
+      fprintf(opt.benchmark_file, "\n");
     }))
 
     fflush(opt.benchmark_file);
@@ -1189,13 +1220,14 @@ process_record(struct record_data *record)
     }
 #endif
 
-    vrna_score_t scores = vrna_compare_structure_pt(pt_gold, pt, 0);
+    vrna_score_t scores = vrna_compare_structure_pt(pt_gold, pt, opt->benchmark_fuzzy);
 
     ATOMIC_BLOCK({
       opt->benchmark_tp += scores.TP;
       opt->benchmark_fp += scores.FP;
       opt->benchmark_tn += scores.TN;
       opt->benchmark_fn += scores.FN;
+      opt->benchmark_compatible += scores.compatible;
     })
 
     if (opt->benchmark_file != stdout) {
@@ -1216,7 +1248,7 @@ process_record(struct record_data *record)
 
     THREADSAFE_FILE_OUTPUT(({
       fprintf(opt->benchmark_file,
-              "%s\t%.1f\t%.1f\t%.1f\t%.1f\t%f\t%f\t%f\t%f\n",
+              "%s\t%.1f\t%.1f\t%.1f\t%.1f\t%f\t%f\t%f\t%f",
               record->MSA_ID,
               scores.TP,
               scores.FP,
@@ -1226,6 +1258,15 @@ process_record(struct record_data *record)
               scores.PPV,
               scores.MCC,
               scores.F1);
+
+      if (opt->benchmark_relaxed)
+        fprintf(opt->benchmark_file,
+                "\t%f\t%f\t%f",
+                scores.PPV_relaxed,
+                scores.MCC_relaxed,
+                scores.F1_relaxed);
+
+      fprintf(opt->benchmark_file, "\n");
     }))
 
     fflush(opt->benchmark_file);

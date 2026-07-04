@@ -42,23 +42,31 @@ struct vrna_score_s {
   double  NPV;            /**< @brief Negative Predictive Value */
   double  F1;             /**< @brief F1 Score */
   double  MCC;            /**< @brief Matthews Correlation Coefficient */
+
+  double  compatible;     /**< @brief Count of false positive base pairs that do not structurally contradict the reference (non-crossing) */
+  double  PPV_relaxed;    /**< @brief Positive Predictive Value with #compatible false positives excluded */
+  double  FDR_relaxed;    /**< @brief False Discovery Rate derived from #PPV_relaxed */
+  double  F1_relaxed;     /**< @brief F1 Score derived from #PPV_relaxed */
+  double  MCC_relaxed;    /**< @brief Matthews Correlation Coefficient derived from #PPV_relaxed */
 };
 
 
 /**
  *  @brief Construct score data structure from given confusion matrix
  *
- *  @param TP     True positive count
- *  @param TN     True negative count
- *  @param FP     False positive count
- *  @param FN     False negative count
+ *  @param TP          True positive count
+ *  @param TN          True negative count
+ *  @param FP          False positive count
+ *  @param FN          False negative count
+ *  @param compatible  Count of false positive base pairs that do not structurally contradict the reference. Used to compute #vrna_score_s.PPV_relaxed and its derived metrics.
  *  @return  The score data structure to write
  */
 vrna_score_t
 vrna_score_from_confusion_matrix(double TP,
                                  double TN,
                                  double FP,
-                                 double FN);
+                                 double FN,
+                                 double compatible);
 
 
 /**

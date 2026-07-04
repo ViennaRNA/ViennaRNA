@@ -715,7 +715,8 @@ main(int  argc,
     vrna_score_t scores = vrna_score_from_confusion_matrix(opt.benchmark_tp,
                                                            opt.benchmark_tn,
                                                            opt.benchmark_fp,
-                                                           opt.benchmark_fn);
+                                                           opt.benchmark_fn,
+                                                           0.);
 
     THREADSAFE_FILE_OUTPUT(({
       fprintf(opt.benchmark_file,

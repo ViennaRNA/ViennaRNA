@@ -11,7 +11,8 @@ PUBLIC vrna_score_t
 vrna_score_from_confusion_matrix(double TP,
                                  double TN,
                                  double FP,
-                                 double FN)
+                                 double FN,
+                                 double compatible)
 {
   vrna_score_t score;
 
@@ -19,6 +20,7 @@ vrna_score_from_confusion_matrix(double TP,
   score.TN  = TN > 0. ? TN : 0.;
   score.FP  = FP > 0. ? FP : 0.;
   score.FN  = FN > 0. ? FN : 0.;
+  score.compatible = compatible > 0. ? compatible : 0.;
 
   score.TPR = (TP + FN) > 0 ? TP / (TP + FN) : 0.;
   score.PPV = (TP + FP) > 0 ? TP / (TP + FP) : 0.;
@@ -35,6 +37,17 @@ vrna_score_from_confusion_matrix(double TP,
   score.MCC = sqrt(score.PPV * score.TPR * score.TNR * score.NPV) -
               sqrt(score.FDR * score.FNR * score.FPR * score.FOR);
 
+  /* relaxed precision: false positives that don't contradict the reference are excluded */
+  double denom_relaxed = (TP + FP - score.compatible);
+
+  score.PPV_relaxed = denom_relaxed > 0 ? TP / denom_relaxed : 0.;
+  score.FDR_relaxed = 1. - score.PPV_relaxed;
+  score.F1_relaxed  = (score.TPR + score.PPV_relaxed) > 0 ?
+                      2. * score.TPR * score.PPV_relaxed / (score.TPR + score.PPV_relaxed) :
+                      0.;
+  score.MCC_relaxed = sqrt(score.PPV_relaxed * score.TPR * score.TNR * score.NPV) -
+                      sqrt(score.FDR_relaxed * score.FNR * score.FPR * score.FOR);
+
   return score;
 }
 
@@ -50,9 +63,6 @@ vrna_compare_structure_pt(const short *pt_gold,
   int           compatible = 0;
   /* count the number of base pairs in pt_gold, and pt_other */
   unsigned int  bps_gold = 0, bps_other = 0;
-
-  /* Hard coded fuzzy as 0 */
-  fuzzy = 0;
 
   for (int i = 1; i <= pt_gold[0]; i++)
     if (pt_gold[i] > i)
@@ -140,7 +150,7 @@ vrna_compare_structure_pt(const short *pt_gold,
   FN  = (double)bps_gold;
   TN  = (0.5 * ((double)pt_gold[0] * ((double)pt_gold[0] - 1))) - TP - FP - FN;
 
-  return vrna_score_from_confusion_matrix(TP, TN, FP, FN);
+  return vrna_score_from_confusion_matrix(TP, TN, FP, FN, (double)compatible);
 }
 
 

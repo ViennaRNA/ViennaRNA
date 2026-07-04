@@ -245,6 +245,22 @@ off
 hidden
 
 
+option  "benchmark-fuzzy" -
+"Allow base pair slippage of up to this many nucleotides when comparing the predicted structure to the reference during benchmarking (see --benchmark). A predicted base pair (p,q) is counted as a true positive if it lies within +/- this many nucleotides of a reference base pair (i,j).\n\n"
+int
+typestr="INT"
+default="0"
+optional
+hidden
+
+
+option  "benchmark-relaxed" -
+"Additionally report a relaxed precision (PPV_relaxed) during benchmarking (see --benchmark), together with its derived F1_relaxed and MCC_relaxed scores. Predicted base pairs that are absent from the reference but do not structurally contradict it (i.e. do not cross any reference base pair) are excluded from the false positive count for these relaxed metrics.\n\n"
+flag
+off
+hidden
+
+
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\n\n"
 
