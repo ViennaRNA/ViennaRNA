@@ -136,19 +136,23 @@ vrna_compare_structure_pt(const short *pt_gold,
      * let's check if base-pair i, j is inconsistent with reference structure
      * base i or base j in reference is paired to something else
      */
-    if (is_true_positive == 0)
+    if ((is_true_positive == 0) &&
+        ((pt_gold[i] != 0) || (pt_gold[j] != 0)))
       is_inconsistent = 1;
 
     /*
      * let's check if a base-pair is contradicting
-     * there is a pair k * l in ther reference that k < i < l < j
+     * there is a pair k * l in the reference that either
+     * k < i < l < j (reference pair opens first), or
+     * i < k < j < l (predicted pair opens first)
      */
     for (int k = 1; k <= pt_gold[0]; k++) {
       if (pt_gold[k] < k)
         continue;
 
       int l = pt_gold[k];
-      if ((k < i) && (i < l) && (l < j)) {
+      if (((k < i) && (i < l) && (l < j)) ||
+          ((i < k) && (k < j) && (j < l))) {
         is_contradicting = 1;
         break;
       }

@@ -43,7 +43,7 @@ struct vrna_score_s {
   double  F1;             /**< @brief F1 Score */
   double  MCC;            /**< @brief Matthews Correlation Coefficient */
 
-  double  compatible;     /**< @brief Count of false positive base pairs that do not structurally contradict the reference (non-crossing) */
+  double  compatible;     /**< @brief Count of false positive base pairs that do not structurally contradict the reference: neither endpoint is already paired to a different partner in the reference, and the pair does not cross any reference pair (in either opening order) */
   double  PPV_relaxed;    /**< @brief Positive Predictive Value with #compatible false positives excluded */
   double  FDR_relaxed;    /**< @brief False Discovery Rate derived from #PPV_relaxed */
   double  F1_relaxed;     /**< @brief F1 Score derived from #PPV_relaxed */
