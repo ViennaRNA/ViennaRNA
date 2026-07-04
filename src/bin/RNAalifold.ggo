@@ -246,7 +246,7 @@ hidden
 
 
 option  "benchmark-fuzzy" -
-"Allow base pair slippage of up to this many nucleotides when comparing the predicted structure to the reference during benchmarking (see --benchmark). A predicted base pair (p,q) is counted as a true positive if it lies within +/- this many nucleotides of a reference base pair (i,j).\n\n"
+"Allow base pair slippage of up to this many nucleotides when comparing the predicted structure to the reference during benchmarking (see --benchmark). A predicted base pair (p,q) is counted as a true positive if it lies within +/- this many nucleotides of a reference base pair (i,j). Each reference base pair can only be matched by one predicted base pair; once claimed it can't be counted again by another predicted pair.\n\n"
 int
 typestr="INT"
 default="0"

@@ -64,6 +64,15 @@ vrna_compare_structure_pt(const short *pt_gold,
   /* count the number of base pairs in pt_gold, and pt_other */
   unsigned int  bps_gold = 0, bps_other = 0;
 
+  /*
+   * Marks gold standard positions whose base pair has already been claimed
+   * as a true positive by some predicted pair. A gold pair may be matched
+   * (within fuzzy slippage) by at most one predicted pair, so it can't be
+   * double-counted as a true positive by two different predicted pairs that
+   * are both shifted towards the same reference contact.
+   */
+  char          *gold_used = (char *)vrna_alloc(sizeof(char) * (pt_gold[0] + 1));
+
   for (int i = 1; i <= pt_gold[0]; i++)
     if (pt_gold[i] > i)
       bps_gold++;
@@ -85,14 +94,18 @@ vrna_compare_structure_pt(const short *pt_gold,
      * let's see if position i matches in gold position j +/- fuzzy
      */
     for (int add = 0; add <= fuzzy; add++) {
-      if ((pt_gold[i] == j + add) && (j + add <= pt_other[0])) {
-        is_true_positive = 1;
+      if ((pt_gold[i] == j + add) && (j + add <= pt_other[0]) && (!gold_used[i])) {
+        is_true_positive  = 1;
+        gold_used[i]      = 1;
+        gold_used[pt_gold[i]] = 1;
         bps_gold--;
         break;
       }
 
-      if ((pt_gold[i] == j - add) && (j - add >= 1)) {
-        is_true_positive = 1;
+      if ((pt_gold[i] == j - add) && (j - add >= 1) && (!gold_used[i])) {
+        is_true_positive  = 1;
+        gold_used[i]      = 1;
+        gold_used[pt_gold[i]] = 1;
         bps_gold--;
         break;
       }
@@ -100,14 +113,18 @@ vrna_compare_structure_pt(const short *pt_gold,
     /* let's see if position j matches in gold position i +/- fuzzy */
     if (is_true_positive == 0) {
       for (int add = 0; add <= fuzzy; add++) {
-        if ((pt_gold[j] == i + add) && (i + add <= pt_other[0])) {
-          is_true_positive = 1;
+        if ((pt_gold[j] == i + add) && (i + add <= pt_other[0]) && (!gold_used[j])) {
+          is_true_positive  = 1;
+          gold_used[j]      = 1;
+          gold_used[pt_gold[j]] = 1;
           bps_gold--;
           break;
         }
 
-        if ((pt_gold[j] == i - add) && (i - add >= 1)) {
-          is_true_positive = 1;
+        if ((pt_gold[j] == i - add) && (i - add >= 1) && (!gold_used[j])) {
+          is_true_positive  = 1;
+          gold_used[j]      = 1;
+          gold_used[pt_gold[j]] = 1;
           bps_gold--;
           break;
         }
@@ -149,6 +166,8 @@ vrna_compare_structure_pt(const short *pt_gold,
 
   FN  = (double)bps_gold;
   TN  = (0.5 * ((double)pt_gold[0] * ((double)pt_gold[0] - 1))) - TP - FP - FN;
+
+  free(gold_used);
 
   return vrna_score_from_confusion_matrix(TP, TN, FP, FN, (double)compatible);
 }

@@ -76,7 +76,7 @@ vrna_score_from_confusion_matrix(double TP,
  *
  *  @param pt_gold   Gold standard structure in pair table
  *  @param pt_other  Structure to compare in pair table
- *  @param fuzzy     Allows for base pair slippage. Hence, for any base pair (i,j) in the gold standard, a base pair (p, q) in the second structure is considered a true positive, if i - fuzzy <= p <= i + fuzzy, and j - fuzzy <= q <= j + fuzzy.
+ *  @param fuzzy     Allows for base pair slippage. Hence, for any base pair (i,j) in the gold standard, a base pair (p, q) in the second structure is considered a true positive, if i - fuzzy <= p <= i + fuzzy, and j - fuzzy <= q <= j + fuzzy. Each gold standard base pair may be claimed as a true positive by at most one predicted base pair: once matched (within the fuzzy window) it is consumed and can't be matched again by another predicted pair. Matching is greedy in the order predicted pairs are encountered, not a globally optimal assignment, but for typical slippage values (fuzzy of a few nucleotides) this does not affect the result.
  *  @return          The #vrna_score_s data structure
  */
 vrna_score_t
@@ -90,7 +90,7 @@ vrna_compare_structure_pt(const short *pt_gold,
  *
  *  @param pt_gold   Gold standard structure
  *  @param pt_other  Structure to compare
- *  @param fuzzy     Allows for base pair slippage. Hence, for any base pair (i,j) in the gold standard, a base pair (p, q) in the second structure is considered a true positive, if i - fuzzy <= p <= i + fuzzy, and j - fuzzy <= q <= j + fuzzy.
+ *  @param fuzzy     Allows for base pair slippage. Hence, for any base pair (i,j) in the gold standard, a base pair (p, q) in the second structure is considered a true positive, if i - fuzzy <= p <= i + fuzzy, and j - fuzzy <= q <= j + fuzzy. Each gold standard base pair may be claimed as a true positive by at most one predicted base pair: once matched (within the fuzzy window) it is consumed and can't be matched again by another predicted pair. Matching is greedy in the order predicted pairs are encountered, not a globally optimal assignment, but for typical slippage values (fuzzy of a few nucleotides) this does not affect the result.
  *  @param  options  A bitmask to specify which brackets are recognized during conversion to pair table
  *  @return          The #vrna_score_s data structure
  */
