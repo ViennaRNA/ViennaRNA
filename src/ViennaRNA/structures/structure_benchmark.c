@@ -38,9 +38,9 @@ vrna_score_from_confusion_matrix(double TP,
               sqrt(score.FDR * score.FNR * score.FPR * score.FOR);
 
   /* relaxed precision: false positives that don't contradict the reference are excluded */
-  double denom_relaxed = (TP + FP - score.compatible);
+  double denominator_relaxed = (TP + FP - score.compatible);
 
-  score.PPV_relaxed = denom_relaxed > 0 ? TP / denom_relaxed : 0.;
+  score.PPV_relaxed = denominator_relaxed > 0 ? TP / denominator_relaxed : 0.;
   score.FDR_relaxed = 1. - score.PPV_relaxed;
   score.F1_relaxed  = (score.TPR + score.PPV_relaxed) > 0 ?
                       2. * score.TPR * score.PPV_relaxed / (score.TPR + score.PPV_relaxed) :
