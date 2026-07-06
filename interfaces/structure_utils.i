@@ -850,7 +850,11 @@ typedef struct {
   double MCC;
   double compatible;
   double PPV_relaxed;
+  double FPR_relaxed;
+  double FOR_relaxed;
+  double TNR_relaxed;
   double FDR_relaxed;
+  double NPV_relaxed;
   double F1_relaxed;
   double MCC_relaxed;
 } vrna_score_t;
@@ -892,7 +896,11 @@ typedef struct {
       out << ", MCC: " << $self->MCC;
       out << ", compatible: " << $self->compatible;
       out << ", PPV_relaxed: " << $self->PPV_relaxed;
+      out << ", FPR_relaxed: " << $self->FPR_relaxed;
+      out << ", FOR_relaxed: " << $self->FOR_relaxed;
+      out << ", TNR_relaxed: " << $self->TNR_relaxed;
       out << ", FDR_relaxed: " << $self->FDR_relaxed;
+      out << ", NPV_relaxed: " << $self->NPV_relaxed;
       out << ", F1_relaxed: " << $self->F1_relaxed;
       out << ", MCC_relaxed: " << $self->MCC_relaxed;
       out << " }";

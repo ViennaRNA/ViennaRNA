@@ -605,7 +605,9 @@ main(int  argc,
 
     if (opt.benchmark_relaxed)
       fprintf(opt.benchmark_file,
-              "\t%s\t%s\t%s",
+              "\t%s\t%s\t%s\t%s\t%s",
+              "FP_relaxed",
+              "TN_relaxed",
               "PPV_relaxed",
               "MCC_relaxed",
               "F1_relaxed");
@@ -801,7 +803,9 @@ main(int  argc,
 
       if (opt.benchmark_relaxed)
         fprintf(opt.benchmark_file,
-                "\t%f\t%f\t%f",
+                "\t%.1f\t%.1f\t%f\t%f\t%f",
+                scores.FP - scores.compatible,
+                scores.TN + scores.compatible,
                 scores.PPV_relaxed,
                 scores.MCC_relaxed,
                 scores.F1_relaxed);
@@ -1261,7 +1265,9 @@ process_record(struct record_data *record)
 
       if (opt->benchmark_relaxed)
         fprintf(opt->benchmark_file,
-                "\t%f\t%f\t%f",
+                "\t%.1f\t%.1f\t%f\t%f\t%f",
+                scores.FP - scores.compatible,
+                scores.TN + scores.compatible,
                 scores.PPV_relaxed,
                 scores.MCC_relaxed,
                 scores.F1_relaxed);

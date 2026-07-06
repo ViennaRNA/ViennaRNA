@@ -45,9 +45,13 @@ struct vrna_score_s {
 
   double  compatible;     /**< @brief Count of false positive base pairs that do not structurally contradict the reference: neither endpoint is already paired to a different partner in the reference, and the pair does not cross any reference pair (in either opening order) */
   double  PPV_relaxed;    /**< @brief Positive Predictive Value with #compatible false positives excluded */
+  double  FPR_relaxed;    /**< @brief False Positive Rate with #compatible false positives reclassified as true negatives */
+  double  FOR_relaxed;    /**< @brief False Omission Rate derived from #NPV_relaxed */
+  double  TNR_relaxed;    /**< @brief True Negative Rate with #compatible false positives reclassified as true negatives */
   double  FDR_relaxed;    /**< @brief False Discovery Rate derived from #PPV_relaxed */
+  double  NPV_relaxed;    /**< @brief Negative Predictive Value with #compatible false positives reclassified as true negatives */
   double  F1_relaxed;     /**< @brief F1 Score derived from #PPV_relaxed */
-  double  MCC_relaxed;    /**< @brief Matthews Correlation Coefficient derived from #PPV_relaxed */
+  double  MCC_relaxed;    /**< @brief Matthews Correlation Coefficient derived from #PPV_relaxed, #FPR_relaxed, #TNR_relaxed and #NPV_relaxed */
 };
 
 

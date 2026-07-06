@@ -255,7 +255,7 @@ hidden
 
 
 option  "benchmark-relaxed" -
-"Additionally report a relaxed precision (PPV_relaxed) during benchmarking (see --benchmark), together with its derived F1_relaxed and MCC_relaxed scores. Predicted base pairs that are absent from the reference but do not structurally contradict it (i.e. do not cross any reference base pair) are excluded from the false positive count for these relaxed metrics.\n\n"
+"Additionally report a relaxed precision (PPV_relaxed) during benchmarking (see --benchmark), together with its derived F1_relaxed and MCC_relaxed scores, and the underlying relaxed false positive (FP_relaxed) and true negative (TN_relaxed) counts. Predicted base pairs that are absent from the reference but do not structurally contradict it (i.e. do not cross any reference base pair) are excluded from the false positive count and reclassified as true negatives for these relaxed metrics.\n\n"
 flag
 off
 hidden
