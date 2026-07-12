@@ -951,12 +951,9 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
 
             /*
              * take mismatch energies from multiloops as they do not contain anything
-             * but mismatch contributions. Also note, that multiloop mismatches are
-             * stored such that unpaired bases are outside of pair, in contrast to
-             * considering the unpaired bases enclosed. Thus, the pair and 5' and 3'
-             * unpaired bases must be rotatated
+             * but mismatch contributions.
              */
-            diffs->mismatch_diff[i][si][sj] = e - P->mismatchM[pair_enc][sju][siu];
+            diffs->mismatch_diff[i][si][sj] = e - P->mismatchM[pair_enc][siu][sju];
 
             vrna_log_debug("d_mm(%c%c, %c, %c) = %d = %d - %d",
                    bp[0],
@@ -965,7 +962,7 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
                    nt[sj],
                    diffs->mismatch_diff[i][si][sj],
                    e,
-                   P->mismatchM[pair_enc][sju][siu]);
+                   P->mismatchM[pair_enc][siu][sju]);
           }
         }
       }
@@ -1044,11 +1041,6 @@ init_dangles(struct vrna_sc_mod_param_s *params,
           else
             e = (*dG5)[i][si];
 
-          /*
-           * Note, that dangling ends arestored such that unpaired bases are
-           * outside of pair, in contrast to considering the unpaired bases
-           * enclosed. Thus, the pair must be rotatated
-           */
           diffs->dangle5_diff[i][si] = e - P->dangle5[pair_enc][siu];
 
           vrna_log_debug("d_d5(%c%c, %c) = %d = %d - %d",
@@ -1066,11 +1058,6 @@ init_dangles(struct vrna_sc_mod_param_s *params,
           else
             e = (*dG3)[i][si];
 
-          /*
-           * Note, that dangling ends arestored such that unpaired bases are
-           * outside of pair, in contrast to considering the unpaired bases
-           * enclosed. Thus, the pair must be rotatated
-           */
           diffs->dangle3_diff[i][si] = e - P->dangle3[pair_enc][siu];
 
           vrna_log_debug("d_d3(%c%c, %c) = %d = %d - %d",
@@ -1165,13 +1152,13 @@ mismatch(vrna_fold_compound_t *fc,
   else
     tt += NBPAIRS;
 
-  if (j > 1) {
-    if (i < fc->length)
-      return data->mismatch_diff[tt][enc[i + 1]][enc[j - 1]];
+  if (i > 1) {
+    if (j < fc->length)
+      return data->mismatch_diff[tt][enc[i - 1]][enc[j + 1]];
     else
-      return data->dangle5_diff[tt][enc[j - 1]];
-  } else if (i < fc->length) {
-    return data->dangle3_diff[tt][enc[i + 1]];
+      return data->dangle5_diff[tt][enc[i - 1]];
+  } else if (j < fc->length) {
+    return data->dangle3_diff[tt][enc[j + 1]];
   }
 
   return 0;
@@ -1214,7 +1201,7 @@ sc_PAIR_HP_mismatch(vrna_fold_compound_t  *fc,
                     void                  *d)
 {
   return mismatch(fc,
-                  i, j,
+                  j, i,
                   (energy_corrections *)d);
 }
 
@@ -1289,8 +1276,8 @@ sc_PAIR_IL_mismatch(vrna_fold_compound_t  *fc,
 {
   if (((k - i) > 1) &&
       ((j - l) > 1))
-    return mismatch(fc, i, j, (energy_corrections *)d) +
-           mismatch(fc, l, k, (energy_corrections *)d);
+    return mismatch(fc, j, i, (energy_corrections *)d) +
+           mismatch(fc, k, l, (energy_corrections *)d);
 
   return 0;
 }
@@ -1371,7 +1358,7 @@ sc_PAIR_ML_mismatch(vrna_fold_compound_t  *fc,
                     void                  *d)
 {
   return mismatch(fc,
-                  i, j,
+                  j, i,
                   (energy_corrections *)d);
 }
 
@@ -1397,7 +1384,7 @@ sc_STEM_terminal(vrna_fold_compound_t *fc VRNA_UNUSED,
                  int                  l,
                  void                 *d)
 {
-  return terminal(l, k,
+  return terminal(k, l,
                   (energy_corrections *)d);
 }
 
@@ -1411,7 +1398,7 @@ sc_STEM_mismatch(vrna_fold_compound_t *fc,
                  void                 *d)
 {
   return mismatch(fc,
-                  l, k,
+                  k, l,
                   (energy_corrections *)d);
 }
 
@@ -1437,7 +1424,7 @@ sc_EXT_STEM_EXT_terminal(vrna_fold_compound_t *fc VRNA_UNUSED,
                          int                  l VRNA_UNUSED,
                          void                 *d)
 {
-  return terminal(k, i,
+  return terminal(i, k,
                   (energy_corrections *)d);
 }
 
@@ -1451,7 +1438,7 @@ sc_EXT_STEM_EXT_mismatch(vrna_fold_compound_t *fc,
                          void                 *d)
 {
   return mismatch(fc,
-                  k, i,
+                  i, k,
                   (energy_corrections *)d);
 }
 
@@ -1477,7 +1464,7 @@ sc_EXT_EXT_STEM_terminal(vrna_fold_compound_t *fc VRNA_UNUSED,
                          int                  l,
                          void                 *d)
 {
-  return terminal(j, l,
+  return terminal(l, j,
                   (energy_corrections *)d);
 }
 
@@ -1491,7 +1478,7 @@ sc_EXT_EXT_STEM_mismatch(vrna_fold_compound_t *fc,
                          void                 *d)
 {
   return mismatch(fc,
-                  j, l,
+                  l, j,
                   (energy_corrections *)d);
 }
 
@@ -1517,7 +1504,7 @@ sc_EXT_STEM_OUTSIDE_terminal(vrna_fold_compound_t *fc VRNA_UNUSED,
                              int                  l,
                              void                 *d)
 {
-  return terminal(l, k,
+  return terminal(k, l,
                   (energy_corrections *)d);
 }
 
@@ -1531,7 +1518,7 @@ sc_EXT_STEM_OUTSIDE_mismatch(vrna_fold_compound_t *fc,
                              void                 *d)
 {
   return mismatch(fc,
-                  l, k,
+                  k, l,
                   (energy_corrections *)d);
 }
 
@@ -1557,7 +1544,7 @@ sc_ML_ML_STEM_terminal(vrna_fold_compound_t *fc VRNA_UNUSED,
                        int                  l,
                        void                 *d)
 {
-  return terminal(j, l,
+  return terminal(l, j,
                   (energy_corrections *)d);
 }
 
@@ -1571,7 +1558,7 @@ sc_ML_ML_STEM_mismatch(vrna_fold_compound_t *fc,
                        void                 *d)
 {
   return mismatch(fc,
-                  j, l,
+                  l, j,
                   (energy_corrections *)d);
 }
 

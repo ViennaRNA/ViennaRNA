@@ -382,14 +382,19 @@ parse_mismatch(JsonNode   *dom,
             enc[i]--;
         }
 
+        /*
+         *  Data is parsed as dangles 'inside' of base pair, but stored as outside,
+         *  to conform to how ViennaRNA treats dangles and mismatches internally.
+         *  So, we need to turn the base pair around for storage
+         */
         if (i == 4) {
           num_params++;
 
           if ((enc[0] == 5) || (enc[2] == 5))
             (*storage)[NBPAIRS +
-                       (*ptypes)[enc[0]][enc[2]]][enc[1]][enc[3]] = (int)(entry->number_ * 100.);
+                       (*ptypes)[enc[2]][enc[0]]][enc[3]][enc[1]] = (int)(entry->number_ * 100.);
           else if ((enc[1] == 5) || (enc[3] == 5))
-            (*storage)[md->pair[enc[0]][enc[2]]][enc[1]][enc[3]] = (int)(entry->number_ * 100.);
+            (*storage)[md->pair[enc[2]][enc[0]]][enc[3]][enc[1]] = (int)(entry->number_ * 100.);
           else
             num_params--;
         }
@@ -445,12 +450,17 @@ parse_dangles(JsonNode    *dom,
             enc[i]--;
         }
 
+        /*
+         *  Data is parsed as dangles 'inside' of base pair, but stored as outside,
+         *  to conform to how ViennaRNA treats dangles and mismatches internally.
+         *  So, we need to turn the base pair around for storage
+         */
         if (i == 3) {
           num_params++;
           if ((enc[0] == 5) || (enc[1] == 5))
-            (*storage)[NBPAIRS + (*ptypes)[enc[0]][enc[1]]][enc[2]] = (int)(entry->number_ * 100.);
+            (*storage)[NBPAIRS + (*ptypes)[enc[1]][enc[0]]][enc[2]] = (int)(entry->number_ * 100.);
           else if (enc[2] == 5)
-            (*storage)[md->pair[enc[0]][enc[1]]][enc[2]] = (int)(entry->number_ * 100.);
+            (*storage)[md->pair[enc[1]][enc[0]]][enc[2]] = (int)(entry->number_ * 100.);
           else
             num_params--;
         }
