@@ -360,6 +360,7 @@ vrna_combinatorics_HEADERS = \
 
 vrna_inverse_HEADERS = \
     inverse/basic.h
+    inverse/linearbpseeds.h
 
 
 vrna_grammar_HEADERS = \
