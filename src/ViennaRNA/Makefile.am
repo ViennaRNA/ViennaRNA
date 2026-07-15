@@ -688,6 +688,7 @@ libRNA_params_la_SOURCES = \
 
 libRNA_inverse_la_SOURCES = \
     inverse/inverse.c
+    inverse/linearbpseeds.cpp
 
 
 libRNA_combinatorics_la_SOURCES = \
