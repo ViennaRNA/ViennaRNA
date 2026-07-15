@@ -359,7 +359,7 @@ vrna_combinatorics_HEADERS = \
 
 
 vrna_inverse_HEADERS = \
-    inverse/basic.h
+    inverse/basic.h \
     inverse/linearbpseeds.h
 
 
@@ -687,7 +687,7 @@ libRNA_params_la_SOURCES = \
 
 
 libRNA_inverse_la_SOURCES = \
-    inverse/inverse.c
+    inverse/inverse.c \
     inverse/linearbpseeds.cpp
 
 
