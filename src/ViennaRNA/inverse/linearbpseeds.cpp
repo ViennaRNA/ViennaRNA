@@ -1,4 +1,3 @@
-#include "linearbpseeds.h" //#include "ViennaRNA/inverse/linearbpseeds.h"
 //#include <vector>
 //#include <iostream>
 //using namespace std;
@@ -12,16 +11,50 @@
 #include <unistd.h> 
 #include <iomanip>
 #include <cstdint>
+#include <vector>
+#include <iostream>
+
+using namespace std;
 
 
-random_device rd;
-mt19937 gen(rd());
-uniform_real_distribution<> distrib(0.0, 1.0);
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include "string.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "linearbpseeds.h" //#include "ViennaRNA/inverse/linearbpseeds.h"
+
+static random_device rd;
+static mt19937 gen(rd());
+static uniform_real_distribution<> distrib(0.0, 1.0);
 
 //There are 8 possibilities per node assignment mapped to 8 different int: GC <-> 0, CG <-> 1, AU <-> 2, UA <-> 3, ?? <-> 4, A <-> 5, C <-> 6, RR (i.e root) <-> 7
 //get_assignments(_biseparated) is optimized only for multiloops with a degree below 64 for now.
 //Warning: still some risks of overflow with how the states are defined for now both in cache and cacheassignment
-long long max_degree_optimized_multiloop = 64;
+static long long max_degree_optimized_multiloop = 64;
+
+static constexpr int delta[8] = {1, -1, 0, 0, 0, 0, 0, 0};
+static constexpr int deltaC[8] = {0, 0, -1, 1, 0, 0, 0, 0};
+
+static unordered_map <int, vector<int>>
+children_colors_from_parent = 
+{ 
+    //Possible children assignment given the parent assignment
+    {2, {2, 0, 1}},
+    {3, {3, 0, 1}},
+    {0, {3, 0, 2}},
+    {1, {3, 1, 2}},
+    {7, {0, 3, 1, 2}}
+};
 
 
 struct Tree{
@@ -34,7 +67,120 @@ struct Tree{
 };
 
 
-long long make_leafbits(const vector<Tree*>& l)
+static long long
+make_leafbits(const vector<Tree*>& l);
+
+
+static pair<string, string>
+unwrap(int c);
+
+
+static vector <vector<int>>
+get_assignments(const vector<Tree*>& l,int c,size_t i);
+
+
+static vector <vector<int>>
+get_assignments_biseparated(const vector<Tree*>& l,int c, int color, size_t i);
+
+
+static long double
+num_design(const Tree* v, int c, int current_level_mod, int m, const unordered_set<int>& leaves_levels_mod, unordered_map<long long, long double>& cache, unordered_map<long long, vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n);
+
+
+static long double
+num_design_biseparated(const Tree* v, int c, int current_level_modA, int mA, const unordered_set<int>& leaves_levels_modA, int current_level_modC, int mC, const unordered_set<int>& leaves_levels_modC, unordered_map<long long, long double>& cache, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n);
+
+
+static string
+stochastic_backtrack(const Tree* v, int c, int current_level_mod, int m, const unordered_set<int>& leaves_levels_mod, unordered_map<long long, long double>& cache, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n);
+
+
+static string
+stochastic_backtrack_biseparated(const Tree* v, int c, int current_level_modA, int mA, const unordered_set<int>& leaves_levels_modA, int current_level_modC, int mC, const unordered_set<int>& leaves_levels_modC, unordered_map<long long, long double>& cache, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n);
+
+
+static vector<int>
+ssparse(const string& seq);
+
+
+static bool
+checker(const vector<Tree*>& v, int lim1, int lim2);
+
+
+static vector<Tree*>
+dbn_to_tree_list(const vector<int>& dbn, int i, int j);
+
+
+static Tree*
+dbn_to_tree(const vector<int>& dbn);
+
+
+static vector<vector<int>>
+part(int i);
+
+
+static void
+tree_cleanup(Tree* v);
+
+
+static unordered_set<string>
+sample(size_t magic_threshold, long double Zfull, const Tree* tree, int m, vector<unordered_set<int>> tuple_leaf_level_list, vector<long double> Zlist, vector<unordered_map<long long, long double>> cachelist, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flex, long double GCweight, int n);
+
+
+static unordered_set<string>
+sample_biseparated(size_t magic_threshold, long double Zfull, const Tree* tree, int mA, int mC, vector<unordered_set<int>> tuple_leaf_levelA_list, vector<unordered_set<int>> tuple_leaf_levelC_list, vector<long double> Zlist, vector<unordered_map<long long, long double>> cachelist, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flex, long double GCweight, int n);
+
+
+vector<string>
+generate_seeds(string                      structure,
+               unsigned int                target_nb_sols,
+               vrna_inverse_linearbp_opt_t *p);
+
+
+
+
+
+
+PUBLIC char **
+vrna_inverse_seed_linearbp(const char                   *structure,
+                           size_t                       num_samples,
+                           vrna_inverse_linearbp_opt_t  *options)
+{
+  char                        **samples   = NULL;
+  size_t                      ns          = 0;
+  vrna_inverse_linearbp_opt_t default_opt = {
+    .biseparable  = 0,
+    .maxmodulo    = 3,
+    .GCweight     = 0.0
+  };
+
+  if ((structure) &&
+      (samples)) {
+    if (options == NULL)
+      options = &default_opt;
+
+    vector<string> res = generate_seeds(string(structure),
+                                        num_samples,
+                                        options);
+
+    if (res.size() > 0) {
+      ns        = res.size();
+      samples  = (char **)vrna_alloc(sizeof(char *) * (ns + 1));
+      
+      for (size_t i = 0; i < ns; i++)
+        samples[i] = strdup(res[i].c_str());
+
+      samples[ns] = NULL; /* end of list indicator */
+    }
+  }
+
+  return samples;
+}
+
+
+
+static long long
+make_leafbits(const vector<Tree*>& l)
 {
 /*
     Input:
@@ -52,17 +198,8 @@ long long make_leafbits(const vector<Tree*>& l)
 }
 
 
-
-unordered_map <int, vector<int>> children_colors_from_parent = 
-{ 
-    //Possible children assignment given the parent assignment
-    {2, {2, 0, 1}},
-    {3, {3, 0, 1}},
-    {0, {3, 0, 2}},
-    {1, {3, 1, 2}},
-    {7, {0, 3, 1, 2}}
-};
-pair <string, string> unwrap(int c)
+static pair<string, string>
+unwrap(int c)
 {
 /*
     Input:
@@ -89,11 +226,9 @@ pair <string, string> unwrap(int c)
     throw invalid_argument( "Should not reach here: not a valid base pair");
 }
 
-constexpr int delta[8] = {1, -1, 0, 0, 0, 0, 0, 0};
-constexpr int deltaC[8] = {0, 0, -1, 1, 0, 0, 0, 0};
 
-
-vector <vector<int>> get_assignments(const vector<Tree*>& l,int c,size_t i)
+static vector <vector<int>>
+get_assignments(const vector<Tree*>& l,int c,size_t i)
 {
 /*
     Input:
@@ -170,7 +305,8 @@ vector <vector<int>> get_assignments(const vector<Tree*>& l,int c,size_t i)
     }
 }
 
-vector <vector<int>> get_assignments_biseparated(const vector<Tree*>& l,int c, int color, size_t i)
+static vector <vector<int>>
+get_assignments_biseparated(const vector<Tree*>& l,int c, int color, size_t i)
 {
 /*
     Input:
@@ -269,7 +405,8 @@ vector <vector<int>> get_assignments_biseparated(const vector<Tree*>& l,int c, i
 }
 
 
-long double num_design(const Tree* v, int c, int current_level_mod, int m, const unordered_set<int>& leaves_levels_mod, unordered_map<long long, long double>& cache, unordered_map<long long, vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n)
+static long double
+num_design(const Tree* v, int c, int current_level_mod, int m, const unordered_set<int>& leaves_levels_mod, unordered_map<long long, long double>& cache, unordered_map<long long, vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n)
 {
 /*
     Input:
@@ -367,7 +504,8 @@ long double num_design(const Tree* v, int c, int current_level_mod, int m, const
 }
 
 
-long double num_design_biseparated(const Tree* v, int c, int current_level_modA, int mA, const unordered_set<int>& leaves_levels_modA, int current_level_modC, int mC, const unordered_set<int>& leaves_levels_modC, unordered_map<long long, long double>& cache, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n)
+static long double
+num_design_biseparated(const Tree* v, int c, int current_level_modA, int mA, const unordered_set<int>& leaves_levels_modA, int current_level_modC, int mC, const unordered_set<int>& leaves_levels_modC, unordered_map<long long, long double>& cache, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n)
 {
     /*
     Input:
@@ -474,7 +612,8 @@ long double num_design_biseparated(const Tree* v, int c, int current_level_modA,
 }
 
 
-string stochastic_backtrack(const Tree* v, int c, int current_level_mod, int m, const unordered_set<int>& leaves_levels_mod, unordered_map<long long, long double>& cache, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n)
+static string
+stochastic_backtrack(const Tree* v, int c, int current_level_mod, int m, const unordered_set<int>& leaves_levels_mod, unordered_map<long long, long double>& cache, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n)
 {
 /*
     Input:
@@ -582,7 +721,8 @@ string stochastic_backtrack(const Tree* v, int c, int current_level_mod, int m, 
 }
 
 
-string stochastic_backtrack_biseparated(const Tree* v, int c, int current_level_modA, int mA, const unordered_set<int>& leaves_levels_modA, int current_level_modC, int mC, const unordered_set<int>& leaves_levels_modC, unordered_map<long long, long double>& cache, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n)
+static string
+stochastic_backtrack_biseparated(const Tree* v, int c, int current_level_modA, int mA, const unordered_set<int>& leaves_levels_modA, int current_level_modC, int mC, const unordered_set<int>& leaves_levels_modC, unordered_map<long long, long double>& cache, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flexible, long double GCweight, int n)
 {
 /*
     Input:
@@ -712,7 +852,8 @@ string stochastic_backtrack_biseparated(const Tree* v, int c, int current_level_
 
 
 
-vector<int> ssparse(const string& seq)
+static vector<int>
+ssparse(const string& seq)
 /*
     Input:
         * seq, a secondary structure as a well-parenthesized string
@@ -740,7 +881,8 @@ vector<int> ssparse(const string& seq)
     return res;
 }
 
-bool checker(const vector<Tree*>& v, int lim1, int lim2)
+static bool
+checker(const vector<Tree*>& v, int lim1, int lim2)
 {
 /*
     Input:
@@ -767,7 +909,8 @@ bool checker(const vector<Tree*>& v, int lim1, int lim2)
 }
 
 
-vector<Tree*> dbn_to_tree_list(const vector<int>& dbn, int i, int j)
+static vector<Tree*>
+dbn_to_tree_list(const vector<int>& dbn, int i, int j)
 /*
     Input:
        * dbn, a list with -1 for an unpaired position and the index of its correspondent for a paired position
@@ -817,7 +960,8 @@ vector<Tree*> dbn_to_tree_list(const vector<int>& dbn, int i, int j)
     return res;   
 }
 
-Tree* dbn_to_tree(const vector<int>& dbn)
+static Tree*
+dbn_to_tree(const vector<int>& dbn)
 /*
     Input:
        * dbn, a list with -1 for an unpaired position and the index of its correspondent for a paired position
@@ -843,7 +987,8 @@ Tree* dbn_to_tree(const vector<int>& dbn)
     return resu;
 }
 
-vector<vector<int>> part(int i) 
+static vector<vector<int>>
+part(int i) 
 /*
     Input:
        * i, an int 
@@ -867,7 +1012,8 @@ vector<vector<int>> part(int i)
     return res;
 }
 
-void tree_cleanup(Tree* v)
+static void
+tree_cleanup(Tree* v)
 {
     if (!v)
     {
@@ -881,7 +1027,8 @@ void tree_cleanup(Tree* v)
 }
 
 
-unordered_set<string> sample(size_t magic_threshold, long double Zfull, const Tree* tree, int m, vector<unordered_set<int>> tuple_leaf_level_list, vector<long double> Zlist, vector<unordered_map<long long, long double>> cachelist, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flex, long double GCweight, int n)
+static unordered_set<string>
+sample(size_t magic_threshold, long double Zfull, const Tree* tree, int m, vector<unordered_set<int>> tuple_leaf_level_list, vector<long double> Zlist, vector<unordered_map<long long, long double>> cachelist, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flex, long double GCweight, int n)
 /*
     Input:
         * magic_threshold, the number of time to sample to get sequences
@@ -921,7 +1068,8 @@ unordered_set<string> sample(size_t magic_threshold, long double Zfull, const Tr
     return resu;
 }
 
-unordered_set<string> sample_biseparated(size_t magic_threshold, long double Zfull, const Tree* tree, int mA, int mC, vector<unordered_set<int>> tuple_leaf_levelA_list, vector<unordered_set<int>> tuple_leaf_levelC_list, vector<long double> Zlist, vector<unordered_map<long long, long double>> cachelist, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flex, long double GCweight, int n)
+static unordered_set<string>
+sample_biseparated(size_t magic_threshold, long double Zfull, const Tree* tree, int mA, int mC, vector<unordered_set<int>> tuple_leaf_levelA_list, vector<unordered_set<int>> tuple_leaf_levelC_list, vector<long double> Zlist, vector<unordered_map<long long, long double>> cachelist, unordered_map<long long,vector <vector<int>>>& cacheassignment, bool flex, long double GCweight, int n)
 /*
     Input:
         * magic_threshold, the number of time to sample to get sequences
@@ -961,19 +1109,12 @@ unordered_set<string> sample_biseparated(size_t magic_threshold, long double Zfu
     return resu;
 }
 
-vector<string> generate_seeds(string structure, unsigned int target_nb_sols, Params* p)
-/*
-    Input:
-        * structure, a secondary structure as a well-parenthesized word
-        * target_nb_sols, the target number of solutions
-        * p, a list of parameters including:
-            * biseparable, boolean, 1 if unpaired positions feature both A and C
-            * maxmodulo, the maximal modulus to be considered for m/mA/mC
-            * GCweight, the weight of the GC pairs, default is 0.0
-            
-    Output:
-        * A list of designs of size at most target_nb_sols
-*/
+
+
+vector<string>
+generate_seeds(string                      structure,
+               unsigned int                target_nb_sols,
+               vrna_inverse_linearbp_opt_t *p)
 {
     if (target_nb_sols == 0)
     {
