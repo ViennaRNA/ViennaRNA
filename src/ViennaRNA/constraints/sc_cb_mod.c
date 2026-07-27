@@ -1228,8 +1228,9 @@ sc_PAIR_IL_stack(vrna_fold_compound_t *fc VRNA_UNUSED,
                  int                  l,
                  void                 *d)
 {
-  if ((i + 1 == k) &&
-      (l == j - 1)) {
+  int u = k - i + j - l - 2;
+
+  if ((u == 0) || (u == 1)) { /* real stacks of 1-nt bulges */
     energy_corrections  *data = (energy_corrections *)d;
     short               *enc  = data->enc;
 
@@ -1257,8 +1258,8 @@ sc_PAIR_IL_terminal(vrna_fold_compound_t  *fc VRNA_UNUSED,
                     int                   l,
                     void                  *d)
 {
-  if ((i + 1 < k) ||
-      (l + 1 < j))
+  if ((i + 2 < k) ||
+      (l + 2 < j))
     return terminal(i, j, (energy_corrections *)d) +
            terminal(l, k, (energy_corrections *)d);
 
