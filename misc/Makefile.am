@@ -11,7 +11,10 @@ energy_parameter_files = \
     rna_mod_inosine_parameters.json \
     rna_mod_m5C_parameters.json \
     rna_mod_m6A_parameters.json \
+    rna_mod_n1methylpseudouridine_dutta_parameters.json \
+    rna_mod_n1methylpseudouridine_kierzek_parameters.json \
     rna_mod_pseudouridine_parameters.json \
+    rna_mod_pseudouridine_shabangu_parameters.json \
     rna_mod_purine_parameters.json \
     rna_mod_dihydrouridine_parameters.json \
     rna_mod_template_parameters.json
