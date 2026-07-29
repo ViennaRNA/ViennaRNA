@@ -32,7 +32,7 @@ class ModifiedBaseTests(unittest.TestCase):
 
     def test_pseudouridine_duplexes(self):
         """Pseudouridine duplex energies"""
-        params = json.loads(RNA.parameter_set_rna_mod_pseudouridine_parameters)
+        params = json.loads(RNA.parameter_set_rna_mod_pseudouridine)
         duplexes = params['modified_base']['duplexes']
         code     = params['modified_base']['one_letter_code']
         fallback = params['modified_base']['fallback']
@@ -48,7 +48,7 @@ class ModifiedBaseTests(unittest.TestCase):
 
     def test_inosine_duplexes(self):
         """Inosine duplex energies"""
-        params = json.loads(RNA.parameter_set_rna_mod_inosine_parameters)
+        params = json.loads(RNA.parameter_set_rna_mod_inosine)
         duplexes = params['modified_base']['duplexes']
         code     = params['modified_base']['one_letter_code']
         fallback = params['modified_base']['fallback']

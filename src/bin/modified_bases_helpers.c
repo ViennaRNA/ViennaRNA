@@ -140,32 +140,32 @@ mod_params_collect_from_string(const char           *string,
       switch (*ptr) {
         case '7':
           mod_params[(*num_params)++] = vrna_sc_mod_read_from_json(
-            (const char *)parameter_set_rna_mod_7DA_parameters,
+            (const char *)parameter_set_rna_mod_7DA,
             md);
           break;
         case 'I':
           mod_params[(*num_params)++] = vrna_sc_mod_read_from_json(
-            (const char *)parameter_set_rna_mod_inosine_parameters,
+            (const char *)parameter_set_rna_mod_inosine,
             md);
           break;
         case '6':
           mod_params[(*num_params)++] = vrna_sc_mod_read_from_json(
-            (const char *)parameter_set_rna_mod_m6A_parameters,
+            (const char *)parameter_set_rna_mod_m6A,
             md);
           break;
         case 'P':
           mod_params[(*num_params)++] = vrna_sc_mod_read_from_json(
-            (const char *)parameter_set_rna_mod_pseudouridine_parameters,
+            (const char *)parameter_set_rna_mod_pseudouridine,
             md);
           break;
         case '9':
           mod_params[(*num_params)++] = vrna_sc_mod_read_from_json(
-            (const char *)parameter_set_rna_mod_purine_parameters,
+            (const char *)parameter_set_rna_mod_purine,
             md);
           break;
         case 'D':
           mod_params[(*num_params)++] = vrna_sc_mod_read_from_json(
-            (const char *)parameter_set_rna_mod_dihydrouridine_parameters,
+            (const char *)parameter_set_rna_mod_dihydrouridine,
             md);
           break;
         default:

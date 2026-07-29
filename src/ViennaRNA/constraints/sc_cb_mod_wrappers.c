@@ -16,7 +16,7 @@ vrna_sc_mod_m6A(vrna_fold_compound_t  *fc,
                 unsigned int          options)
 {
   return vrna_sc_mod_json(fc,
-                          (const char *)parameter_set_rna_mod_m6A_parameters,
+                          (const char *)parameter_set_rna_mod_m6A,
                           modification_sites,
                           options);
 }
@@ -28,7 +28,7 @@ vrna_sc_mod_pseudouridine(vrna_fold_compound_t  *fc,
                           unsigned int            options)
 {
   return vrna_sc_mod_json(fc,
-                          (const char *)parameter_set_rna_mod_pseudouridine_parameters,
+                          (const char *)parameter_set_rna_mod_pseudouridine,
                           modification_sites,
                           options);
 }
@@ -40,7 +40,7 @@ vrna_sc_mod_inosine(vrna_fold_compound_t  *fc,
                     unsigned int          options)
 {
   return vrna_sc_mod_json(fc,
-                          (const char *)parameter_set_rna_mod_inosine_parameters,
+                          (const char *)parameter_set_rna_mod_inosine,
                           modification_sites,
                           options);
 }
@@ -52,7 +52,7 @@ vrna_sc_mod_7DA(vrna_fold_compound_t  *fc,
                 unsigned int          options)
 {
   return vrna_sc_mod_json(fc,
-                          (const char *)parameter_set_rna_mod_7DA_parameters,
+                          (const char *)parameter_set_rna_mod_7DA,
                           modification_sites,
                           options);
 }
@@ -64,7 +64,7 @@ vrna_sc_mod_purine(vrna_fold_compound_t *fc,
                    unsigned int         options)
 {
   return vrna_sc_mod_json(fc,
-                          (const char *)parameter_set_rna_mod_purine_parameters,
+                          (const char *)parameter_set_rna_mod_purine,
                           modification_sites,
                           options);
 }
@@ -76,7 +76,7 @@ vrna_sc_mod_dihydrouridine(vrna_fold_compound_t *fc,
                            unsigned int         options)
 {
   return vrna_sc_mod_json(fc,
-                          (const char *)parameter_set_rna_mod_dihydrouridine_parameters,
+                          (const char *)parameter_set_rna_mod_dihydrouridine,
                           modification_sites,
                           options);
 }

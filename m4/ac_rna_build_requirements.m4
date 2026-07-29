@@ -204,6 +204,8 @@ generate it from source!
       parfile_name=`AS_ECHO("$parfile") | sed 's/misc\///g'`
       # remove the trailing .hex
       parfile_name=`AS_ECHO("$parfile_name") | sed 's/.hex//g'`
+      # remove the trailing _parameters (for rna_mod_*_paramters)
+      parfile_name=`AS_ECHO("$parfile_name") | sed 's/_parameters$//g'`
 
       # create a C variable defintion for the template
       # note [[]] will turn into [] after M4 processed everythin
