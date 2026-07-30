@@ -1,5 +1,4 @@
 #!/usr/bin/env  python3
-        paired = bpp>=0.99
 #
 # 2024, Ronny Lorenz <ronny@tbi.univie.ac.at>
 #
@@ -380,15 +379,20 @@ class SoftConsensus:
         self._ps_bound = ps_bound
         self._ps_energy_bps = []      # 1-indexed
         self._dominant_bps = []   # 1-indexed
-
+        self._md = RNA.md()
         self._fold()
 
 
     def _fold(self):
         """Get consensus structure and bpp
         """
-        # fc = RNA.fold_compound(self.alignment, self.md)
-        fc = RNA.fold_compound(self.alignment)
+        try:
+            import RNA
+            import numpy as np
+        except:
+            raise Exception("Soft consensus requires viennaRNA and numpy")
+        
+        fc = RNA.fold_compound(self._alignment, self._md)
         ss, mfe = fc.mfe()
         fc.exp_params_rescale(mfe)
         # _, self.fee = fc.pf()
@@ -399,22 +403,27 @@ class SoftConsensus:
 
         self._ps_energy_bps = self._pseudo_energy()
 
-        self._dominant_bps = [(ai, aj) for ai, aj in zip(*np.where(self.ps_energy_bps<0))]
+        self._dominant_bps = [(ai, aj) for ai, aj in zip(*np.where(self._ps_energy_bps<0))]
 
 
     def _pseudo_energy(self):
         """Compute basepair pseudo energy matrix from phylogenetic informations
         """
-        RT = RNA.GASCONST*(self.md.temperature + RNA.K0)/1000
-        bpp = np.array(self.fc.bpp())
+        try:
+            import RNA
+            import numpy as np
+        except:
+            raise Exception("Soft consensus requires viennaRNA and numpy")
+        RT = RNA.GASCONST*(self._md.temperature + RNA.K0)/1000
+        bpp = np.array(self._fc.bpp())
         np.set_printoptions(threshold=np.inf)
 
         # Set unpaired and highly paired bps to NaN
         # paired = bpp>=0.99
-        paired = bpp==1
+        paired = bpp>=0.99
         unpaired = bpp==0
-        bpp[paired] = np.NaN
-        bpp[unpaired] = np.NaN
+        bpp[paired] = np.nan
+        bpp[unpaired] = np.nan
 
         # Pseudo-energy
         # ensure all ps satisfy ps_bound (default=-3) <= ps <= 0
@@ -432,6 +441,11 @@ class SoftConsensus:
         """Return pseudo energy matrix for aligned sequence
         """
 
+        try:
+            import numpy as np
+        except:
+            raise Exception("Soft consensus requires numpy")
+
         ungap = np.array(['X']+list(aligned)) != '-'
         l = np.sum(ungap)
         ungap_bps = np.outer(ungap, ungap)
@@ -445,6 +459,12 @@ class SoftConsensus:
         Args:
             aligned: aligned sequence of interest or its index in the alignment
         """
+        try:
+            import RNA
+            import numpy as np
+        except:
+            raise Exception("Soft consensus requires viennaRNA and numpy")
+
         if isinstance(aligned, int):
             aligned_seq = self._alignment[aligned]
         else:
@@ -452,8 +472,17 @@ class SoftConsensus:
         seq = aligned_seq.replace('-', '')
         # fc = RNA.fold_compound(seq, self.md)
         fc = RNA.fold_compound(seq)
-        to_add = self._get_energy_of_aligned_seq(aligned_seq)
-        fc.sc_add_bp(to_add.tolist())
+
+        sc = [ (i, j, v)
+                for i, row
+                in enumerate(self._get_energy_of_aligned_seq(aligned_seq).tolist())
+                for j, v
+                in enumerate(row)
+                if v != 0 ]
+
+        for i, j, v in sc:
+            fc.sc_add_bp(i, j, v)
+
         return fc
 
 def soft_constraints(args):
@@ -467,9 +496,10 @@ def soft_constraints(args):
             # TODO: add warning
             bound = -bound
         soft = SoftConsensus(map(lambda t: t[1], aln), bound)
-        for name, seq in alignment:
+        for name, seq in aln:
             fc = soft.fc_of_aligned_seq(seq)
             ss, mfe = fc.mfe()
+            seq = seq.replace('-', '')
             args.output_stream.write(f">{name}\n{seq}\n{ss} ({mfe:6.2f})\n")
         return 0
 
