@@ -240,8 +240,7 @@ vrna_inverse_seed_linearbp(const char                   *structure,
     .GCweight     = 0.0
   };
 
-  if ((structure) &&
-      (samples)) {
+  if (structure) {
     if (options == NULL)
       options = &default_opt;
 

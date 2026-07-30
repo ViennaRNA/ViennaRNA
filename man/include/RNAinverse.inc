@@ -36,3 +36,7 @@ Nucl Acid Res: 9, pp 133-148
 J.S. McCaskill (1990),
 "The equilibrium partition function and base pair binding probabilities for RNA secondary structures",
 Biopolymers: 29, pp 1105-1119
+
+T. Boury, S. Gardelle, L. Bulteau, Y. Ponty (2025),
+"RNA inverse folding can be solved in linear time for structures without isolated stacks or base pairs",
+Algorithms Mol Biol: 20(1):20

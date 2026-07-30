@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "ViennaRNA/inverse/basic.h"
+#include "ViennaRNA/inverse/linearbpseeds.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/partfunc/global.h"
@@ -47,6 +48,7 @@ main(int  argc,
                               *ParamFile, *c, *ns_bases;
   int                         input_type, i, length, l, hd, sym, pf, mfe, istty, repeat,
                               found;
+  char                        *init_strategy;
   double                      energy, kT;
 
   ParamFile     = NULL;
@@ -58,6 +60,7 @@ main(int  argc,
   repeat        = 0;
   input_type    = 0;
   input_string  = ns_bases = NULL;
+  init_strategy = NULL;
   vrna_init_rand();
 
   /*
@@ -110,6 +113,9 @@ main(int  argc,
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
   if (args_info.nsp_given)
     ns_bases = strdup(args_info.nsp_arg);
+
+  if (args_info.init_strategy_given)
+    init_strategy = strdup(args_info.init_strategy_arg);
 
   /* alter the alphabet */
   if (args_info.alphabet_given) {
@@ -250,21 +256,51 @@ main(int  argc,
       found = 1;
 
     /* initialize_fold(length); <- obsolete (hopefully commenting this out does not affect anything crucial ;) */
+    char    **seed_sequences  = NULL;
+    size_t  nseed             = 0;
+    size_t  seed_count        = 0;
+
+    if ((init_strategy) &&
+        (strcmp("linearbp", init_strategy) == 0)) {
+      /* generate a number of seed sequences using the LinearBP algorithm */
+      vrna_log_debug("Requesting %u sequences for structure \"%s\"", found, structure);
+      seed_sequences = vrna_inverse_seed_linearbp(structure,
+                                                  (size_t)found,
+                                                  NULL);
+      if (seed_sequences) {
+        vrna_log_debug("got a result");
+        for (nseed = 0; seed_sequences[nseed] != NULL; nseed++)
+          vrna_log_debug("%u: %s", nseed, seed_sequences[nseed]);
+      }
+
+      vrna_log_debug("Obtained %u/%u seed sequences from LinearBP", nseed, found);
+    }
 
     rstart = (char *)vrna_alloc((unsigned)length + 1);
     while (found > 0) {
       char *string;
       string = (char *)vrna_alloc((unsigned)length + 1);
-      strcpy(string, start);
-      for (i = 0; i < length; i++) {
-        /* lower case characters are kept fixed, any other character
-         * not in symbolset is replaced by a random character */
-        if (islower(string[i]))
-          continue;
+      if ((start[0] == '\0') &&
+          (nseed > 0)) {
+        strcpy(string, seed_sequences[seed_count++]);
 
-        if (string[i] == '\0' || (strchr(symbolset, string[i]) == NULL))
-          string[i] = symbolset[vrna_int_urn(0, strlen(symbolset) - 1)];
+        vrna_log_debug("Using LinearBP sequence %u (\"%s\") as seed", seed_count, string);
+
+        if (seed_count == nseed)
+          seed_count = 0;
+      } else {
+        strcpy(string, start);
+        for (i = 0; i < length; i++) {
+          /* lower case characters are kept fixed, any other character
+           * not in symbolset is replaced by a random character */
+          if (islower(string[i]))
+            continue;
+
+          if (string[i] == '\0' || (strchr(symbolset, string[i]) == NULL))
+            string[i] = symbolset[vrna_int_urn(0, strlen(symbolset) - 1)];
+        }
       }
+
       strcpy(rstart, string); /* remember start string */
 
       if (mfe) {
@@ -322,8 +358,16 @@ main(int  argc,
     free(structure);
     free(str2);
     free(start);
+    if (seed_sequences) {
+      for (size_t cnt = 0; seed_sequences[cnt]; cnt++)
+        free(seed_sequences[cnt]);
+      free(seed_sequences);
+    }
+
     (void)fflush(stdout);
   } while (1);
+
+  free(init_strategy);
 
   if (vrna_log_fp() != stderr)
     fclose(vrna_log_fp());

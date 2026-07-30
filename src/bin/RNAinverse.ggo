@@ -100,6 +100,24 @@ argoptional
 default="1"
 optional
 
+
+option  "init-strategy"   -
+"Use a specific strategy to generate an initial sequence seed.\n"
+details="This option allows for changing the initial sequence seed generator strategy\
+ in cases where no start sequence is specified. By default, the sequence characters are\
+ randomly chosen with equal probabilities for any nucleotide. A more elaborate method\
+ is the \"LinearBP\" approach (Boury et al. 2025) to find a good starting sequence\
+ candidate that already fulfills optimality within a base pair model.\nNote, that\
+ currently this option has no effect if a start sequence is provided as an input.\
+ Available strategies are:\n\n\
+ \"random\": Generate a random sequence with equal nucleotide probabilities.\n\n\
+ \"linearbp\": Use the \"LinearBP\" approach.\n\n"
+string
+typestr="strategy"
+default="random"
+optional
+
+
 option  "alphabet"    a
 "Find sequences using only nucleotides from a given alphabet.\n\n"
 string
