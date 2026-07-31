@@ -77,6 +77,11 @@ struct helper_arrays {
   outside_enclosed_f        compute_bpp_int;
   outside_enclosed_f        compute_bpp_mul;
 
+  FLT_OR_DBL    *probs_ext;
+  FLT_OR_DBL    *probs_hp;
+  FLT_OR_DBL    *probs_int;
+  FLT_OR_DBL    *probs_mb;
+
   FLT_OR_DBL    *prm_l;
   FLT_OR_DBL    *prm_l1;
   FLT_OR_DBL    *prml;
@@ -122,6 +127,7 @@ pf_create_bppm(vrna_fold_compound_t   *vc,
 
 PRIVATE int
 outside_bp_external(vrna_fold_compound_t  *fc,
+                    unsigned int          l,
                     FLT_OR_DBL            *Qmax,
                     int                   *ov,
                     helper_arrays_t       dp_helpers);
@@ -627,12 +633,28 @@ pf_create_bppm(vrna_fold_compound_t   *vc,
     for (i = 1; i <= n; i++)
       probs[my_iindx[i] - i] = 0.;
 
-    /* 1. external loop pairs, i.e. pairs not enclosed by any other pair (or external loop for circular RNAs) */
-    outside_bp_external(vc, &Qmax, &ov, dp_helpers);
-
-    /* 2. all cases where base pair (k,l) is enclosed by another pair (i,j) */
     for (l = n; l > 0; l--) {
+      /* 1. external loop pairs, i.e. pairs not enclosed by any other pair (or external loop for circular RNAs) */
+      outside_bp_external(vc, l, &Qmax, &ov, dp_helpers);
+
+      /* 2. all cases where base pair (k,l) is enclosed by another pair (i,j) */
       outside_bp_enclosed(vc, l, &Qmax, &ov, dp_helpers);
+
+      /* loop-type specific output */
+      if ((cb) && (options.mode & VRNA_EQM_PROBS_BPP)) {
+        if (options.mode & VRNA_EQM_PROBS_SPLIT) {
+          cb(vc, dp_helpers->probs_ext, l, 1, l - 1, VRNA_EQM_PROBS_BPP | VRNA_LOOP_TYPE_EXT, cb_data);
+          cb(vc, dp_helpers->probs_int, l, 1, l - 1, VRNA_EQM_PROBS_BPP | VRNA_LOOP_TYPE_INT, cb_data);
+          cb(vc, dp_helpers->probs_mb, l, 1, l - 1, VRNA_EQM_PROBS_BPP | VRNA_LOOP_TYPE_MB, cb_data);
+        }
+
+        /* combined probabilities */
+        for (unsigned int k = 1; k <= l - 1; k++)
+          dp_helpers->probs_ext[k] += dp_helpers->probs_int[k] +
+                                      dp_helpers->probs_mb[k];
+
+        cb(vc, dp_helpers->probs_ext, l, 1, l - 1, VRNA_EQM_PROBS_BPP | VRNA_LOOP_TYPE_ANY, cb_data);
+      }
 
       if (options.mode & VRNA_EQM_PROBS_UP)
         compute_accessibility(vc, l, dp_helpers);
@@ -762,6 +784,7 @@ pf_create_bppm(vrna_fold_compound_t   *vc,
 /* external loop pairs, i.e. pairs not enclosed by any other pair (or external loop for circular RNAs) */
 PRIVATE int
 outside_bp_external(vrna_fold_compound_t  *fc,
+                    unsigned int          l,
                     FLT_OR_DBL            *Qmax,
                     int                   *ov,
                     helper_arrays_t      dp_helpers)
@@ -770,10 +793,10 @@ outside_bp_external(vrna_fold_compound_t  *fc,
   vrna_md_t         *md        = &(pf_params->model_details);
 
   if (md->circ) {
-    bppm_circ(fc, dp_helpers);
+    if (l == fc->length)
+      bppm_circ(fc, dp_helpers);
   } else {
-    for (unsigned int l = fc->length; l > 0; l--)
-      compute_bpp_external(fc, l, dp_helpers);
+    compute_bpp_external(fc, l, dp_helpers);
   }
 
   if (*ov > 0)
@@ -807,6 +830,8 @@ outside_bp_enclosed(vrna_fold_compound_t  *fc,
   /* init diagonal entries unable to pair in pr matrix */
   probs[my_iindx[l] - l] = 0.;
 
+  /* actual computation for all base pairs (k,l) enclosed by another base pair (i,j) */
+
   /* 2. all cases where base pair (k,l) is enclosed by another pair (i,j) */
   dp_helpers->compute_bpp_int(fc,
                               l,
@@ -828,6 +853,7 @@ outside_bp_enclosed(vrna_fold_compound_t  *fc,
       multistrand_contrib(fc, l, dp_helpers, Qmax, ov);
     }
   }
+
 
   if (*ov > 0)
     vrna_log_warning("%d overflows occurred while backtracking;\n"
@@ -861,6 +887,11 @@ get_dp_helper_arrays(vrna_fold_compound_t *fc,
   dp_helpers->prm_l   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
   dp_helpers->prm_l1  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
   dp_helpers->prml    = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+
+  dp_helpers->probs_ext = NULL;
+  dp_helpers->probs_hp  = NULL;
+  dp_helpers->probs_int = NULL;
+  dp_helpers->probs_mb  = NULL;
 
   dp_helpers->Y5  = NULL;
   dp_helpers->Y5p = NULL;
@@ -927,6 +958,14 @@ get_dp_helper_arrays(vrna_fold_compound_t *fc,
       dp_helpers->Y3[s]   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
       dp_helpers->Y3p[s]  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
     }
+  }
+
+  if (options.mode & VRNA_EQM_PROBS_BPP) {
+    /* reserve memory for probability output */
+    dp_helpers->probs_ext = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+    dp_helpers->probs_hp  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+    dp_helpers->probs_int = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+    dp_helpers->probs_mb  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
   }
 
   if (options.mode & VRNA_EQM_PROBS_UP) {
@@ -1036,6 +1075,11 @@ free_dp_helper_arrays(helper_arrays_t dp_helpers)
 
   vrna_array_free(dp_helpers->bp_correction);
 
+  free(dp_helpers->probs_ext);
+  free(dp_helpers->probs_hp);
+  free(dp_helpers->probs_int);
+  free(dp_helpers->probs_mb);
+
   if (dp_helpers->Y5p)
     for (unsigned int s = 0; s < dp_helpers->strands; s++)
       free(dp_helpers->Y5p[s]);
@@ -1120,7 +1164,7 @@ compute_bpp_external(vrna_fold_compound_t *fc,
 {
   unsigned int              k, n;
   int                       *my_iindx, kl;
-  FLT_OR_DBL                *probs, *q1k, *qln, *qb;
+  FLT_OR_DBL                *probs, *q1k, *qln, *qb, *probs_ext, q;
   vrna_mx_pf_t              *matrices;
   vrna_hc_t                 *hc;
 
@@ -1137,19 +1181,28 @@ compute_bpp_external(vrna_fold_compound_t *fc,
   q1k       = matrices->q1k;
   qln       = matrices->qln;
   hc        = fc->hc;
+  probs_ext = dp_helpers->probs_ext;
 
   contrib_f = (fc->type == VRNA_FC_TYPE_SINGLE) ? &contrib_ext_pair : &contrib_ext_pair_comparative;
 
+  /* reset external probabilties */
+  probs_ext = memset(probs_ext, 0, sizeof(FLT_OR_DBL) * (n + 1));
+
   for (k = 1; k < l; k++) {
     kl = my_iindx[k] - l;
-    probs[kl] = 0.;
+    probs[kl] = q = 0.;
 
     if ((hc->eval_ext(1, n, k, l, VRNA_DECOMP_EXT_STEM_OUTSIDE, hc)) &&
         (qb[kl] > 0.)) {
-      probs[kl] = q1k[k - 1] *
-                  qln[l + 1] /
-                  q1k[n];
-      probs[kl] *= contrib_f(fc, k, l, dp_helpers);
+      q = q1k[k - 1] *
+          qln[l + 1] /
+          q1k[n];
+      q *= contrib_f(fc, k, l, dp_helpers);
+
+      probs_ext[k] = q *
+                     qb[kl];
+
+      probs[kl] = q;
     }
   }
 }
@@ -1410,7 +1463,7 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
   short                 *S1;
   unsigned int          i, j, k, n, u1, u2, with_ud, *hc_up_int, mini, maxj;
   int                   ij, kl, *my_iindx, *jindx, *rtype;
-  FLT_OR_DBL            temp, tmp2, *qb, *probs, *scale;
+  FLT_OR_DBL            temp, tmp2, *qb, *probs, *scale, *probs_int;
   double                max_real;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
@@ -1442,8 +1495,11 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
   scale = fc->exp_matrices->scale;
 
   bp_correction = dp_helpers->bp_correction;
+  probs_int     = dp_helpers->probs_int;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+
+  probs_int = memset(probs_int, 0, sizeof(FLT_OR_DBL) * (n + 1));
 
   /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
   for (k = 1; k < l; k++) {
@@ -1541,10 +1597,15 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
             }
 
             probs[kl] += tmp2;
+
+            probs_int[k] += tmp2;
           }
         }
       }
     }
+
+    /* store actual probabilties for callback reporting */
+    probs_int[k] *= qb[kl];
 
     if (probs[kl] > (*Qmax)) {
       (*Qmax) = probs[kl];
@@ -1574,7 +1635,7 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
   short                 **SS, **S5, **S3;
   unsigned int          i, j, k, n, mini, maxj, type, u1, u2, *tt, s, n_seq, **a2s, *hc_up_int;
   int                   ij, kl, *my_iindx, *jindx, *pscore;
-  FLT_OR_DBL            tmp2, *qb, *probs, *scale, psc_exp;
+  FLT_OR_DBL            tmp2, *qb, *probs, *scale, psc_exp, *probs_int;
   double                max_real, kTn;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
@@ -1600,10 +1661,13 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
   qb    = fc->exp_matrices->qb;
   probs = fc->exp_matrices->probs;
   scale = fc->exp_matrices->scale;
+  probs_int = dp_helpers->probs_int;
 
   kTn       = pf_params->kT / 10.;   /* kT in cal/mol  */
   max_real  = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
   tt        = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
+
+  probs_int = memset(probs_int, 0, sizeof(FLT_OR_DBL) * (n + 1));
 
   /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
   for (k = 1; k < l; k++) {
@@ -1666,10 +1730,16 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
               tmp2 *= sc_wrapper_int->pair(i, j, k, l, sc_wrapper_int);
 
             probs[kl] += tmp2;
+
+            /* store actual probabilties for callback reporting */
+            probs_int[k] += tmp2;
           }
         }
       }
     }
+
+    /* store actual probabilties for callback reporting */
+    probs_int[k] *= qb[kl];
 
     if (probs[kl] > (*Qmax)) {
       (*Qmax) = probs[kl];
@@ -2122,7 +2192,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
   int                       cnt, i, j, k, n, u, ii, ij, kl, lj, *my_iindx, *jindx,
                             *rtype, with_gquad, with_ud;
   FLT_OR_DBL                temp, ppp, prm_MLb, prmt, prmt1, *qb, *probs, *qm, *scale,
-                            *expMLbase, expMLclosing, expMLstem;
+                            *expMLbase, expMLclosing, expMLstem, *probs_mb;
   double                    max_real;
   vrna_exp_param_t          *pf_params;
   vrna_md_t                 *md;
@@ -2156,9 +2226,13 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
 
   hc          = fc->hc;
   sc_wrapper  = &(dp_helpers->sc_wrapper_mb);
+  probs_mb    = dp_helpers->probs_mb;
 
   prm_MLb   = 0.;
   max_real  = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+
+
+  probs_mb = memset(probs_mb, 0, sizeof(FLT_OR_DBL) * (n + 1));
 
   if (sn[l + 1] != sn[l]) {
     /* set prm_l to 0 to get prm_l1 in the next round to be 0 */
@@ -2349,6 +2423,11 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       probs[kl] += temp *
                    scale[2];
 
+      /* store actual probabilties for callback reporting */
+      probs_mb[k] = temp *
+                    scale[2] *
+                    qb[kl];
+
       if (probs[kl] > (*Qmax)) {
         (*Qmax) = probs[kl];
         if ((*Qmax) > max_real / 10.)
@@ -2382,7 +2461,7 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
   unsigned int      **a2s, s, n_seq, *sn;
   int               i, j, k, n, ii, kl, ij, lj, *my_iindx, *jindx, *pscore, with_gquad;
   FLT_OR_DBL        temp, ppp, prm_MLb, prmt, prmt1, *qb, *probs, *qm, *scale,
-                    *expMLbase, expMLclosing, expMLstem;
+                    *expMLbase, expMLclosing, expMLstem, *probs_mb;
   double            max_real, kTn;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
@@ -2418,6 +2497,10 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
   kTn       = pf_params->kT / 10.;   /* kT in cal/mol  */
   prm_MLb   = 0.;
   max_real  = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+  probs_mb  = dp_helpers->probs_mb;
+
+
+  probs_mb = memset(probs_mb, 0, sizeof(FLT_OR_DBL) * (n + 1));
 
   if (sn[l + 1] != sn[l]) {
     /* set prm_l to 0 to get prm_l1 in the next round to be 0 */
@@ -2591,6 +2674,12 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
       probs[kl] += temp *
                    scale[2] *
                    exp(pscore[jindx[l] + k] / kTn);
+
+      /* store actual probabilties for callback reporting */
+      probs_mb[k] = temp *
+                    scale[2] *
+                    exp(pscore[jindx[l] + k] / kTn) *
+                    qb[kl];
 
       if (probs[kl] > (*Qmax)) {
         (*Qmax) = probs[kl];
