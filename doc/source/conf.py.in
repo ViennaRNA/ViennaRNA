@@ -48,6 +48,7 @@ extensions = [
     'breathe',
     'sphinx_copybutton',
     'sphinx_rtd_theme',
+    'sphinx_design',
     'myst_parser'
 ]
 
@@ -96,6 +97,10 @@ napoleon_type_aliases = {
     "FLT_OR_DBL *" : "list-like(double)",
     "std::vector<FLT_OR_DBL>" : "list-like(double)",
 }
+
+
+myst_enable_extensions = ["colon_fence"]
+
 
 autoclass_content = "both"
 autodoc_class_signature = "mixed"
