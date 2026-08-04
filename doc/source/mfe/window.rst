@@ -25,7 +25,7 @@ The latter allows one to store the results in any possible target data structure
 implementations then pass the results through the user-implemented callback as soon as
 the prediction for a particular window is finished.
 
-.. tip::
+.. admonition:: Example
 
   .. dropdown:: Simple local MFE prediction
       :open:

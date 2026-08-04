@@ -63,7 +63,7 @@ The most simple interface to these implementations might be the
 in uppercase RNA alphabet (AUCG) to return the MFE in :math:`kcal \cdot mol^{-1}`
 and a corresponding secondary structure in :ref:`dot-bracket-notation`.
 
-.. tip::
+.. admonition:: Example
 
   .. dropdown:: Single Sequence MFE prediction
       :open:
@@ -146,7 +146,7 @@ algorithm parameters can be either introduced through the second or third
 :c:func:`vrna_fold_compound` function), or later via the various
 :c:type:`vrna_fold_compound_t` associated methods (or functions in C).
 
-.. tip::
+.. admonition:: Example
 
   This is an example where we change some of the model parameters before
   actually computing the MFE (structure) under the non-default settings.
