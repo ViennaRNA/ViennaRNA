@@ -12,5 +12,6 @@ dependencies:
     - sphinx-multiproject
     - myst-parser
     - sphinx-copybutton
+    - sphinx-design
     - sphinxcontrib-bibtex
     - sphinx-rtd-theme
