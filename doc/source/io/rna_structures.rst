@@ -8,6 +8,8 @@ used throughout our library and prediction tools.
    :maxdepth: 1
    :caption: Contents:
 
+.. _dot-bracket-notation:
+
 Dot-Bracket Notation
 --------------------
 
