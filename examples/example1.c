@@ -6,7 +6,7 @@
 #include  <ViennaRNA/params/basic.h>
 #include  <ViennaRNA/utils/basic.h>
 #include  <ViennaRNA/eval.h>
-#include  <ViennaRNA/fold.h>
+#include  <ViennaRNA/mfe/global.h>
 #include  <ViennaRNA/part_func.h>
 
 

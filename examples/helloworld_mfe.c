@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <ViennaRNA/fold.h>
+#include <ViennaRNA/mfe/global.h>
 #include <ViennaRNA/utils/basic.h>
 
 int

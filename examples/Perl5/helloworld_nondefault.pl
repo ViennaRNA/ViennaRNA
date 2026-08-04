@@ -7,8 +7,9 @@ my $seq = "GAGUAGUGGAACCAGGCUAUGUUUGUGACUCGCAGACUAACA";
 my $md = new RNA::md();
 
 # change temperature and dangle model
-$md->{temperature} = 20.0; # 20 Deg Celcius
-$md->{dangles}     = 1;    # Dangle Model 1
+$md->{circ}         = 1;    # Circular RNA sequence
+$md->{temperature}  = 25.0; # 25 Deg Celcius
+$md->{dangles}      = 1;    # Dangle Model 1
 
 # create a fold compound
 my $fc = new RNA::fold_compound($seq, $md);

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <ViennaRNA/alifold.h>
+#include <ViennaRNA/mfe/global.h>
 #include <ViennaRNA/utils/basic.h>
 #include <ViennaRNA/utils/alignments.h>
 

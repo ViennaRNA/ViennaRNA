@@ -3,12 +3,13 @@ import RNA
 # The RNA sequence
 seq = "GAGUAGUGGAACCAGGCUAUGUUUGUGACUCGCAGACUAACA"
 
-# create a new model details structure
-md = RNA.md()
-
-# change temperature and dangle model
-md.temperature = 20.0 # 20 Deg Celcius
-md.dangles     = 1    # Dangle Model 1
+# create a new model details structure with
+# non-default settings
+md = RNA.md(
+        circ        = 1,    # Circular RNA sequence
+        temperature = 25.0, # 25 Deg Celcius
+        dangles     = 1     # Dangle Model 1
+      )
 
 # create a fold compound
 fc = RNA.fold_compound(seq, md)

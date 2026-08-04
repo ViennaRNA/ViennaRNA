@@ -5,17 +5,12 @@
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/utils/basic.h>
-#include <ViennaRNA/utils/strings.h>
-#include <ViennaRNA/mfe.h>
+#include <ViennaRNA/mfe/global.h>
 
 int
 main()
 {
-  /* initialize random number generator */
-  vrna_init_rand();
-
-  /* Generate a random sequence of 50 nucleotides */
-  char      *seq = vrna_random_string(50, "ACGU");
+  char      *seq = "GAGUAGUGGAACCAGGCUAUGUUUGUGACUCGCAGACUAACA";
 
   /* allocate memory for MFE structure (length + 1) */
   char      *structure = (char *)vrna_alloc(sizeof(char) * (strlen(seq) + 1));
@@ -26,9 +21,12 @@ main()
   /* ALWAYS set default model settings first! */
   vrna_md_set_default(&md);
 
-  /* change temperature and activate G-Quadruplex prediction */
+  /* Mark sequence as being circular, change temperature to
+   * non-default and change dangle model
+   */
+  md.circ         = 1;    /* Treat RNA input as circular sequence */
   md.temperature  = 25.0; /* 25 Deg Celcius */
-  md.gquad        = 1;    /* Turn-on G-Quadruples support */
+  md.dangles      = 1;    /* Switch to dangles-model 1 */
 
   /* create a fold compound */
   vrna_fold_compound_t  *fc = vrna_fold_compound(seq, &md, VRNA_OPTION_DEFAULT);
