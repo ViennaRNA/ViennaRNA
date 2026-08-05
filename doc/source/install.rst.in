@@ -197,10 +197,86 @@ through
 Binary packages
 ---------------
 
-For convenience, we provide pre-compiled binary packages and
-installers for several Linux-based platforms, Microsoft Windows, and
-Mac OS X. They can be obtained from
-`our official website <https://www.tbi.univie.ac.at/RNA/#binary_packages>`_.
+For your convenience, we also provide precompiled binary packages for several Linux
+distributions and installer executables for Windows and MacOS X. To comply with the
+packaging standards of the corresponding Linux distributions we split the ViennaRNA
+Package into
+
+Core
+    usually the executable programs and utility scripts
+
+Development Files
+    the RNAlib C-library and the corresponding header files 
+
+Perl Bindings
+    The RNA module to access RNAlib C-library functions from within Perl scripts
+
+Python Bindings
+    The RNA class to access RNAlib C-library functions from within Python scripts 
+
+
+.. |arch-logo| image:: gfx/arch_linux_logo_32.png
+.. |osx-logo| image:: gfx/apple_logo_32.png
+.. |debian-logo| image:: gfx/debian_logo_32.png
+.. |epel-logo| image:: gfx/epel_logo_32.png
+.. |fedora-logo| image:: gfx/fedora_logo_32.png
+.. |opensuse-logo| image:: gfx/opensuse_logo_32.png
+.. |ubuntu-logo| image:: gfx/ubuntu_logo_32.png
+.. |windows-logo| image:: gfx/windows_logo_32.png
+
+
+.. card:: Binrary Packages
+
+  .. tab-set::
+      .. tab-item::  |arch-logo|
+
+        * Core
+        * Perl 5 bindings
+        * Python 3 bindings
+
+      .. tab-item::  |fedora-logo|
+
+        * Core
+        * Perl 5 bindings
+        * Python 3 bindings
+
+      .. tab-item::  |epel-logo|
+
+        * Core
+        * Perl 5 bindings
+        * Python 3 bindings
+
+      .. tab-item::  |opensuse-logo|
+
+        * Core
+        * Perl 5 bindings
+        * Python 3 bindings
+
+      .. tab-item::  |debian-logo|
+
+        * Core
+        * Perl 5 bindings
+        * Python 3 bindings
+
+      .. tab-item::  |ubuntu-logo|
+
+        * Core
+        * Perl 5 bindings
+        * Python 3 bindings
+
+      .. tab-item::  |windows-logo|
+
+        * Core
+        * Perl 5 bindings
+        * Python 3 bindings
+
+      .. tab-item::  |osx-logo|
+
+        * Core
+        * Perl 5 bindings
+        * Python 3 bindings
+
+
 
 Python interface only
 ---------------------
