@@ -1,3 +1,8 @@
+.. |br| raw:: html
+
+   <br />
+
+
 .. binary-packages::
    :dist:  fedora
    :dist-version: 42
@@ -23,7 +28,7 @@
 
 .. tab-set::
 
-    .. tab-item::  |arch-logo|
+    .. tab-item::  |arch-logo| |br| Arch
       :class-content: dl-arch
 
         .. button-link:: https://www.tbi.univie.ac.at/RNA/download/arch/arch/viennarna-2.7.2-1-x86_64.pkg.tar.zst
@@ -40,7 +45,7 @@
 
           :octicon:`download;1em;sd-text-info` ViennaRNA Package - Python 3 bindings
 
-    .. tab-item::  |fedora-logo|
+    .. tab-item::  |fedora-logo| |br| Fedora
       :class-content: dl-fedora
 
       .. tab-set::
