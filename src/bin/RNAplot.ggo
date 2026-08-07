@@ -20,7 +20,7 @@ description "The program reads (aligned) RNA sequences and structures in the for
  annotated by covariance information. Additionally, a color-annotated EPS alignment figure can be\
  produced, similar to that obtained by RNAalifold and RNALalifold.\nIf the sequence was preceded by\
  a FASTA header, or if the multiple sequence alignment contains an ID field, these IDs will be taken\
- as names for the output file(s): \"name_ss.ps\" and \"name_aln.ps\". Otherwise \"rna.ps\" and \"aln.ps\"\
+ as names for the output file(s): \"name_ss.eps\" and \"name_aln.eps\". Otherwise \"rna.eps\" and \"aln.eps\"\
  will be used. This behavior may be over-ruled by explicitly setting a filename prefix using the --auto-id\
  option.\nExisting files of the same name will be overwritten.\n"
 
@@ -254,7 +254,7 @@ hidden
 
 
 option  "aln"             -
-"Produce a colored and structure annotated alignment in PostScript format in the file \"aln.ps\" in the\
+"Produce a colored and structure annotated alignment in PostScript format in the file \"aln.eps\" in the\
  current directory.\n\n"
 flag
 dependon="msa"

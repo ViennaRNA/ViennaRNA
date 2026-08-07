@@ -770,20 +770,26 @@ process_alignment_record(struct record_data_msa *record)
     free(A);
   }
 
-  switch (opt->format[0]) {
-    case 'p':
-      tmp_string = vrna_strdup_printf("%s.ps", ffname);
-      free(ffname);
-      ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
-      free(tmp_string);
+  vrna_plot_data_t            *data       = NULL;
+  vrna_plot_layout_t          *layout     = NULL;
+  vrna_plot_options_puzzler_t *puzzler    = NULL;
+  unsigned int                file_format = VRNA_FILE_FORMAT_PLOT_DEFAULT;
 
-      THREADSAFE_FILE_OUTPUT(
-        vrna_file_PS_rnaplot_a(consensus_sequence,
-                               structure,
-                               ffname,
-                               pre,
-                               post,
-                               &(opt->md)));
+  switch (opt->format[0]) {
+    case 's':
+      if (opt->format[1] == 'v') { /* svg */
+        tmp_string = vrna_strdup_printf("%s.svg", ffname);
+        free(ffname);
+        ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
+        free(tmp_string);
+        file_format = VRNA_FILE_FORMAT_SVG;
+      } else {
+        tmp_string = vrna_strdup_printf("%s.ssv", ffname);
+        free(ffname);
+        ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
+        free(tmp_string);
+        file_format = VRNA_FILE_FORMAT_SSV;
+      }
 
       break;
 
@@ -792,10 +798,8 @@ process_alignment_record(struct record_data_msa *record)
       free(ffname);
       ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
       free(tmp_string);
+      file_format = VRNA_FILE_FORMAT_GML;
 
-      THREADSAFE_FILE_OUTPUT(
-        gmlRNA(consensus_sequence, structure, ffname, 'x')
-        );
       break;
 
     case 'x':
@@ -803,35 +807,66 @@ process_alignment_record(struct record_data_msa *record)
       free(ffname);
       ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
       free(tmp_string);
+      file_format = VRNA_FILE_FORMAT_XRNA;
 
-      THREADSAFE_FILE_OUTPUT(
-        xrna_plot(consensus_sequence, structure, ffname)
-        );
-      break;
-
-    case 's':
-      tmp_string = vrna_strdup_printf("%s.svg", ffname);
-      free(ffname);
-      ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
-      free(tmp_string);
-
-      THREADSAFE_FILE_OUTPUT(
-        svg_rna_plot(consensus_sequence, structure, ffname)
-        );
       break;
 
     default:
-      RNAplot_cmdline_parser_print_help();
-      exit(EXIT_FAILURE);
+      tmp_string = vrna_strdup_printf("%s.eps", ffname);
+      free(ffname);
+      ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
+      free(tmp_string);
+      file_format = VRNA_FILE_FORMAT_EPS;
+
+      break;
+
   }
+
+  if ((pre) || (post)) {
+    data = (vrna_plot_data_t *)vrna_alloc(sizeof(vrna_plot_data_t));
+    data->pre     = pre;
+    data->post    = post;
+    data->md      = &(opt->md);
+    data->options = 0U;
+  }
+
+  if (opt->plot_type == VRNA_PLOT_TYPE_PUZZLER) {
+    /* RNA puzzler behavior specification */
+
+    puzzler           = vrna_plot_options_puzzler();
+    puzzler->filename = ffname;
+    puzzler->drawArcs = 1;
+
+    puzzler->checkAncestorIntersections = opt->checkAncestorIntersections;
+    puzzler->checkSiblingIntersections  = opt->checkSiblingIntersections;
+    puzzler->checkExteriorIntersections = opt->checkExteriorIntersections;
+    puzzler->allowFlipping              = opt->allowFlipping;
+    puzzler->optimize                   = opt->optimize;
+
+    layout = vrna_plot_layout_puzzler(structure,
+                                      puzzler);
+  } else {
+    layout = vrna_plot_layout(structure, opt->plot_type);
+  }
+
+  THREADSAFE_FILE_OUTPUT(
+    vrna_plot_structure(ffname,
+                        consensus_sequence,
+                        structure,
+                        file_format,
+                        layout,
+                        data));
+
+  vrna_plot_layout_free(layout);
+  vrna_plot_options_puzzler_free(puzzler);
 
   if (opt->aln_PS) {
     free(ffname);
 
     if (record->MSA_ID)
-      ffname = vrna_strdup_printf("%s%saln.ps", record->MSA_ID, opt->filename_delim);
+      ffname = vrna_strdup_printf("%s%saln.eps", record->MSA_ID, opt->filename_delim);
     else
-      ffname = vrna_strdup_printf("aln.ps");
+      ffname = vrna_strdup_printf("aln.eps");
 
     THREADSAFE_FILE_OUTPUT(
       vrna_file_PS_aln_opt(ffname,
