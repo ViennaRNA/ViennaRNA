@@ -16,6 +16,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath("./_ext"))
 sys.path.insert(0, os.path.abspath('@top_srcdir@/doc/sphinx-extensions/breathe'))
 sys.path.insert(0, os.path.abspath('@top_builddir@/doc/sphinx-extensions/breathe'))
 sys.path.insert(0, os.path.abspath('@top_srcdir@/interfaces/Python/'))
@@ -49,7 +50,8 @@ extensions = [
     'sphinx_copybutton',
     'sphinx_rtd_theme',
     'sphinx_design',
-    'myst_parser'
+    'myst_parser',
+    'json_binaries'
 ]
 
 mathjax_path = "js/mathjax/tex-chtml.js"
