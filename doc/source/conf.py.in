@@ -147,6 +147,7 @@ html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     'logo_only': False,
     'display_version': False,
+    'github_url' : "https://github.com/ViennaRNA/ViennaRNA"
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -171,6 +172,12 @@ html_context = {
             "https://github.com/ViennaRNA/ViennaRNA/issues",
         ),
     ],
+    "default_mode": "light"
+}
+
+# remove sidebar from install page
+html_sidebars = {
+  "install": []
 }
 
 latex_elements = {
@@ -204,3 +211,93 @@ breathe_show_define_initializer = False
 breathe_show_include = True
 breathe_show_decl_file_include = True
 breathe_default_members = ('members', 'undoc-members')
+
+jb_json_dir = "../packaging/json"
+
+package_descriptions =  {
+  'viennarna-src'     : 'ViennaRNA Package - Source Code',
+  'viennarna'         : 'ViennaRNA Package - Core',
+  'perl-rna'          : 'ViennaRNA Package - Perl 5 bindings',
+  'python3-rna'       : 'ViennaRNA Package - Python 3 bindings',
+  'viennarna-dev'     : 'ViennaRNA Package - Development files',
+  'viennarna-doc'     : 'ViennaRNA Package - Reference Manual',
+  'viennarna-win'     : 'ViennaRNA Package - Windows Installer',
+  'viennarna-macosx'  : 'ViennaRNA Package - MacOS X Installer',
+}
+
+jb_packages = {
+  "sourcecode": {
+              'package-items' : {
+                'viennarna-src-tbi' : package_descriptions['viennarna-src']
+              },
+              'label': "Source Code"
+            } ,
+  "arch":   {
+              'package-items' : {
+                'viennarna'         : package_descriptions['viennarna'],
+                'perl-rna'          : package_descriptions['perl-rna'],
+                'python-rna'        : package_descriptions['python3-rna']
+              },
+              'label': "Arch"
+            } ,
+  "fedora": {
+              'package-items' : {
+                'tbi-viennarna'         : package_descriptions['viennarna'],
+                'tbi-perl-rna'          : package_descriptions['perl-rna'],
+                'tbi-python3-rna'       : package_descriptions['python3-rna'],
+                'tbi-viennarna-devel'   : package_descriptions['viennarna-dev']
+              },
+              'label': "Fedora"
+            } ,
+  "debian": {
+              'package-items' : {
+                'viennarna'         : package_descriptions['viennarna'],
+                'perl-rna'          : package_descriptions['perl-rna'],
+                'python3-rna'       : package_descriptions['python3-rna'],
+                'viennarna-dev'     : package_descriptions['viennarna-dev'],
+                'viennarna-doc'     : package_descriptions['viennarna-doc']
+              },
+              'label': "Debian"
+            } ,
+  "ubuntu": {
+              'package-items' : {
+                'viennarna'         : package_descriptions['viennarna'],
+                'perl-rna'          : package_descriptions['perl-rna'],
+                'python3-rna'       : package_descriptions['python3-rna'],
+                'viennarna-dev'     : package_descriptions['viennarna-dev'],
+                'viennarna-doc'     : package_descriptions['viennarna-doc']
+              },
+              'label': "Ubuntu"
+            } ,
+  "opensuse":{
+              'package-items' : {
+                'tbi-viennarna'         : package_descriptions['viennarna'],
+                'tbi-perl-rna'          : package_descriptions['perl-rna'],
+                'tbi-python3-rna'       : package_descriptions['python3-rna'],
+                'tbi-viennarna-devel'   : package_descriptions['viennarna-dev']
+              },
+              'label': "OpenSuse"
+            } ,
+  "epel":   {
+              'package-items' : {
+                'tbi-viennarna'         : package_descriptions['viennarna'],
+                'tbi-perl-rna'          : package_descriptions['perl-rna'],
+                'tbi-python3-rna'       : package_descriptions['python3-rna'],
+                'tbi-viennarna-devel'   : package_descriptions['viennarna-dev']
+              },
+              'label': "EPEL"
+            } ,
+  "win":    {
+              'package-items' : {
+                'viennarna-win'     : package_descriptions['viennarna-win']
+              },
+              'label': "Windows"
+            } ,
+  "osx":    {
+              'package-items' : {
+                'viennarna-macosx'  : package_descriptions['viennarna-macosx']
+              },
+              'label': "MacOS X"
+            }
+}
+
