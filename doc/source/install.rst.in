@@ -1,3 +1,5 @@
+.. _install:
+
 Installation
 ============
 
@@ -8,343 +10,697 @@ scripting languages such as ``Perl 5`` and ``Python``.
 
 .. note::
 
-  For best portability the ViennaRNA package uses the GNU
-  ``autoconf`` and ``automake`` tools to prepare the compilation
-  from source code. Read the :doc:`/configuration` section
-  *before* you install our software if you intend to deviate
-  from the default setup.
+    The latest stable release is **Version @PACKAGE_VERSION@**
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+    :hidden:
+
+
+Download
+--------
+
+.. tab-set::
+
+    .. tab-item:: Source Code
+
+        Installing from sourcecode is the recommended way to get most out of the ViennaRNA Package.
+        For best portability the ViennaRNA package uses the GNU tools :code:`autoconf`, :code:`automake`,
+        and :code:`libtool` and can thus be compiled and installed on almost every computer platform.
+
+        .. binary-packages::
+            :flavor: sourcecode
+            :flavor-version: @PACKAGE_VERSION@
+
+    .. tab-item:: Binary Packages
+
+        For your convenience, we also provide precompiled binary packages for several Linux
+        distributions and installer executables for Windows and MacOS X.
+
+        .. include:: binary_download.rstinc
+
+        .. note::
+
+            If required by packaging standards we split the ViennaRNA Package into
+
+            Core
+                Usually the executable programs and utility scripts
+
+            Development Files
+                The RNAlib C-library and the corresponding header files 
+
+            Perl Bindings
+                The RNA module to access RNAlib C-library functions from within Perl scripts
+
+            Python Bindings
+                The RNA class to access RNAlib C-library functions from within Python scripts 
+
+            Reference Manual
+                The documentation for the ViennaRNA Package
+
+    .. tab-item:: Other Packages
+
+        Here we list all versions of the ViennaRNA Package that contain special features which
+        have not been included into the main release yet:
+
+        * :octicon:`download;1em;sd-text-danger sd-font-weight-bold` `ViennaRNA Package v2.6.0b <https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.6.0b.tar.gz>`__ :bdg-primary:`2.6.0b`:bdg-danger:`src`:bdg-secondary:`2.6.x`
+
+          Preliminary release with support for non-standard salt concentrations and with modified nucleobases
+
+        * :octicon:`download;1em;sd-text-danger sd-font-weight-bold` `ViennaRNA Package v2.3.0cuda <https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.3.0cuda.tar.gz>`__ :bdg-primary:`2.3.0cuda`:bdg-danger:`src`:bdg-secondary:`2.3.x`
+
+          This is a preliminary version with CUDA (Nvidia GPU) support for RNAfold
+
+          Configure with
+
+          .. code:: bash
+
+              ./configure NVCC_PATH=/path/to/cuda/bin NVCC_SAMPLES=/path/to/cuda/samples CUDA_SMS="35 50 61"
+
+          where :code:`CUDA_SMS` is a string specifying the CUDA compute capabilities. Here we include support
+          for for Tesla K20, GTX745, and GTX 1060. You can check the appropriate CUDA compute capability
+          for your GPU here: https://developer.nvidia.com/cuda-gpus. Simply use the compute level as
+          displayed at the NVIDIA web site and multiply it by 10 to get a nice and clean integer number
+          for :code:`CUDA_SMS`. To find out the correct path to NVCC a simple :code:`which nvcc` should suffice.
+
+          For all CUDA related environment variables, check the output of 
+
+          .. code::
+
+              ./configure --help
+
+          Some answers to frequently asked questions can be found at
+          `W. Langdons CUDA RNAfold website <http://www0.cs.ucl.ac.uk/staff/W.Langdon/rnafold/>`__.
+
+
+        * :octicon:`download;1em;sd-text-danger sd-font-weight-bold`
+          `ViennaRNA Package v2.1.9h <https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.1.9h.tar.gz>`__
+          :bdg-primary:`2.1.9h`:bdg-danger:`src`:bdg-secondary:`2.1.x`
+
+          This is a preliminary version implementing RNA/DNA hybrid support
+
+    .. tab-item:: Older Version
+
+        There should rarely be a good reason to use any but the latest version of our software.
+        However if you want to look up the old bugs, here's a list with most of the older
+        releases for download.
+
+        .. note::
+
+            Just click on the version numbers below to display the corresponding ViennaRNA Package releases.
+
+        .. binary-packages::
+            :flavor: sourcecode
 
 
 Installing from Source
 ----------------------
 
-The instructions below are for installing the ViennaRNA package
-from source. However, pre-compiled binaries for various Linux
-distributions, as well as for Windows users are available at the
-`download section <https://www.tbi.univie.ac.at/RNA/#download>`_
-of the official ViennaRNA homepage.
-
-.. admonition:: See also...
-
-  :ref:`install:binary packages`, :ref:`install:using conda`, and :ref:`install:python interface only`
-
-Quick-start
-^^^^^^^^^^^
-
-Usually you'll just download the `latest source tarball <https://www.tbi.univie.ac.at/RNA/#source_code_packages>`_,
-unpack, configure and make. To do this type::
-
-  tar -zxvf @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.gz
-  cd @PACKAGE_NAME@-@PACKAGE_VERSION@
-  ./configure
-  make
-  sudo make install
-
-
-Installing from git repository
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-You can also get the latest source code from `our git repository <https://github.com/ViennaRNA/ViennaRNA>`_
-hosted at https://github.com:
-
-.. code:: bash
-
-  git clone https://github.com/ViennaRNA/ViennaRNA.git
-  
-However, to proceed with the configuration and installation you need to perform
-some additional steps **before** actually running the ``./configure`` script:
-
-1. Unpack the ``libsvm`` archive to allow for SVM Z-score regression with the
-   program ``RNALfold``:
-
-.. code:: bash
-
-  tar -xzf src/libsvm-@SVM_VERSION@.tar.gz -C src
-
-2. Unpack the ``dlib`` archive to allow for concentration dependency computations with the
-   program ``RNAmultifold``:
-
-.. code:: bash
-
-  tar -xjf src/dlib-@DLIB_VERSION@.tar.bz2 -C src
-
-3. Install the autotools toolchain and the additional maintainer tools ``gengetopt``,
-   ``help2man``, ``flex``, ``xxd``, and ``swig`` if necessary. For instance, in Debian
-   based distributions, the following packages need to be installed:
-
-    - ``build-essential`` (basic build tools, such as compiler, linker, etc.)
-    - ``autoconf``, ``automake``, ``libtool``, ``pkg-config`` (autotools toolchain)
-    - ``gengetopt`` (to generate command line parameter parsers)
-    - ``help2man`` (to generate the man pages) 
-    - ``bison`` and ``flex`` (to generate sources for ``RNAforester``)
-    - ``vim-common`` (for the ``xxd`` program)
-    - ``swig`` (to generate the scripting language interfaces)
-    - ``liblapacke`` (for ``RNAxplorer``)
-    - ``liblapack``  (for ``RNAxplorer``)
-    - A ``fortran`` compiler, e.g. ``gfortran`` (for ``RNAxplorer``)
-
-4. Finally, run the ``autoconf``/``automake`` toolchain:
-
-.. code:: bash
-
-  autoreconf -i
-
-After that, you can compile and install the ViennaRNA Package as if obtained
-from the distribution tarball.
-
-
-Building the reference manual
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Our implementations are documented with extra comments that are automatically
-parsed by `doxygen <https://www.doxygen.nl/>`_. The extracted API documentation
-is then processed further by `breathe <https://breathe.readthedocs.io/>`_ and finally
-integrated into a comprehensive reference manual written in
-`ReStructuredText <https://docutils.sourceforge.io/rst.html>`_. This manual is then
-usually compiled into HTML and PDF format by `Sphinx <https://www.sphinx-doc.org/>`_.
-
-We provide pre-compiled versions of the reference manual in our distribution
-tarballs and HTML versions at https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman and
-https://viennarna.readthedocs.io. However, under certain circumstances users might
-want to compile the reference manual themselves, e.g. when :ref:`installing from git repository`.
-
-To succeed with the compilation the following tools are required:
-
-    - ``doxygen`` (to extract the API documentation)
-    - ``sphinx-build`` (to compile the manual)
-    - ``pdflatex`` (to compile a PDF version of the manual)
-
-In addition, we use the following sphinx extensions:
-
-    - ``sphinx-multiproject``
-    - ``myst-parser``
-    - ``sphinx-copybutton``
-    - ``sphinxcontrib-bibtex``
-    - ``sphinx-rtd-theme``
-
-If all the above programs and ``python`` packages are available, compilation
-of the reference manual should succeed without any further problems.
-
-
-Installation without root privileges
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If you do not have root privileges on your computer, you might want to install the ViennaRNA
-Package to a location where you actually have write access to. To do so, you can set the
-installation prefix of the ``./configure`` script like so::
-
-  ./configure --prefix=/home/username/.local
-  make install
-
-This will install the entire ViennaRNA Package into your home's ``~/.local/`` directory that
-is commonly used for user-installed software. Just make sure that your ``PATH`` environment
-variable contains the ``$HOME/.local/bin`` directory such that our executables are looked-up
-for at the proper location.
+The instructions below are for installing the ViennaRNA package from source code.
 
 .. tip::
 
-  The ``--prefix`` can be any other directory if you want to keep your installed
-  software separate from each other. The ``make install`` command will then create the corresponding
-  ``bin/``, ``lib/``, ``share/`` directories within the directory you specified.
+    Read the :ref:`custom-build` section **before** you install our software if you intend to deviate
+    from the default setup.
 
 
-MacOS X users
-^^^^^^^^^^^^^
+.. tab-set::
 
-Although users will find ``/usr/bin/gcc`` and ``/usr/bin/g++`` executables in their directory
-tree, these programs are not at all what they pretend to be. Instead of including the GNU
-programs, Apple decided to install ``clang``/``llvm`` in disguise. Unfortunately, the default
-version of ``clang``/``llvm`` does not support ``OpenMP`` (yet), but only complains at a late
-stage of the build process when this support is required. Therefore, it seems necessary to
-deactivate OpenMP support, e.g.:
+    .. tab-item:: From release tarball
+        :name: install-from-release-source
+
+        Usually you'll just download the :ref:`latest source tarball <install:download>`,
+        unpack it and run :code:`configure` and :code:`make`::
+
+          tar -zxvf @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.gz
+          cd @PACKAGE_NAME@-@PACKAGE_VERSION@
+          ./configure
+          make
+          sudo make install
+
+        If you do not have root privileges on your computer, you might want to install the ViennaRNA
+        Package to a location where you actually have write access to. To do so, you can set the
+        installation prefix of the :code:`./configure` script like so::
+
+          tar -zxvf @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.gz
+          cd @PACKAGE_NAME@-@PACKAGE_VERSION@
+          ./configure --prefix=$HOME/.local
+          make
+          make install
+
+        This will install the entire ViennaRNA Package into your home's :code:`~/.local/` directory that
+        is commonly used for user-installed software. Just make sure that your :code:`PATH` environment
+        variable contains the :code:`$HOME/.local/bin` directory such that our executables are looked-up
+        for at the proper location.
+
+        .. tip::
+
+            The :code:`--prefix` can be any other directory if you want to keep your installed software
+            separate from each other. The :code:`make install` command will then create the corresponding
+            :code:`bin/`, :code:`lib/`, :code:`share/` directories within the directory you specified.
+
+        .. admonition:: MacOS X quirks
+
+            Although users will find ``/usr/bin/gcc`` and ``/usr/bin/g++`` executables in their directory
+            tree, these programs are not at all what they pretend to be. Instead of including the GNU
+            programs, Apple decided to install ``clang``/``llvm`` in disguise. Unfortunately, the default
+            version of ``clang``/``llvm`` does not support ``OpenMP`` (yet), but only complains at a late
+            stage of the build process when this support is required. Therefore, it seems necessary to
+            deactivate OpenMP support, e.g.:
+
+            .. code:: bash
+
+                ./configure --disable-openmp
+
+            .. admonition:: See also...
+
+                  :ref:`install:openmp`, :ref:`install:universal binaries`, and :ref:`faq:missing extern.h`
+
+
+
+    .. tab-item:: From Git repository
+        :name:  install-from-git
+
+        You can also get the latest source code from `our git repository <https://github.com/ViennaRNA/ViennaRNA>`_
+        hosted at https://github.com:
+
+        .. code:: bash
+
+          git clone https://github.com/ViennaRNA/ViennaRNA.git
+
+        .. important::
+
+            To proceed with the configuration and installation you need to perform some additional steps
+            **before** actually running the :code:`./configure` script:
+
+            #.  Unpack the :code:`libsvm` archive to allow for SVM Z-score regression with the
+                program :code:`RNALfold`:
+
+                .. code:: bash
+
+                    tar -xzf src/libsvm-@SVM_VERSION@.tar.gz -C src
+
+            #.  Unpack the :code:`dlib` archive to allow for concentration dependency computations with the
+                program :code:`RNAmultifold`:
+
+                .. code:: bash
+
+                    tar -xjf src/dlib-@DLIB_VERSION@.tar.bz2 -C src
+
+            #.  Install the autotools toolchain and the additional maintainer tools :code:`gengetopt`,
+                :code:`help2man`, :code:`flex`, :code:`xxd`, and :code:`swig` if necessary. For instance,
+                in Debian based distributions, the following packages need to be installed:
+
+                - ``build-essential`` (basic build tools, such as compiler, linker, etc.)
+                - ``autoconf``, ``automake``, ``libtool``, ``pkg-config`` (autotools toolchain)
+                - ``gengetopt`` (to generate command line parameter parsers)
+                - ``help2man`` (to generate the man pages) 
+                - ``bison`` and ``flex`` (to generate sources for ``RNAforester``)
+                - ``vim-common`` (for the ``xxd`` program)
+                - ``swig`` (to generate the scripting language interfaces)
+                - ``liblapacke`` (for ``RNAxplorer``)
+                - ``liblapack``  (for ``RNAxplorer``)
+                - A ``fortran`` compiler, e.g. ``gfortran`` (for ``RNAxplorer``)
+
+            #.  Finally, run the :code:`autoconf`/:code:`automake` toolchain:
+
+                .. code:: bash
+
+                    autoreconf -i
+
+            After that, you can compile and install the ViennaRNA Package as if obtained
+            from the distribution tarball.
+
+
+
+    .. tab-item:: Documentation Build
+        :name:  build-documentation
+
+        Our implementations are documented with extra comments that are automatically
+        parsed by `doxygen <https://www.doxygen.nl/>`_. The extracted API documentation
+        is then processed further by `breathe <https://breathe.readthedocs.io/>`_ and finally
+        integrated into a comprehensive reference manual written in
+        `ReStructuredText <https://docutils.sourceforge.io/rst.html>`_. This manual is then
+        usually compiled into HTML and PDF format by `Sphinx <https://www.sphinx-doc.org/>`_.
+
+        We provide pre-compiled versions of the reference manual in our distribution
+        tarballs and HTML versions at https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman and
+        https://viennarna.readthedocs.io. However, under certain circumstances users might
+        want to compile the reference manual themselves, e.g. when
+        :ref:`installing from a git repository <install-from-git>`.
+
+        To succeed with the compilation the following tools are required:
+
+        - ``doxygen`` (to extract the API documentation)
+        - ``sphinx-build`` (to compile the manual)
+        - ``pdflatex`` (to compile a PDF version of the manual)
+
+        In addition, we use the following sphinx extensions:
+
+        - ``sphinx-multiproject``
+        - ``myst-parser``
+        - ``sphinx-copybutton``
+        - ``sphinxcontrib-bibtex``
+        - ``sphinx-rtd-theme``
+
+        If all the above programs and ``python`` packages are available, compilation
+        of the reference manual should succeed without any further problems.
+
+
+    .. tab-item:: Python Package
+        :name:  build-standalone-python
+
+        Our source code allows for building a stand-alone Python 3 interface.
+        For that, we provide the necessary packaging files
+        ``pyproject.toml``, ``setup.cfg``, ``setup.py`` and ``MANIFEST.in``.
+        They are created by our ``autoconf`` toolchain after a successful
+        run of ``./configure``. Particular default compile-time features may be
+        (de-)activated by setting the corresponding boolean flags in
+        ``setup.cfg``. Running
+
+        .. code:: bash
+
+            python -m build
+
+        will then create a source distribution (``sdist``) and a binary
+        package (``wheel``) in the ``dist/`` directory. These files can be
+        easily installed via Python's ``pip``.
+
+        .. important::
+
+            If you are about to create the Python interface from a fresh
+            clone of our git repository, you require additional steps after
+            running ``./configure`` as described
+            :ref:`above <install-from-git>`. In particular,
+            some autogenerated static files that are compiled into RNAlib must
+            be generated. To do so, run
+
+            .. code:: bash
+
+                cd src/ViennaRNA/static
+                make
+                cd ../../..
+
+            Additionally, if building the reference manual is not explicitly
+            turned off, the Python interface requires docstrings to be generated.
+            They are taken from the doxygen xml output which can be created by
+
+            .. code:: bash
+
+                cd doc/doxygen
+                make doxygen-xml
+                cd ../..
+
+            Finally, the swig wrapper must be build using
+
+            .. code:: bash
+
+                cd interfaces/Python
+                make RNA/RNA.py
+                cd ../..
+
+            After these steps, the Python ``sdist`` and ``wheel`` packages can
+            be build as usual.
+
+
+
+Installing Pre-compiled Packages
+--------------------------------
+
+.. tab-set::
+
+    .. tab-item::   Linux
+
+        To install the pre-compiled Linux packages that we provide in the :ref:`install:download` section
+        above, simply download the corresponding files and use the installer program of your
+        linux distribution. Some examples to install the core programs and the Python 3 interface
+        are shown below.
+
+        .. tab-set::
+
+            .. tab-item:: Arch Linux
+
+                .. code:: bash
+
+                    sudo pacman -U viennarna-@PACKAGE_VERSION@-1-x86_64.pkg.tar.zst python-rna-@PACKAGE_VERSION@-1-x86_64.pkg.tar.zst
+
+            .. tab-item:: Debian / Ubuntu
+
+                .. code:: bash
+
+                    sudo apt install viennarna-@PACKAGE_VERSION@-1_amd64.deb python3-rna-@PACKAGE_VERSION@-1_amd64.deb
+
+            .. tab-item:: Fedora
+
+                .. code:: bash
+
+                    sudo dnf install viennarna-@PACKAGE_VERSION@-1.x86_64.rpm python3-rna-@PACKAGE_VERSION@-1.x86_64.rpm
+
+    .. tab-item::   MacOS X
+
+        Simply download the latest MacOS X installer for your architecture from the :ref:`download`
+        section above and run it. It will guide you through the installation process
+
+    .. tab-item::   Windows
+
+        Simply download the latest Windows installer for your architecture from the :ref:`download`
+        section above and run it. It will guide you through the installation process
+
+    .. tab-item::   Conda
+
+        The ViennaRNA Package is also available for the ``conda`` or ``mamba`` package
+        manager. The only requirement is to set up the `bioconda <https://bioconda.github.io/>`_
+        channels
+
+        .. code:: bash
+
+            conda config --add channels defaults
+            conda config --add channels bioconda
+            conda config --add channels conda-forge
+            conda config --set channel_priority strict
+
+        and then you can easily install the
+        `viennarna bioconda package <http://bioconda.github.io/recipes/viennarna/README.html>`_
+        through
+
+        .. code:: bash
+
+            conda install viennarna
+
+
+    .. tab-item:: Python Interface
+
+        The Python 3 interface for the ViennaRNA Package library is
+        `available at PyPI <https://pypi.org/project/ViennaRNA/>`_ and can
+        be installed independently using Python's :code:`pip`::
+
+            python -m pip install viennarna
+
+
+    .. tab-item:: Julia
+
+        An unofficial interface of the ViennaRNA Package for the
+        `Julia Programming Language <https://julialang.org/>`_ exists at
+        `JuliaHub <https://juliahub.com/ui/Packages/ViennaRNA/lOl0n/>`_.
+
+
+.. _custom-build:
+
+Customizing the Build Process
+-----------------------------
+
+The ViennaRNA Package includes additional executable programs such as
+
+* ``RNAforester``,
+* ``Kinfold``,
+* ``Kinwalker``,
+* ``RNAlocmin``, and
+* ``RNAxplorer``.
+
+Furthermore, we include several features in our C-library that may be
+activated by default, or have to be explicitly turned on at configure-time.
+Below we list a selection of the available configure options that affect
+the features included in all executable programs, the *RNAlib* C-library,
+and the corresponding scripting language interface(s).
+
+
+Streaming SIMD Extension
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since version 2.3.5 our sources contain code that implements a faster
+multibranch loop decomposition in global MFE predictions, as used e.g.
+in ``RNAfold``. This implementation makes use of modern processors
+*streaming SIMD extension* (SSE) that provide the capability to execute
+particular instructions on multiple data simultaneously (*SIMD - single
+instruction multiple data*, thanks to W. B. Langdon for providing the
+modified code). Consequently, the time required to assess the minimum of
+all multibranch loop decompositions is reduced up to about one half
+compared to the runtime of the original implementation. This feature is
+enabled by default since version 2.4.11 and a dispatcher ensures that
+the correct implementation will be selected at runtime. If for any
+reason you want to disable this feature at compile-time use the following:
+
+.. code:: bash
+
+  ./configure --disable-simd
+
+Scripting Language Interfaces
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ViennaRNA Package comes with scripting language interfaces for ``Perl 5``,
+``Python`` (provided by `SWIG <https://www.swig.org/>`_), that allow one to
+use the implemented algorithms directly without the need of calling an
+executable program. The necessary requirements are determined at
+configure-time and particular languages may be deactivated automatically
+if the requirements are not met.
+
+.. note::
+
+  Building the Python 2 interface is deactivated by default since it reached
+  its end-of-life on January 1st, 2020. If for any reason you still want to
+  build that interface, you may use the ``--with-python2`` configure option
+  to turn it back on.
+
+You may also switch-off particular languages by passing the
+``--without-perl`` and/or ``--without-python`` configure options, e.g.:
+
+.. code:: bash
+
+  ./configure --without-perl --without-python
+
+will turn-off the ``Perl 5`` and ``Python 3`` interfaces.
+
+.. tip::
+
+  Disabling the scripting language support all-together can be accomplished using the
+  following switch:
+
+  .. code:: bash
+
+    ./configure --without-swig
+
+
+Cluster Analysis
+^^^^^^^^^^^^^^^^
+
+The programs ``AnalyseSeqs`` and ``AnalyseDists`` offer some cluster analysis
+tools (split decomposition, statistical geometry, neighbor joining, Ward's method)
+for sequences and distance data. To also build these programs add ``--with-cluster``
+to your configure options.
+
+Kinfold
+^^^^^^^
+
+The ``kinfold`` program can be used to simulate the folding dynamics of an RNA
+molecule, and is compiled by default. Use the ``--without-kinfold`` option to
+skip compilation and installation of Kinfold.
+
+RNAforester
+^^^^^^^^^^^
+
+The ``RNAforester`` program is used for comparing secondary structures using tree
+alignment. Similar to ``kinfold`, use the ``--without-forester`` option to skip
+compilation and installation of ``RNAforester``.
+
+Kinwalker
+^^^^^^^^^
+
+The ``kinwalker`` algorithm performs co-transcriptional folding of RNAs, starting at
+a user specified structure (default: open chain) and ending at the minimum free
+energy structure. Compilation and installation of this program is deactivated by
+default. Use the ``--with-kinwalker`` option to enable building and installation
+of ``kinwalker``.
+
+RNAlocmin
+^^^^^^^^^
+
+The ``RNAlocmin`` program is part of the **Basin Hopping Graph Framework** and reads
+secondary structures and searches for local minima by performing a gradient walk
+from each of those structures. It then outputs an energetically sorted list of
+local minima with their energies and number of hits to particular minimum, which
+corresponds to a size of a gradient basin. Additional output consists of barrier
+trees and Arhenius rates to compute various kinetic aspects. Compilation and
+installation of this program is activated by default. Use the ``--without-rnalocmin``
+option to disable building and installation of ``RNAlocmin``.
+
+RNAxplorer
+^^^^^^^^^^
+
+The ``RNAxplorer`` is a multitool, that offers different methods to explore RNA
+energy landscapes. In default mode it takes an RNA sequence as input and produces
+a sample of RNA secondary structures. The repellant sampling heuristic used in
+default mode iteratively penalizes base pairs of local minima of structures that
+have been seen too often. This results in a diverse sample set with the most
+important low free energy structures.
+Compilation and installation of this program is activated by default. Note, that
+this tool depends on the ``LAPACK`` library. Use the ``--without-rnaxplorer``
+option to disable building and installation of ``RNAxplorer``.
+
+
+Link Time Optimization
+^^^^^^^^^^^^^^^^^^^^^^
+
+To increase the performance of our implementations, the ViennaRNA Package tries
+to make use of the *Link Time Optimization* (LTO) feature of modern C-compilers.
+If you are experiencing any troubles at make-time or run-time, or the configure
+script for some reason detects that your compiler supports this feature although
+it doesn't, you can deactivate it using the flag:
+
+.. code:: bash
+
+  ./configure --disable-lto
+
+
+Note, that ``gcc`` before version 5 is known to produce unreliable LTO code,
+especially in combination with :ref:`SIMD <install:streaming simd extension>`.
+We therefore recommend using a more recent compiler (GCC 5 or above) or to turn off
+one of the two features, LTO or SIMD optimized code.
+
+OpenMP
+^^^^^^
+
+To enable concurrent computation of our implementations and in some cases
+parallelization of the algorithms we make use of the `OpenMP <https://www.openmp.org/>`_
+API. This interface is well understood by most modern compilers. However, in
+some cases it might be necessary to deactivate OpenMP support and therefore transform
+*RNAlib* into a C-library that is not entirely *thread-safe*. To do so, add the
+following configure option:
 
 .. code:: bash
 
   ./configure --disable-openmp
 
-.. admonition:: See also...
+POSIX threads
+^^^^^^^^^^^^^
 
-  :ref:`configuration:openmp`, :ref:`configuration:universal binaries`, and :ref:`faq:missing extern.h`
-
-
-Using conda
------------
-
-The ViennaRNA Package is also available for the ``conda`` or ``mamba`` package
-manager. The only requirement is to set up the `bioconda <https://bioconda.github.io/>`_
-channels
-
-.. code:: bash
-
-  conda config --add channels defaults
-  conda config --add channels bioconda
-  conda config --add channels conda-forge
-  conda config --set channel_priority strict
-
-and then you can easily install the
-`viennarna bioconda package <http://bioconda.github.io/recipes/viennarna/README.html>`_
-through
+To enable concurrent computation of multiple input data in ``RNAfold``, and for our
+implementation of the concurrent unordered insert, ordered output flush data structure
+:c:type:`vrna_ostream_t` we make use of POSIX threads (pthread). This should be
+supported on all modern platforms and usually does not pose any problems. Unfortunately,
+we use a threadpool implementation that is not compatible with Microsoft Windows yet.
+Thus, POSIX thread support can not be activated for Windows builds until we have
+fixed this problem. If you want to compile ``RNAfold`` and *RNAlib* without POSIX threads
+support for any other reasons, add the following configure option:
 
 .. code:: bash
 
-  conda install viennarna
+  ./configure --disable-pthreads
 
+SVM Z-score filter
+^^^^^^^^^^^^^^^^^^
 
-Binary packages
----------------
-
-For your convenience, we also provide precompiled binary packages for several Linux
-distributions and installer executables for Windows and MacOS X. To comply with the
-packaging standards of the corresponding Linux distributions we split the ViennaRNA
-Package into
-
-Core
-    usually the executable programs and utility scripts
-
-Development Files
-    the RNAlib C-library and the corresponding header files 
-
-Perl Bindings
-    The RNA module to access RNAlib C-library functions from within Perl scripts
-
-Python Bindings
-    The RNA class to access RNAlib C-library functions from within Python scripts 
-
-
-.. |arch-logo| image:: gfx/arch_linux_logo_32.png
-.. |osx-logo| image:: gfx/apple_logo_32.png
-.. |debian-logo| image:: gfx/debian_logo_32.png
-.. |epel-logo| image:: gfx/epel_logo_32.png
-.. |fedora-logo| image:: gfx/fedora_logo_32.png
-.. |opensuse-logo| image:: gfx/opensuse_logo_32.png
-.. |ubuntu-logo| image:: gfx/ubuntu_logo_32.png
-.. |windows-logo| image:: gfx/windows_logo_32.png
-
-
-.. card:: Binrary Packages
-
-  .. tab-set::
-      .. tab-item::  |arch-logo|
-
-        * Core
-        * Perl 5 bindings
-        * Python 3 bindings
-
-      .. tab-item::  |fedora-logo|
-
-        * Core
-        * Perl 5 bindings
-        * Python 3 bindings
-
-      .. tab-item::  |epel-logo|
-
-        * Core
-        * Perl 5 bindings
-        * Python 3 bindings
-
-      .. tab-item::  |opensuse-logo|
-
-        * Core
-        * Perl 5 bindings
-        * Python 3 bindings
-
-      .. tab-item::  |debian-logo|
-
-        * Core
-        * Perl 5 bindings
-        * Python 3 bindings
-
-      .. tab-item::  |ubuntu-logo|
-
-        * Core
-        * Perl 5 bindings
-        * Python 3 bindings
-
-      .. tab-item::  |windows-logo|
-
-        * Core
-        * Perl 5 bindings
-        * Python 3 bindings
-
-      .. tab-item::  |osx-logo|
-
-        * Core
-        * Perl 5 bindings
-        * Python 3 bindings
-
-
-
-Python interface only
----------------------
-
-The Python 3 interface for the ViennaRNA Package library is
-`available at PyPI <https://pypi.org/project/ViennaRNA/>`_ and can
-be installed independently using Python's ``pip``::
-
-  python -m pip install viennarna
-
-Building the Python package
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Our source tree allows for building/installing the Python 3 interface
-separately. For that, we provide the necessary packaging files
-``pyproject.toml``, ``setup.cfg``, ``setup.py`` and ``MANIFEST.in``.
-They are created by our ``autoconf`` toolchain after a successful
-run of ``./configure``. Particular default compile-time features may be
-(de-)activated by setting the corresponding boolean flags in
-``setup.cfg``. Running
+By default, ``RNALfold`` that comes with the ViennaRNA Package allows for Z-score
+filtering of its predicted results using a *Support Vector Machine* (SVM) provided
+by the `LIBSVM <https://www.csie.ntu.edu.tw/~cjlin/libsvm/>`_ library. However, this
+library is statically linked to our own *RNAlib*. If this introduces any problems for
+your own third-party programs that link against *RNAlib*, you can safely switch off
+the Z-scoring implementation using:
 
 .. code:: bash
 
-  python -m build
+  ./configure --without-svm
 
-will then create a source distribution (``sdist``) and a binary
-package (``wheel``) in the ``dist/`` directory. These files can be
-easily installed via Python's ``pip``.
+GNU Scientific Library
+^^^^^^^^^^^^^^^^^^^^^^
+
+The program ``RNApvmin`` computes a pseudo-energy perturbation vector that aims
+to minimize the discrepancy of predicted, and observed pairing probabilities. For
+that purpose it implements several methods to solve the optimization problem. Many
+of them are provided by the `GNU Scientific Library (GSL) <https://www.gnu.org/software/gsl/>`_,
+which is why the ``RNApvmin`` program, and the *RNAlib* C-library are required to
+be linked against ``libgsl``. If this introduces any problems in your own third-party
+programs that link against *RNAlib*, you can turn off a larger portion of available
+minimizers in ``RNApvmin`` and linking against ``libgsl`` all-together, using:
+
+.. code:: bash
+
+  ./configure --without-gsl
+
+Multiple-precision Floating-Point Computations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Our :doc:`Non-redundant Boltzmann Sampling </subopt/stochbt>` implementation uses
+multi-precision floating-point computations provided by the
+`GNU MPFR library <https://www.mpfr.org/>`_ by default. This requires linking against
+``libmpfr`` and ``libgmp``. You can switch off this feature using:
+
+.. code:: bash
+
+  ./configure --disable-mpfr
+
+
+Universal binaries
+^^^^^^^^^^^^^^^^^^
+
+If you intend to build the ViennaRNA for Mac OS X such that it runs *on both*, ``x86_64``
+and the ``arm64`` (Apple Silicon Processors) architectures, you need to build a
+so-called *universal binary*. Note, however, that to accomplish this task, you might
+need to deactivate any third-party library dependency as in most cases, only one
+architecture will be available at link time. This includes the ``Perl 5`` and ``Python``
+interfaces but might also concern also :ref:`MPFR <install:multiple-precision floating-point computations>`
+and :ref:`GSL support <install:gnu scientific library>`, possibly even more.
+In order to compile and link the programs, library, and scripting language interfaces
+of the ViennaRNA Package for multiple architectures, we've added a new configure switch
+that sets up the required changes automatically:
+
+.. code:: bash
+
+  ./configure --enable-universal-binary
 
 .. note::
 
-  If you are about to create the Python interface from a fresh
-  clone of our git repository, you require additional steps after
-  running ``./configure`` as described
-  :ref:`above <install:Installing from git repository>`. In particular,
-  some autogenerated static files that are compiled into RNAlib must
-  be generated. To do so, run
+  With link time optimization turned on, MacOS X's default compiler (``llvm``/``clang``)
+  generates an intermediary binary format that can not easily be combined into a
+  multi-architecture library. Therefore, the ``--enable-universal-binary`` switch
+  turns off :ref:`install:link time optimization`!
 
-  .. code:: bash
 
-    cd src/ViennaRNA/static
-    make
-    cd ../../..
+Disable C11/C++11 features
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  Additionally, if building the reference manual is not explicitly
-  turned off, the Python interface requires docstrings to be generated.
-  They are taken from the doxygen xml output which can be created by
+By default, we use C11/C++11 features in our implementations. This mainly accounts
+for unnamed unions/structs within *RNAlib*. The configure script automatically
+detects whether or not your compiler understands these features. In case you are
+using an older compiler, these features will be deactivated by setting a specific
+pre-processor directive. If for some reason you want to deactivate C11/C++11
+features despite the capabilities of your compiler, use the following configure
+option::
 
-  .. code:: bash
+  ./configure --disable-c11
 
-    cd doc
-    make refman-html
-    cd ..
+Deprecated symbols
+^^^^^^^^^^^^^^^^^^
 
-  Finally, the swig wrapper must be build using
+Since version 2.2 we are in the process of transforming the API of our *RNAlib*.
+Hence, several symbols are marked as *deprecated* whenever they have been
+replaced by the new API. By default, deprecation warnings at compile time are
+deactivated. If you want to get your terminal spammed by tons of deprecation
+warnings, enable them using::
 
-  .. code:: bash
+  ./configure --enable-warn-deprecated
 
-    cd interfaces/Python
-    make RNA/RNA.py
-    cd ../..
+Single precision
+^^^^^^^^^^^^^^^^
 
-  After these steps, the Python ``sdist`` and ``wheel`` packages can
-  be build as usual.
+Calculation of partition functions (via ``RNAfold -p``) uses double precision
+floats by default, to avoid overflow errors on longer sequences. If your machine
+has little memory and you don't plan to fold sequences over 1,000 bases in
+length you can compile the package to do the computations in single precision by
+running::
 
-Unofficial Julia Interface
---------------------------
+  ./configure --enable-floatpf
 
-An unofficial interface of the ViennaRNA Package for the
-`Julia Programming Language <https://julialang.org/>`_ exists at
-`JuliaHub <https://juliahub.com/ui/Packages/ViennaRNA/lOl0n/>`_.
+.. warning::
+
+  Using this option is discouraged and not necessary on most modern computers.
+
+Help
+^^^^
+
+For a complete list of all ``./configure`` options and important environment variables,
+type::
+
+  ./configure --help
+
+For more general information on the build process see the *INSTALL* file.
+
+

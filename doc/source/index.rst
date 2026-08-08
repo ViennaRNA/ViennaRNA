@@ -3,38 +3,68 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-A Library for predicting and comparing RNA secondary structures
----------------------------------------------------------------
+Predicting and Comparing RNA Secondary Structures
+-------------------------------------------------
 
-.. image:: gfx/vrna.png
-  :height: 200px
-  :align: left
+.. grid:: 1 1 2 3
+    :gutter:  1 1 2 3
 
-The core of the **ViennaRNA Package** (:cite:t:`lorenz:2011,hofacker:1994`)
-is formed by a collection of routines for the prediction and comparison
-of RNA secondary structures. These routines can be accessed through
-stand-alone programs, such as *RNAfold*, *RNAdistance* etc., which should
-be sufficient for most users. For those who wish to develop their own
-programs we provide *RNAlib*, a C-library that can be linked to your own
-code or even used in your scripts and pipelines through our :doc:`/wrappers`
-for :doc:`Python <api_python>` and Perl 5.
+    .. grid-item-card::
+        :columns: 12
+
+        .. image:: gfx/vrna.png
+            :height: 200px
+            :align: left
+
+        The core of the **ViennaRNA Package** (:cite:t:`lorenz:2011,hofacker:1994`)
+        is formed by a collection of routines for the prediction and comparison
+        of RNA secondary structures. These routines can be accessed through
+        stand-alone programs, such as *RNAfold*, *RNAdistance* etc., which should
+        be sufficient for most users. For those who wish to develop their own
+        programs we provide *RNAlib*, a C-library that can be linked to your own
+        code or even used in your scripts and pipelines through our :doc:`/wrappers`
+        for :doc:`Python <api_python>` and Perl 5.
+
+    .. grid-item-card:: Installation
+        :link:  install
+        :link-type: ref
+
+        How to download, customize, and install
+        the ViennaRNA Package
+
+    .. grid-item-card:: Usage and Tutorials
+
+        Learn how to use the ViennaRNA Package
+
+        * :doc:`getting_started`
+        * :doc:`using_rnalib`
+        * :doc:`io`
+        * :doc:`manpages`
+
+    .. grid-item-card:: RNAlib API Reference
+
+
+    .. grid-item-card:: Miscelleaneous
+
+
 
 The latest version of the package including source code and html
 versions of the documentation can be found at
 https://www.tbi.univie.ac.at/RNA and https://github.com/ViennaRNA/ViennaRNA.
 
 .. toctree::
-   :caption: Installation
-   :maxdepth: 1
+    :caption: Installation
+    :maxdepth: 1
+    :hidden:
 
-   install
-   configuration
+    install
+    getting_started
 
 .. toctree::
    :caption: Usage and Tutorials:
    :maxdepth: 1
+   :hidden:
 
-   getting_started
    manpages
    using_rnalib
    io

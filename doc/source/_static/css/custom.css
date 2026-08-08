@@ -1,5 +1,12 @@
 @import url("theme.css");
 
+html[data-theme="dark"] img {
+    filter: none;
+}
+html[data-theme="dark"] .bd-content img:not(.only-dark):not(.dark-light) {
+    background: unset;
+}
+
 dl.c.function > dd > em:first-of-type {
     background-color: #ededee;
     padding: 2px;

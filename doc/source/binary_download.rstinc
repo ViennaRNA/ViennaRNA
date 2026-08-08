@@ -2,12 +2,6 @@
 
    <br />
 
-
-.. binary-packages::
-   :dist:  fedora
-   :dist-version: 42
-
-
 .. |arch-logo| image:: gfx/arch_linux_logo_32.png
                 :alt: Arch Linux
 
@@ -23,89 +17,9 @@
 
 .. |ubuntu-logo| image:: gfx/ubuntu_logo_32.png
 
-.. |windows-logo| image:: gfx/windows_logo_32.png
+.. |win-logo| image:: gfx/windows_logo_32.png
 
 
-.. tab-set::
 
-    .. tab-item::  |arch-logo| |br| Arch
-      :class-content: dl-arch
 
-        .. button-link:: https://www.tbi.univie.ac.at/RNA/download/arch/arch/viennarna-2.7.2-1-x86_64.pkg.tar.zst
-          :align: justify
-          :tooltip: Download Core Package
-
-          :octicon:`download;1em;sd-text-info` ViennaRNA Package - Core :bdg-primary:`v2.7.2`:bdg-info:`1`:bdg-danger:`x86-64`:bdg-secondary:`Arch`:bdg-warning:`91.6MB`
-
-        .. button-link:: https://www.tbi.univie.ac.at/RNA/download/arch/arch/perl-rna-2.7.2-1-x86_64.pkg.tar.zst
-
-          :octicon:`download;1em;sd-text-info` ViennaRNA Package - Perl 5 bindings
-
-        .. button-link:: https://www.tbi.univie.ac.at/RNA/download/arch/arch/python-rna-2.7.2-1-x86_64.pkg.tar.zst
-
-          :octicon:`download;1em;sd-text-info` ViennaRNA Package - Python 3 bindings
-
-    .. tab-item::  |fedora-logo| |br| Fedora
-      :class-content: dl-fedora
-
-      .. tab-set::
-
-          .. tab-item::  Fedora-42
-
-            * Core
-            * Perl 5 bindings
-            * Python 3 bindings
-
-          .. tab-item::  Fedora-43
-
-            * Core
-            * Perl 5 bindings
-            * Python 3 bindings
-
-          .. tab-item::  Fedora-44
-
-            * Core
-            * Perl 5 bindings
-            * Python 3 bindings
-
-    .. tab-item::  |epel-logo|
-      :class-content: dl-epel
-
-      * Core
-      * Perl 5 bindings
-      * Python 3 bindings
-
-    .. tab-item::  |opensuse-logo|
-      :class-content: dl-opensuse
-
-      * Core
-      * Perl 5 bindings
-      * Python 3 bindings
-
-    .. tab-item::  |debian-logo|
-      :class-content: dl-debian
-
-      * Core
-      * Perl 5 bindings
-      * Python 3 bindings
-
-    .. tab-item::  |ubuntu-logo|
-      :class-content: dl-ubuntu
-
-      * Core
-      * Perl 5 bindings
-      * Python 3 bindings
-
-    .. tab-item::  |windows-logo|
-      :class-content: dl-windows
-
-      * Core
-      * Perl 5 bindings
-      * Python 3 bindings
-
-    .. tab-item::  |osx-logo|
-      :class-content: dl-osx
-
-      * Core
-      * Perl 5 bindings
-      * Python 3 bindings
+.. binary-packages::
