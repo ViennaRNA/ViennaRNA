@@ -3,6 +3,9 @@ import os, re
 
 from docutils import nodes
 from sphinx.util.docutils import SphinxDirective
+from sphinx.parsers import RSTParser
+from docutils.frontend import OptionParser
+from docutils.utils import new_document
 
 
 def detect_version_number(string, default = ""):
@@ -35,21 +38,114 @@ class ShowBinaryPackagesDirective(SphinxDirective):
     has_content = True
     optional_arguments = 2
     option_spec = {
-      'dist': str,
-      'dist-version': str
+      'flavor': str,
+      'flavor-version': str
     }
 
     def run(self) -> list:
-        self.options['dist'] = self.options.get('dist', '')
-        self.options['dist-version'] = self.options.get('dist-version', '')
+        flavor          = self.options.get('flavor', '')
+        flavor_version  = self.options.get('flavor-version', '')
 
-        if not hasattr(self.env, 'jb_json_data'):
-            self.env.jb_json_data = []
+        if not hasattr(self.env, 'jb_packages'):
+            self.env.jb_packages = {}
 
-        for d in self.env.jb_json_data:
-            print(d)
+        print("packages available:")
+        # construct RST code for the packages
+        rst = ""
 
-        return [nodes.paragraph("", f"Hello World. {self.options['dist']} - {self.options['dist-version']}")]
+        if (flavor != ''):
+          if flavor in self.env.jb_packages:
+              label = self.env.jb_package_labels.get(flavor, flavor)
+              data = {}
+
+              if flavor_version != '':
+                  # search and collect all entries for requested version
+                  for flavor_v, d in self.env.jb_packages[flavor].items():
+                      for dd in d:
+                          if dd['version'] == flavor_version:
+                              if flavor_v not in data:
+                                  data[flavor_v] = []
+
+                              data[flavor_v].append(dd)
+              else:
+                  data = self.env.jb_packages[flavor]
+
+              rst += self._get_rst_flavor(flavor, label, data, standalone = True, indent = 0) + "\n"
+          else:
+              print(f"flavor \"{flavor}\" not in available packages")
+        else:
+            rst +=  ".. tab-set::\n"
+            rst +=  "    :class: sd-align-major-justify\n\n"
+            for flavor, data in self.env.jb_packages.items():
+                if flavor in ['sourcecode']:
+                    continue
+
+                label = self.env.jb_package_labels.get(flavor, flavor)
+                rst += self._get_rst_flavor(flavor, label, data) + "\n"
+
+        print(rst)
+
+        #return [nodes.paragraph("", f"Hello World. {self.options['dist']} - {self.options['dist-version']}")]
+        return self.parse_rst(rst)
+
+
+    def _get_rst_flavor(self, flavor, label, data, standalone = False, indent = 4) -> str:
+        if not label or label == "":
+            label = flavor
+        mindent = " " * indent
+        lindent = ""
+
+        rst = []
+        if not standalone:
+            rst.append(f".. tab-item:: |{flavor}-logo| |br| :sub:`{label}`")
+            rst.append(f"    :class-content: dl-{flavor}")
+            rst.append("    :class-label: sd-text-center\n")
+            lindent = "    "
+
+        if len(data) == 1:
+            flavor_v, d = next(iter( data.items() ))
+            for v in d:
+                rst.append(lindent + f":octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
+                       f"`{v['description']} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v}/{v['filename']}>`__ " \
+                       f":bdg-primary:`{v['version']}`" \
+                       f":bdg-info:`{v['release'] if v['release'] != "" else '1'}`" \
+                       f":bdg-danger:`{v['architecture']}`" \
+                       f":bdg-secondary:`{flavor_v}`\n")
+        else:
+            rst.append(lindent + ".. tab-set::")
+            rst.append(lindent + "    :class: sd-align-major-start\n")
+            for flavor_v, d in data.items():
+                rst.append(lindent + f"    .. tab-item:: {flavor_v}")
+                rst.append(lindent + f"        :class-label: sd-text-center\n")
+                for v in d:
+#                    rst.append(lindent * 2 + f"    .. div:: \n")
+                    rst.append(lindent + f"        :octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
+                           f"`{v['description']} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v}/{v['filename']}>`__ " \
+                           f":bdg-primary:`{v['version']}`" \
+                           f":bdg-info:`{v['release'] if v['release'] != "" else '1'}`" \
+                           f":bdg-danger:`{v['architecture']}`" \
+                           f":bdg-secondary:`{flavor_v}`\n")
+
+        text = ""
+        for line in rst:
+            text += mindent + line + "\n"
+
+        return text
+
+    def parse_rst(self, text):
+        parser = RSTParser()
+        parser.set_application(self.env.app)
+
+        settings = OptionParser(
+            defaults=self.env.settings,
+            components=(RSTParser,),
+            read_config_files=True,
+        ).get_default_values()
+
+        document = new_document("<rst-doc>", settings=settings)
+        parser.parse(text, document)
+
+        return document.children
 
 
 def parse_json_files(app, docname, source):
@@ -57,14 +153,13 @@ def parse_json_files(app, docname, source):
         print(f"parsing json files in {app.config.jb_json_dir}")
         env = app.env
 
-        if not hasattr(env, 'jb_json_data'):
-            env.jb_json_data = []
+        env.jb_packages = {}
+        env.jb_package_labels = {}
 
-        if not hasattr(env, 'jb_packages'):
-            env.jb_packages = {}
+        for flavor, package in app.config.jb_packages.items():
+            env.jb_package_labels[flavor] = package['label']
 
-        for flavor, p in app.config.jb_packages.items():
-            for pp, desc in p.items():
+            for pp, desc in package['package-items'].items():
                 # attempt to open and parse corresponding json data
                 filename = f"{app.config.jb_json_dir}/{pp}.json"
                 try:
@@ -103,7 +198,6 @@ def parse_json_files(app, docname, source):
 def setup(app: object) -> dict:
     app.add_config_value('jb_json_dir', '', 'html')
     app.add_config_value('jb_packages', {}, 'html')
-    app.add_config_value('jb_archs', [], 'html')
     app.add_config_value('jb_latest_version', '', 'html')
     
     app.add_directive("binary-packages", ShowBinaryPackagesDirective)
