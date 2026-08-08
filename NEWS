@@ -1,3 +1,30 @@
+Version 2.7.0
+-------------
+{bdg-primary-line}`11 - 10 - 2024`
+
+::: {div} sd-text-primary sd-font-weight-bold
+Finally, version 2.7 brings G-quadruplex support for circular RNAs and new methods for
+integrating experimental RNA structure probing data!
+:::
+
+This new release brings the source tree closer to the long-awaited version 3. More code
+within RNAlib and the executable programs has been transformed to use the v3 API. The
+next major release will then turn-on deprecation warnings by default to warn any
+third-party programs that rely on our library to take action and adapt their code
+accordingly. While several bugs have been fixed, tons of additional features have been
+implemented. Note, that the decomposition scheme for global RNA structure prediction
+changed from using an M1 DP matrix (exactly one branch within a multiloop) to M2
+(at least two branches within a multiloop). This change not only slightly reduces the
+overall runtime but also unifies the implementations for circular RNAs, global and
+local RNA structure prediction.
+
+Moreover, the API underwent a major clean-up to unify the naming of functions and the
+data types of their input and output parameters. RNAlib header include files have now
+been grouped into separate subdirectories to obtain a better structured interface. As
+usual, the full list of changes, bug fixes and additional features can be found at the
+Changelog for version 2.7.0.
+
+
 Version 2.6.0
 -------------
 
