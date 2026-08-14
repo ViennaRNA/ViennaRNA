@@ -134,6 +134,14 @@ outside_bp_external(vrna_fold_compound_t  *fc,
 
 
 PRIVATE int
+outside_bp_circ(vrna_fold_compound_t  *fc,
+                unsigned int          l,
+                FLT_OR_DBL            *Qmax,
+                int                   *ov,
+                helper_arrays_t       dp_helpers);
+
+
+PRIVATE int
 outside_bp_enclosed(vrna_fold_compound_t  *vc,
                     unsigned int          l,
                     FLT_OR_DBL            *Qmax,
@@ -5585,3 +5593,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
 
   free(tt);
 }
+
+
+#include "outside_circ.inc"
