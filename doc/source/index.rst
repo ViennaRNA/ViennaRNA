@@ -29,8 +29,7 @@ Predicting and Comparing RNA Secondary Structures
         :link:  install
         :link-type: ref
 
-        How to download, customize, and install
-        the ViennaRNA Package
+        * :doc:`Download and Install instructions <install>`
 
     .. grid-item-card:: Usage and Tutorials
 
