@@ -3,9 +3,6 @@ import os, re
 
 from docutils import nodes
 from sphinx.util.docutils import SphinxDirective
-from sphinx.parsers import RSTParser
-from docutils.frontend import OptionParser
-from docutils.utils import new_document
 
 
 def detect_version_number(string, default = ""):
@@ -85,9 +82,7 @@ class ShowBinaryPackagesDirective(SphinxDirective):
 
         print(rst)
 
-        #return [nodes.paragraph("", f"Hello World. {self.options['dist']} - {self.options['dist-version']}")]
-        return self.parse_rst(rst)
-
+        return self.parse_text_to_nodes(rst)
 
     def _get_rst_flavor(self, flavor, label, data, standalone = False, indent = 4) -> str:
         if not label or label == "":
@@ -109,7 +104,7 @@ class ShowBinaryPackagesDirective(SphinxDirective):
                        f"`{v['description']} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v}/{v['filename']}>`__ " \
                        f":bdg-primary:`{v['version']}`" \
                        f":bdg-info:`{v['release'] if v['release'] != "" else '1'}`" \
-                       f":bdg-danger:`{v['architecture']}`" \
+                       f":bdg-danger:`{v['architecture']} ; Target Architecture`" \
                        f":bdg-secondary:`{flavor_v}`\n")
         else:
             rst.append(lindent + ".. tab-set::")
@@ -123,7 +118,7 @@ class ShowBinaryPackagesDirective(SphinxDirective):
                            f"`{v['description']} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v}/{v['filename']}>`__ " \
                            f":bdg-primary:`{v['version']}`" \
                            f":bdg-info:`{v['release'] if v['release'] != "" else '1'}`" \
-                           f":bdg-danger:`{v['architecture']}`" \
+                           f":bdg-danger:`{v['architecture']} ; Target Architecture`" \
                            f":bdg-secondary:`{flavor_v}`\n")
 
         text = ""
@@ -131,21 +126,6 @@ class ShowBinaryPackagesDirective(SphinxDirective):
             text += mindent + line + "\n"
 
         return text
-
-    def parse_rst(self, text):
-        parser = RSTParser()
-        parser.set_application(self.env.app)
-
-        settings = OptionParser(
-            defaults=self.env.settings,
-            components=(RSTParser,),
-            read_config_files=True,
-        ).get_default_values()
-
-        document = new_document("<rst-doc>", settings=settings)
-        parser.parse(text, document)
-
-        return document.children
 
 
 def parse_json_files(app, docname, source):
