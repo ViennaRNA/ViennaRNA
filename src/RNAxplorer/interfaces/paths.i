@@ -12,7 +12,7 @@
 		float e = $1[i].en;
 		char* s = $1[i].s;
 		PyObject* energy = PyFloat_FromDouble(e);
-		PyObject* structure = PyString_FromString(s);
+		PyObject* structure = PyUnicode_FromString(s);
 		PyObject* tupel = PyTuple_New(2);
 		PyTuple_SET_ITEM(tupel,0,structure);
 		PyTuple_SET_ITEM(tupel,1,energy); 

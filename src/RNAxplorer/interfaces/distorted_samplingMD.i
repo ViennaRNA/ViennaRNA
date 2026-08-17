@@ -28,20 +28,31 @@
     $1 = (char **) malloc((size+1)*sizeof(char *));
     for (i = 0; i < size; i++) {
       PyObject *o = PyList_GetItem($input,i);
-      if (PyString_Check(o))
-        $1[i] = PyString_AsString(PyList_GetItem($input,i));
-      else {
+      if (PyUnicode_Check(o)) {
+        $1[i] = strdup(PyUnicode_AsUTF8(PyList_GetItem($input,i)));
+      } else {
         PyErr_SetString(PyExc_TypeError,"list must contain strings");
         free($1);
         return NULL;
       }
     }
-    $1[i] = 0;
+    $1[i] = NULL;
   } else {
     PyErr_SetString(PyExc_TypeError,"not a list");
     return NULL;
   }
 }
+
+%typemap(freearg) char ** {
+  char **ptr;
+
+  if ($1)
+    for (ptr = $1; *ptr != NULL; ptr++)
+      free(*ptr);
+
+  free($1);
+}
+
 
 %typemap(out) gridLandscapeT* estimate_landscapeMD {
 	//get number of cells
@@ -61,15 +72,15 @@
 			if($1->landscape[i][j].num_structs > 0){
 				PyObject* cellList = PyTuple_New(4);
 				
-				PyObject* pK = PyInt_FromLong($1->landscape[i][j].k);
-				PyObject* pL = PyInt_FromLong($1->landscape[i][j].l);
+				PyObject* pK = PyLong_FromLong($1->landscape[i][j].k);
+				PyObject* pL = PyLong_FromLong($1->landscape[i][j].l);
 				
 				double num = $1->landscape[i][j].mfe;
 				PyObject* pMFE = PyFloat_FromDouble(num);
 				
 				PyObject* structureList = PyList_New($1->landscape[i][j].num_structs);
 				for(int k = 0; k < $1->landscape[i][j].num_structs; k++){
-					PyObject* pStr = PyString_FromString($1->landscape[i][j].structures[k]);
+					PyObject* pStr = PyUnicode_FromString($1->landscape[i][j].structures[k]);
 					PyList_SetItem(structureList,k,pStr);
 					free($1->landscape[i][j].structures[k]);
 				}

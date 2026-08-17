@@ -25,15 +25,15 @@ void computeDistortion(vrna_fold_compound_t *vc, const char *s0, const char *s1,
 			if($1->landscape[i][j].num_structs > 0){
 				PyObject* cellList = PyTuple_New(4);
 				
-				PyObject* pK = PyInt_FromLong($1->landscape[i][j].k);
-				PyObject* pL = PyInt_FromLong($1->landscape[i][j].l);
+				PyObject* pK = PyLong_FromLong($1->landscape[i][j].k);
+				PyObject* pL = PyLong_FromLong($1->landscape[i][j].l);
 				
 				double num = $1->landscape[i][j].mfe;
 				PyObject* pMFE = PyFloat_FromDouble(num);
 				
 				PyObject* structureList = PyList_New($1->landscape[i][j].num_structs);
 				for(int k = 0; k < $1->landscape[i][j].num_structs; k++){
-					PyObject* pStr = PyString_FromString($1->landscape[i][j].structures[k]);
+					PyObject* pStr = PyUnicode_FromString($1->landscape[i][j].structures[k]);
 					PyList_SetItem(structureList,k,pStr);
 					free($1->landscape[i][j].structures[k]);
 				}
