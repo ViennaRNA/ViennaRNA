@@ -57,7 +57,7 @@ python_wrap_subopt_cb(const char *structure,
   func  = cb->cb;
 
   /* compose argument list */
-  py_structure = (structure) ? PyString_FromString(structure) : Py_None;
+  py_structure = (structure) ? PyUnicode_FromString(structure) : Py_None;
   py_energy    = PyFloat_FromDouble((double)energy);
   result       = PyObject_CallFunctionObjArgs(func,
                                               py_structure,

@@ -211,6 +211,42 @@ my_file_connect_read_record(FILE         *fp,
 
 %clear std::string *remainder, std::string *sequence, std::string *structure, std::string *id;
 
+%rename (extract_record_rest_structure) my_extract_record_rest_structure;
+
+%{
+    std::string
+    my_extract_record_rest_structure(std::vector<std::string> lines,
+                                     unsigned int             length,
+                                     unsigned int             options)
+    {
+      std::string structure = std::string();
+      std::vector<const char*>  lines_vec;
+
+      if (lines.size() > 0) {
+        /* convert std::vector<std::string> to vector<const char *> */
+        std::transform(lines.begin(),
+                       lines.end(),
+                       std::back_inserter(lines_vec),
+                       convert_vecstring2veccharcp);
+        lines_vec.push_back(NULL); /* mark end of sequences */
+
+        structure = std::string(vrna_extract_record_rest_structure((const char **)&lines_vec[0],
+                                                                   length,
+                                                                   options));
+      }
+
+      return structure;
+    }
+%}
+
+std::string
+my_extract_record_rest_structure(std::vector<std::string> lines,
+                                 unsigned int             length,
+                                 unsigned int             options);
+
+%ignore extract_record_rest_structure;
+
+
 
 %constant unsigned int  INPUT_ERROR               = VRNA_INPUT_ERROR;
 %constant unsigned int  INPUT_QUIT                = VRNA_INPUT_QUIT;

@@ -95,7 +95,11 @@ strncpy(symbolset, "AUGC", sizeof(char) * 5);
 }
 
 %typemap(varout) char * symbolset {
+#if SWIG_VERSION >= 0x040500
+  $result = PyUnicode_FromString((const char *)symbolset);
+#else
   $result = SWIG_Python_str_FromChar((const char *)symbolset);
+#endif
 }
 #endif
 

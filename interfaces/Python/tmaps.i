@@ -51,6 +51,11 @@
 
 %apply int [ANY][ANY] { const int[ANY][ANY], long int [ANY][ANY], const long int [ANY][ANY], short [ANY][ANY], const short [ANY][ANY] };
 
+#if 0
+/* deactivate this conversion since we only get const char * from Python objects
+ * and swig always generates char * arguments. A workaround would be to duplicate
+ * the memory and release it after passing it as argument
+ */
 // This tells SWIG to treat char ** as a special case
 %typemap(in) char ** {
   /* Check if is a list */
@@ -60,9 +65,9 @@
     $1 = (char **) malloc((size+1)*sizeof(char *));
     for (i = 0; i < size; i++) {
       PyObject *o = PyList_GetItem($input,i);
-      if (PyUnicode_Check(o))
-        $1[i] = PyString_AsString(PyUnicode_AsASCIIString(o));
-      else {
+      if (PyUnicode_Check(o)) {
+        $1[i] = PyUnicode_AsUTF8(PyUnicode_AsASCIIString(o));
+      } else {
         PyErr_SetString(PyExc_TypeError,"list must contain strings");
         free($1);
         return NULL;
@@ -77,6 +82,7 @@
 
 // This tells SWIG to treat char *[], const char **, and const char *[] the same as char **
 %apply char ** { char *[], const char **, const char *[] };
+#endif
 
 /*
   we need this crazy piece of argout typemap only because we don't

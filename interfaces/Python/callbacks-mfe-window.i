@@ -73,7 +73,7 @@ python_wrap_mfe_window_cb(unsigned int  start,
   PyObject *py_start, *py_end, *py_structure, *py_energy;
   py_start      = PyLong_FromUnsignedLong(start);
   py_end        = PyLong_FromUnsignedLong(end);
-  py_structure  = PyString_FromString(structure);
+  py_structure  = PyUnicode_FromString(structure);
   py_energy     = PyFloat_FromDouble((double)energy);
   result        = PyObject_CallFunctionObjArgs(func,
                                                py_start,
@@ -127,7 +127,7 @@ python_wrap_mfe_window_zscore_cb(unsigned int start,
   PyObject *py_start, *py_end, *py_structure, *py_energy, *py_zscore;
   py_start = PyLong_FromUnsignedLong(start);
   py_end   = PyLong_FromUnsignedLong(end);
-  py_structure  = PyString_FromString(structure);
+  py_structure  = PyUnicode_FromString(structure);
   py_energy     = PyFloat_FromDouble((double)energy);
   py_zscore     = PyFloat_FromDouble((double)zscore);
   result        = PyObject_CallFunctionObjArgs(func,

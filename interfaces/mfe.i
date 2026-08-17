@@ -430,6 +430,7 @@ char *my_circalifold(std::vector<std::string> alignment, char *constraints, floa
 %ignore energy_of_ali_gquad_structure;
 
 %ignore alifold;
+%ignore circalifold;
 %ignore alipf_fold_par;
 %ignore alipf_fold;
 %ignore alipf_circ_fold;

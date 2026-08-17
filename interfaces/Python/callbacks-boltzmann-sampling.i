@@ -53,7 +53,7 @@ python_wrap_bs_cb(const char *structure,
   func = cb->cb;
   /* compose argument list */
   PyObject *py_structure, *py_energy;
-  py_structure = (structure) ? PyString_FromString(structure) : Py_None;
+  py_structure = (structure) ? PyUnicode_FromString(structure) : Py_None;
   result       = PyObject_CallFunctionObjArgs(func,
                                               py_structure,
                                               (cb->data) ? cb->data : Py_None,
