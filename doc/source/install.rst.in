@@ -561,21 +561,14 @@ executable program. The necessary requirements are determined at
 configure-time and particular languages may be deactivated automatically
 if the requirements are not met.
 
-.. note::
-
-  Building the Python 2 interface is deactivated by default since it reached
-  its end-of-life on January 1st, 2020. If for any reason you still want to
-  build that interface, you may use the ``--with-python2`` configure option
-  to turn it back on.
-
-You may also switch-off particular languages by passing the
+You may switch-off particular languages by passing the
 ``--without-perl`` and/or ``--without-python`` configure options, e.g.:
 
 .. code:: bash
 
-  ./configure --without-perl --without-python
+  ./configure --without-perl
 
-will turn-off the ``Perl 5`` and ``Python 3`` interfaces.
+will turn-off building the ``Perl 5`` interface.
 
 .. tip::
 

@@ -174,14 +174,6 @@ AS_IF([test $with_python = "yes"],[
     _python_lib_dir=""
     _python_install="Not to be installed $python3_enabled_but_failed"
 ])
-AS_IF([test $with_python2 = "yes"],[
-  eval _python2_arch_dir=$(eval printf "%s" ${py2execdir})
-  eval _python2_lib_dir=$(eval printf "%s" ${python2dir})
-  ],[
-    _python2_arch_dir=""
-    _python2_lib_dir=""
-    _python2_install="Not to be installed $python2_enabled_but_failed"
-])
 AS_IF([test "x$enable_universal_binary" != "xno"],[
   _osx_arch=$osx_arch
   ],[
@@ -225,7 +217,6 @@ m4_map_args([ AC_RNA_COLOR_RESULT_PACKAGE],
             [gsl],
             [perl],
             [python],
-            [python2],
             [doc_pdf],
             [doc_html],
             [cla_pdf],
@@ -248,7 +239,6 @@ m4_map_args([ AC_RNA_COLOR_RESULT_FEATURE],
             [unittests],
             [check_perl],
             [check_python],
-            [check_python2],
             [macosx_installer],
             [macosx_sdk])
 
@@ -265,9 +255,6 @@ m4_map_args([ AC_RNA_COLOR_RESULT_SIMPLE],
             [_perl_install],
             [_perl_arch_dir],
             [_perl_lib_dir],
-            [_python2_install],
-            [_python2_arch_dir],
-            [_python2_lib_dir],
             [_python_install],
             [_python_arch_dir],
             [_python_lib_dir])
@@ -321,7 +308,6 @@ Scripting Language Interfaces
 -----------------------------
   * Perl 5                    : ${result_perl}
   * Python 3.x                : ${result_python}
-  * Python 2.x                : ${result_python2}
 
 Documentation
 -------------
@@ -335,7 +321,6 @@ Unit Tests
   * C-Library                 : ${result_check}
   * Perl 5 Interface          : ${result_check_perl}
   * Python 3.x Interface      : ${result_check_python}
-  * Python 2.x Interface      : ${result_check_python2}
 
 MacOS X
 -------
@@ -359,9 +344,6 @@ Install Directories
   * Python 3.x Interface      : $result__python_install
       (binaries)              : $result__python_arch_dir
       (scripts)               : $result__python_lib_dir
-  * Python 2.x Interface      : $result__python2_install
-      (binaries)              : $result__python2_arch_dir
-      (scripts)               : $result__python2_lib_dir
 $ac_rna_warning
 $ac_rna_final_msg])
 ])

@@ -19,7 +19,7 @@ LDADD += $(SVM_LIBS)
 endif
 
 SUFFIXES = .c .ts
-TEST_EXTENSIONS = .pl .t .py .py2
+TEST_EXTENSIONS = .pl .t .py
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
                   $(top_srcdir)/config/tap-driver.sh
 
@@ -95,38 +95,6 @@ PERL_TEST_OUTPUT =  test.coord \
 
 perl5/test-RNA-Design.t: $(top_srcdir)/interfaces/Perl/RNA/t/Design.t
 	cp $(top_srcdir)/interfaces/Perl/RNA/t/Design.t $(builddir)/perl5/test-RNA-Design.t
-
-endif
-
-######################################  
-## unit tests for Python2 interface ##
-######################################
-if WITH_PYTHON2_TESTS
-
-PY2_LOG_COMPILER = $(PYTHON2)
-AM_PY2_LOG_FLAGS =
-PY2_LOG_DRIVER   = env AM_TAP_AWK='$(AWK)' $(SHELL) \
-                  $(top_srcdir)/config/tap-driver.sh
-
-# add test scripts here
-PYTHON2_TESTS = python2/test-RNA-combinatorics.py2 \
-                python2/test-RNA-constraints.py2 \
-                python2/test-RNA-constraints-soft.py2 \
-                python2/test-RNA-constraints-SHAPE.py2 \
-                python2/test-RNA-constraints-special.py2 \
-                python2/test-RNA-ensemble_defect.py2 \
-                python2/test-RNA-file-formats.py2 \
-                python2/test-RNA-mfe_eval.py2 \
-                python2/test-RNA-mfe_window.py2 \
-                python2/test-RNA-pf_window.py2 \
-                python2/test-RNA-sc-callbacks.py2 \
-                python2/test-RNA-subopt.py2 \
-                python2/test-RNA-boltzmann-sampling.py2 \
-                python2/test-RNA-utils.py2 \
-                python2/test-RNA.py2
-
-# add test script output files here
-PYTHON2_TEST_OUTPUT = test-RNA-mfe_eval.py2.out
 
 endif
 
@@ -231,7 +199,6 @@ TESTS = \
       ${EXECUTABLE_TESTS} \
       ${LIBRARY_TESTS} \
       ${PERL_TESTS} \
-      ${PYTHON2_TESTS} \
       ${PYTHON3_TESTS}
 
 ## Below are the rules how to create the test suite executables
@@ -251,13 +218,11 @@ EXTRA_DIST =  data \
               $(CHECKMK_FILES) \
               $(CHECK_CFILES) \
               ${PERL_TESTS} \
-              ${PYTHON2_TESTS} \
               ${PYTHON3_TESTS}
 
 clean-local:
 	-rm -rf \
     ${PERL_TEST_OUTPUT} \
-    $(PYTHON2_TEST_OUTPUT) \
     $(PYTHON3_TEST_OUTPUT) \
     *.pyc \
     __pycache__ \
