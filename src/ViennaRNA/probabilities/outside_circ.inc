@@ -1,9 +1,8 @@
 PRIVATE void
 outside_bp_circ(vrna_fold_compound_t  *fc,
                 unsigned int          j,
-                FLT_OR_DBL            *Qmax,
-                int                   *ov,
-                helper_arrays_t       dp_helpers)
+                helper_arrays_t       dp_helpers,
+                void                  *data)
 {
   char                  *ptype;
   unsigned char         *hard_constraints, eval, with_gquad;
@@ -1406,10 +1405,4 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
   }       /* end with_gquad == 1 */
 
   free(tt);
-
-  if (*ov > 0)
-    vrna_log_warning("%d overflows occurred while backtracking;\n"
-                     "you might try a smaller pf_scale than %g\n",
-                     *ov,
-                     pf_params->pf_scale);
 }
