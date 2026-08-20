@@ -82,7 +82,7 @@ vrna_eqm_probs_up(vrna_fold_compound_t *fc,
     }
 
     vrna_eqm_probs_opt_t o = {
-      .mode       = VRNA_EQM_PROBS_UP,
+      .mode       = VRNA_EQM_PROBS_UP | VRNA_EQM_PROBS_BPP,
       .up_length  = max_u
     };
 

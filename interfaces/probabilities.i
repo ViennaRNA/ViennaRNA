@@ -163,6 +163,55 @@ def __repr__(self):
 #endif
 
 
+%rename (eqm_probs_up)  my_eqm_probs_up;
+
+%{
+    std::vector<vrna_ep_t>
+    my_eqm_probs_up(vrna_fold_compound_t *fc,
+                    unsigned int         min_u,
+                    unsigned int         max_u,
+                    double               cutoff)
+    {
+      std::vector<vrna_ep_t> result;
+
+      vrna_array(vrna_ep_t) c_result;
+      c_result = vrna_eqm_probs_up(fc, min_u, max_u, cutoff);
+
+      result = {&(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
+
+      vrna_array_free(c_result);
+
+      return result;
+    }
+%}
+
+%extend vrna_fold_compound_t {
+
+    std::vector<vrna_ep_t>
+    my_eqm_probs_up(unsigned int         min_u,
+                    unsigned int         max_u,
+                    double               cutoff)
+    {
+      std::vector<vrna_ep_t> result;
+
+      vrna_array(vrna_ep_t) c_result;
+      c_result = vrna_eqm_probs_up($self, min_u, max_u, cutoff);
+
+      result = {&(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
+
+      vrna_array_free(c_result);
+
+      return result;
+    }
+}
+
+std::vector<vrna_ep_t>
+my_eqm_probs_up(vrna_fold_compound_t *fc,
+                unsigned int         min_u,
+                unsigned int         max_u,
+                double               cutoff);
+
+
 %constant unsigned int LOOP_TYPE_EXT  = VRNA_LOOP_TYPE_EXT;
 %constant unsigned int LOOP_TYPE_HP   = VRNA_LOOP_TYPE_HP;
 %constant unsigned int LOOP_TYPE_INT  = VRNA_LOOP_TYPE_INT;
