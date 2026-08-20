@@ -78,6 +78,8 @@ typedef struct {
 struct vrna_crosslink_data_s {
   vrna_array(interact_region_s)   regions;  /* list of interacting regions */
   vrna_array(interact_region_s *) overlap;  /* for each nucleotide position i we store the corresponding interval pair that overlaps with i either with I or I' */
+  vrna_array(interact_region_s **) overlap5;  /* for each nucleotide position i we store the corresponding interval pair (I, I') where I overlaps with i */
+  vrna_array(interact_region_s **) overlap3;  /* for each nucleotide position i we store the corresponding interval pair (I, I') where I' overlaps with i */
   int         *A;
   int         *B;
   FLT_OR_DBL  *qA;
@@ -272,7 +274,7 @@ vrna_sc_iip(vrna_fold_compound_t *fc)
     if (fc->sc == NULL)
       vrna_sc_init(fc);
 
-    fc->sc->iip = (void *)data;
+    fc->sc->iip = data;
     fc->params->model_details.uniq_ML = 1;
 
     ret &= vrna_sc_multi_cb_add(fc,
@@ -375,6 +377,8 @@ vrna_sc_add_iip_file(vrna_fold_compound_t  *fc,
 PUBLIC int
 vrna_sc_iip_prepare(vrna_fold_compound_t *fc)
 {
+  interact_region_s *r, *other;
+
   if ((fc) &&
       (fc->sc) &&
       (fc->sc->iip)) {
@@ -383,39 +387,81 @@ vrna_sc_iip_prepare(vrna_fold_compound_t *fc)
     /* free previously allocated overlap entries */
     vrna_array_free(dat->overlap);
 
+    if (dat->overlap5) {
+      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5); cnt++)
+        vrna_array_free(dat->overlap5[cnt]);
+      vrna_array_free(dat->overlap5);
+    }
+
+    if (dat->overlap3) {
+      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3); cnt++)
+        vrna_array_free(dat->overlap3[cnt]);
+      vrna_array_free(dat->overlap3);
+    }
+
     /* initialize memory for overlap entries */
     vrna_array_init_size(dat->overlap, fc->length + 1);
 
     for (unsigned int i = 0; i <= fc->length; i++)
       dat->overlap[i] = NULL;
 
+    vrna_array_init_size(dat->overlap5, fc->length + 1);
+    vrna_array_init_size(dat->overlap3, fc->length + 1);
+
+    for (unsigned int i = 0; i <= fc->length; i++)
+      dat->overlap5[i] = NULL;
+
+    for (unsigned int i = 0; i <= fc->length; i++)
+      dat->overlap3[i] = NULL;
+
     /* ref-fill overlap entries */
     for (size_t cnt = 0; cnt < vrna_array_size(dat->regions); cnt++) {
-      interact_region_s *r = &(dat->regions[cnt]);
       unsigned char failure = 0;
 
-      for (unsigned int i = r->a; i <= r->b; i++) {
-        if (dat->overlap[i]) {
-          failure = 1;
-          break;
-        }
-      }
+      r = &(dat->regions[cnt]);
 
-      for (unsigned int j = r->c; j <= r->d; j++) {
-        if (dat->overlap[j]) {
-          failure = 1;
-          break;
+      /* check whether the current interval pair supports a base pair already supported by a previous pair */
+      for (unsigned int i = r->a; i <= r->b; i++) {
+        if (dat->overlap5[i]) {
+          for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
+            other = dat->overlap5[i][cnt];
+
+            if (((r->c >= other->c) && (r->c <= other->d)) ||
+                ((r->d >= other->c) && (r->d <= other->d))) {
+              failure = 1;
+              break;
+            }
+          }
+
+          if (failure)
+            break;
         }
       }
 
       if (failure) {
-        vrna_log_error("crossing overlaps detected, omitting interval pair [%u:%u] - [%u:%u], score=%d", r->a, r->b, r->c, r->d, r->score);
+        vrna_log_error("Crossing overlaps detected! Omitting interval pair\n"
+                       "\t[%u:%u] - [%u:%u], score=%d since it overlaps (in part) with\n"
+                       "\t[%u:%u] - [%u:%u], score=%d",
+                       r->a, r->b, r->c, r->d, r->score,
+                       other->a, other->b, other->c, other->d, other->score);
       } else {
-        for (unsigned int i = r->a; i <= r->b; i++)
+        for (unsigned int i = r->a; i <= r->b; i++) {
           dat->overlap[i] = r;
 
-        for (unsigned int j = r->c; j <= r->d; j++)
+          if (dat->overlap5[i] == NULL)
+            vrna_array_init(dat->overlap5[i])
+
+          vrna_array_append(dat->overlap5[i], r);
+        }
+
+        for (unsigned int j = r->c; j <= r->d; j++) {
           dat->overlap[j] = r;
+
+          if (dat->overlap3[j] == NULL)
+            vrna_array_init(dat->overlap3[j])
+
+          vrna_array_append(dat->overlap3[j], r);
+        }
 
         if (fc->exp_params)
           r->exp_score = exp(-(FLT_OR_DBL)r->score * 10. / fc->exp_params->kT);
@@ -439,6 +485,7 @@ vrna_sc_iip_prepare(vrna_fold_compound_t *fc)
 
   return 0;
 }
+
 
 
 PUBLIC int
@@ -1555,20 +1602,22 @@ xlink_hp_en(vrna_fold_compound_t  *fc,
             int                   l,
             void                  *data)
 {
-  int                           energy  = 0;
-  struct vrna_crosslink_data_s  *dat    = (struct vrna_crosslink_data_s *)data;
+  struct vrna_crosslink_data_s  *dat = (struct vrna_crosslink_data_s *)data;
   interact_region_s *r;
 
   /* go through each interval that overlaps with position i to check whether j connects both segments */
-  if ((r = dat->overlap[i]) &&
-      (r->a <= i) &&
-      (r->b >= i) &&
-      (r->b < j) &&
-      (r->c <= j) &&
-      (r->d >= j))
-    energy += r->score;
+  if (dat->overlap5[i])
+    for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
+      r = dat->overlap5[i][cnt];
+      if ((r->a <= i) &&
+          (r->b >= i) &&
+          (r->b < j) &&
+          (r->c <= j) &&
+          (r->d >= j))
+        return r->score;
+    }
 
-  return energy;
+  return 0;
 }
 
 
@@ -1584,13 +1633,17 @@ xlink_hp_exp_en(vrna_fold_compound_t  *fc,
   interact_region_s *r;
 
   /* go through each interval that overlaps with position i to check whether j connects both segments */
-  if ((r = dat->overlap[i]) &&
-      (r->a <= i) &&
-      (r->b >= i) &&
-      (r->b < j) &&
-      (r->c <= j) &&
-      (r->d >= j))
-    return r->exp_score;
+  if (dat->overlap5[i]) {
+    for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
+      r = dat->overlap5[i][cnt];
+      if ((r->a <= i) &&
+          (r->b >= i) &&
+          (r->b < j) &&
+          (r->c <= j) &&
+          (r->d >= j))
+        return r->exp_score;
+    }
+  }
 
   return 1.0;
 }
@@ -1604,21 +1657,23 @@ xlink_il_en(vrna_fold_compound_t  *fc,
             int                   l,
             void                  *data)
 {
-  int                           energy  = 0;
   struct vrna_crosslink_data_s  *dat    = (struct vrna_crosslink_data_s *)data;
   interact_region_s *r;
 
   /*  go through each interval that overlaps with position i to check whether
    *  k does not overlap with the 5' interval and j connects both segments */
-  if ((r = dat->overlap[j]) &&
-      (r->a <= i) &&
-      (r->b >= i) &&
-      (r->b < k) &&
-      (r->c <= j) &&
-      (r->d >= j))
-    energy += r->score;
+  if (dat->overlap5[i])
+    for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
+      r = dat->overlap5[i][cnt];
 
-  return energy;
+      if ((j >= r->c) &&
+          (j <= r->d) && /* done checking whether (i,j) connects interval pair */
+          ((l < r->c) || (k > r->b))) {
+        return r->score;
+      }
+    }
+
+  return 0;
 }
 
 
@@ -1635,13 +1690,16 @@ xlink_il_exp_en(vrna_fold_compound_t  *fc,
 
   /*  go through each interval that overlaps with position i to check whether
    *  k does not overlap with the 5' interval and j connects both segments */
-  if ((r = dat->overlap[j]) &&
-      (r->a <= i) &&
-      (r->b >= i) &&
-      (r->b < k) &&
-      (r->c <= j) &&
-      (r->d >= j))
-    return r->exp_score;
+  if (dat->overlap5[i])
+    for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
+      r = dat->overlap5[i][cnt];
+
+      if ((j >= r->c) &&
+          (j <= r->d) && /* done checking whether (i,j) connects interval pair */
+          ((l < r->c) || (k > r->b))) {
+        return r->exp_score;
+      }
+    }
 
   return 1.0;
 }
