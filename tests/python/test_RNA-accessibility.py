@@ -13,13 +13,17 @@ import RNA
 
 
 # maximum allowed difference beteen compared probabilties
-allowed_diff = 1e-8
+allowed_diff  = 1e-8
+cutoff        = 1e-10
 
 # some sequences to work with
 shortseq = "UGGGAAUAGUCUCUUCCGAGUCUCGCGGGCGACGGGCGAUCUUCGAAAGUGGAAUCCGUA"
 longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU"
 
-
+aln = [ "CAAUCUUAACGAUGGAUGUCUUGGUUCCUAUAGCGAUGAAGGCCGCAGCAAAGUGCGAUAUGCAAUGA-----AAAAUG--CA-AUUA--------CUGUGAAUCAUCAGAAUGCUGAAUGUAAACUAUACCAUAUUUACCC----UUAUGGGCAAAUUAACGUGGUAUUCC-UACAGAA-----A",
+        "AACUUUCAGCGACGGAUGUCUCGGCUCGAACAACGAUGAAGGGCGCAGCGAAAUGUGAUAAGCAAUGU-----GAAUUG--CAGAAUU--------CCGUGAACCAAUAGGGACUUGAACGUAUACUGCGCUUUCGGGA-------UAUC--------CCUGAAGGCAUGCC-UGCUUCAGUGUCU",
+        "AACCCU-AGUGAUGGAUGUCUAGGCUCCCGUAUCGAUGAAGAACGUAGCAGAAAGCGACAUGCGAUGAUACGCGCAUAGACCAGGAUUCCGCGGACUCGUGAAUCAUUGAAUCUUCGAACGCAUCUGGCGCUCAGCAGUGGAGCCGUAGC--------AGGCUGAGCAUGCCCUGGAGUAGUGACA"
+      ]
 
 def up_callback(v, v_size, i, maxsize, what, data):
     if what & RNA.PROBS_WINDOW_UP:
@@ -45,6 +49,62 @@ def up_split_callback(v, v_size, i, maxsize, what, data):
         dat.append({'i': i, 'up': v})
 
 
+class bpp_functionTest(unittest.TestCase):
+    def test_bpp_consistency(self):
+        """Base pair probabilities from callback vs. dynamic programming table entries"""
+        s = shortseq
+
+        fc = RNA.fold_compound(s)
+        ss, mfe = fc.mfe()
+        fc.exp_params_rescale(mfe)
+        fc.pf()
+        bpp_dp  = sorted(sorted(fc.plist_from_probs(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
+        bpp_cb  = sorted(sorted(fc.eqm_probs_bpp(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
+
+        self.assertTrue(len(bpp_dp) == len(bpp_cb))
+
+        for pair in zip(bpp_dp, bpp_cb):
+            self.assertEqual(pair[0].i, pair[1].i)
+            self.assertEqual(pair[0].j, pair[1].j)
+            self.assertTrue(abs(pair[0].p - pair[1].p) < allowed_diff)
+
+
+    def test_bpp_consistency(self):
+        """Base pair probabilities (circular RNA) from callback vs. dynamic programming table entries"""
+        s = shortseq
+
+        fc = RNA.fold_compound(s, RNA.md(circ = 1))
+        ss, mfe = fc.mfe()
+        fc.exp_params_rescale(mfe)
+        fc.pf()
+        bpp_dp  = sorted(sorted(fc.plist_from_probs(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
+        bpp_cb  = sorted(sorted(fc.eqm_probs_bpp(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
+
+        self.assertTrue(len(bpp_dp) == len(bpp_cb))
+
+        for pair in zip(bpp_dp, bpp_cb):
+            self.assertEqual(pair[0].i, pair[1].i)
+            self.assertEqual(pair[0].j, pair[1].j)
+            self.assertTrue(abs(pair[0].p - pair[1].p) < allowed_diff)
+
+
+    def test_bpp_consistency_comparative(self):
+        """Consensus base pair probabilities from callback vs. dynamic programming table entries"""
+        fc = RNA.fold_compound(aln)
+        ss, mfe = fc.mfe()
+        fc.exp_params_rescale(mfe)
+        fc.pf()
+        bpp_dp  = sorted(sorted(fc.plist_from_probs(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
+        bpp_cb  = sorted(sorted(fc.eqm_probs_bpp(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
+
+        self.assertTrue(len(bpp_dp) == len(bpp_cb))
+
+        for pair in zip(bpp_dp, bpp_cb):
+            self.assertEqual(pair[0].i, pair[1].i)
+            self.assertEqual(pair[0].j, pair[1].j)
+            self.assertTrue(abs(pair[0].p - pair[1].p) < allowed_diff)
+
+
 class accessibility_functionTest(unittest.TestCase):
     def test_up_consistency(self):
         """Unpaired probabilities from local vs. global prediction"""
@@ -68,7 +128,7 @@ class accessibility_functionTest(unittest.TestCase):
             j = d['i']
             a = d['up']
             for k, v in enumerate(a[1:], start = 1):
-                if v != None:
+                if v != None and v >= cutoff:
                     alocal.append(RNA.ep(j + 1 - k, j, v, RNA.PLIST_TYPE_UNPAIRED))
 
         # compute accessibility (global implementation)
@@ -76,7 +136,7 @@ class accessibility_functionTest(unittest.TestCase):
         ss, mfe = fc.mfe()
         fc.exp_params_rescale(mfe)
         fc.pf()
-        a = fc.eqm_probs_up(max_u = ulength, cutoff = 0)
+        a = fc.eqm_probs_up(max_u = ulength, cutoff = cutoff)
 
         # sort values
         alocal = sorted(sorted(alocal, key = lambda ep: ep.j ), key=lambda ep: ep.i)
