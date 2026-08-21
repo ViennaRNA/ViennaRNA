@@ -41,6 +41,11 @@ vrna_pairing_probs(vrna_fold_compound_t *fc,
 
 
 vrna_array(vrna_ep_t)
+vrna_eqm_probs_bpp(vrna_fold_compound_t *fc,
+                   double               cutoff);
+
+
+vrna_array(vrna_ep_t)
 vrna_eqm_probs_up(vrna_fold_compound_t *fc,
                   unsigned int         min_u,
                   unsigned int         max_u,
