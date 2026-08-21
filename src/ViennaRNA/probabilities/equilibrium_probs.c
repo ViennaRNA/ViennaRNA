@@ -661,13 +661,25 @@ report_n_clear_bpp(vrna_fold_compound_t *fc,
                    void                 *data)
 {
 
-  unsigned int          n       = fc->length;
-  vrna_eqm_probs_f      cb      = d->cb;
-  vrna_eqm_probs_data_t cb_data = d->cb_data;
+  unsigned int          n         = fc->length;
+  int                   *my_iindx = fc->iindx;
+  FLT_OR_DBL            qbt, *qb  = fc->exp_matrices->qb - l;
+  vrna_eqm_probs_f      cb        = d->cb;
+  vrna_eqm_probs_data_t cb_data   = d->cb_data;
 
   /* loop-type specific output */
   if ((d->cb) &&
       (d->options.mode & VRNA_EQM_PROBS_BPP)) {
+    /* add inside contribution for base pair probability */
+    for (unsigned int k = 1; k < l; k++) {
+      qbt = qb[my_iindx[k]];
+
+      d->probs_ext[k] *= qbt;
+      d->probs_hp[k]  *= qbt;
+      d->probs_int[k] *= qbt;
+      d->probs_mb[k]  *= qbt;
+    }
+
     if (d->options.mode & VRNA_EQM_PROBS_SPLIT) {
       cb(fc, d->probs_ext, l, 1, l - 1, VRNA_EQM_PROBS_BPP | VRNA_LOOP_TYPE_EXT, cb_data);
       cb(fc, d->probs_hp, l, 1, l - 1, VRNA_EQM_PROBS_BPP | VRNA_LOOP_TYPE_HP, cb_data);
@@ -1373,11 +1385,10 @@ outside_bp_external(vrna_fold_compound_t  *fc,
           q1k[n];
       q *= contrib_f(fc, k, l, dp_helpers);
 
-      probs[kl] = q;
+      probs[kl] += q;
 
       if (report_bpp)
-        probs_ext[k] = q *
-                       qb[kl];
+        probs_ext[k] += q;
     }
   }
 }
@@ -1772,10 +1783,6 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
       }
     }
 
-    /* store actual probabilties for callback reporting */
-    if (report_bpp)
-      probs_int[k] *= qb[kl];
-
     if (probs[kl] > dp_helpers->Qmax) {
       dp_helpers->Qmax = probs[kl];
       if (dp_helpers->Qmax > max_real / 10.)
@@ -1903,10 +1910,6 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
         }
       }
     }
-
-    /* store actual probabilties for callback reporting */
-    if (report_bpp)
-      probs_int[k] *= qb[kl];
 
     if (probs[kl] > dp_helpers->Qmax) {
       dp_helpers->Qmax = probs[kl];
@@ -2585,9 +2588,8 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
 
       /* store actual probabilties for callback reporting */
       if (report_bpp)
-        probs_mb[k] = temp *
-                      scale[2] *
-                      qb[kl];
+        probs_mb[k] += temp *
+                       scale[2];
 
       if (probs[kl] > dp_helpers->Qmax) {
         dp_helpers->Qmax = probs[kl];
@@ -2839,10 +2841,9 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
 
       /* store actual probabilties for callback reporting */
       if (report_bpp)
-        probs_mb[k] = temp *
-                      scale[2] *
-                      exp(pscore[jindx[l] + k] / kTn) *
-                      qb[kl];
+        probs_mb[k] += temp *
+                       scale[2] *
+                       exp(pscore[jindx[l] + k] / kTn);
 
       if (probs[kl] > dp_helpers->Qmax) {
         dp_helpers->Qmax = probs[kl];
@@ -3578,8 +3579,7 @@ multistrand_contrib(vrna_fold_compound_t  *fc,
 
       if (report_bpp)
         probs_ext[k] += tmp *
-                        qtmp *
-                        qb[kl];
+                        qtmp;
     }
   }
 }
