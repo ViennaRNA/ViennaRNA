@@ -5,7 +5,7 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
                 void                  *data)
 {
   char                  *ptype;
-  unsigned char         *hard_constraints, eval, with_gquad;
+  unsigned char         *hard_constraints, eval, with_gquad, report_bpp;
   short                 *S, *S1, **SS, **S5, **S3, si, sj;
   unsigned int          k, l, n, i, s, n_seq, type, type_2, rt, *tt, **a2s, turn,
                         u1, u2, u3, us1, us2, us3,
@@ -14,6 +14,7 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
   FLT_OR_DBL            tmp, tmp2, tmp3, qbt1, qint, qmb,
                         expMLclosing, *expMLbase, expGQstem,
                         *qb, *qm, *probs, *scale, qo, *qm2_real, q_g;
+  FLT_OR_DBL            *probs_hp, *probs_int, *probs_mb;
   double                *expintern;
   vrna_hc_t             *hc;
   vrna_exp_param_t      *pf_params;
@@ -71,6 +72,11 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
   sc_ext_wrapper  = &(dp_helpers->sc_wrapper_ext);
   sc_int_wrapper  = &(dp_helpers->sc_wrapper_int);
 
+  report_bpp  = ((dp_helpers->options.mode & VRNA_EQM_PROBS_BPP) && (dp_helpers->probs_hp)) ? 1 : 0;
+  probs_hp    = dp_helpers->probs_hp;
+  probs_int   = dp_helpers->probs_int;
+  probs_mb    = dp_helpers->probs_mb;
+
   switch (fc->type) {
     case  VRNA_FC_TYPE_SINGLE:
       numerator_f = numerator_single;
@@ -102,6 +108,10 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
 
       /* 1.1. Exterior Hairpin Contribution */
       tmp2 = vrna_exp_eval_hairpin(fc, j, i, VRNA_EVAL_LOOP_DEFAULT);
+
+      if (report_bpp)
+        probs_hp[i] += tmp2 *
+                       qb[ij];
 
       /* 1.2. Exterior Interior Loop Contribution */
       if (hard_constraints[i * n + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
@@ -175,6 +185,11 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
 
                 tmp2 += tmp *
                         scale[u1 + u2 + u3];
+
+                if (report_bpp)
+                  probs_int[i] += tmp *
+                                  scale[u1 + u2 + u3] *
+                                  qb[ij];
               }
             }
           }
@@ -249,6 +264,11 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
 
                 tmp2 += tmp *
                         scale[u1 + u2 + u3];
+
+                if (report_bpp)
+                  probs_int[i] += tmp *
+                                  scale[u1 + u2 + u3] *
+                                  qb[ij];
               }
             }
           }
@@ -283,6 +303,12 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
             tmp2 += tmp *
                     sc_contrib *
                     expMLclosing;
+
+            if (report_bpp)
+              probs_mb[i] += tmp *
+                             sc_contrib *
+                             expMLclosing *
+                             qb[ij];
           }
 
           /* 1.3.2 right-most part  */
@@ -315,6 +341,12 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
                 tmp2 += tmp *
                         sc_contrib *
                         expMLclosing;
+
+                if (report_bpp)
+                  probs_mb[i] += tmp *
+                                 sc_contrib *
+                                 expMLclosing *
+                                 qb[ij];
               }
             }
           }
@@ -349,6 +381,12 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
                 tmp2 += tmp *
                         sc_contrib *
                         expMLclosing;
+
+                if (report_bpp)
+                  probs_mb[i] += tmp *
+                                 sc_contrib *
+                                 expMLclosing *
+                                 qb[ij];
               }
             }
           }
@@ -442,6 +480,12 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
                     tmp2 += qint *
                             q_g *
                             tmp;
+
+                    if (report_bpp)
+                      probs_int[i] += qint *
+                                      q_g *
+                                      tmp *
+                                      qb[ij];
                   }
                 }
               }
@@ -504,6 +548,12 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
                   tmp2 += qint *
                           q_g *
                           tmp;
+
+                  if (report_bpp)
+                    probs_int[i] += qint *
+                                    q_g *
+                                    tmp *
+                                    qb[ij];
                 }
               }
             }
@@ -575,6 +625,12 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
                     tmp2 += qint *
                             q_g *
                             tmp;
+
+                    if (report_bpp)
+                      probs_int[i] += qint *
+                                      q_g *
+                                      tmp *
+                                      qb[ij];
                   }
                 }
               }
@@ -634,6 +690,11 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
                       /* store outside part for base pair (i,j) */
                       tmp2 += q_g *
                               tmp;
+
+                      if (report_bpp)
+                        probs_int[i] += q_g *
+                                        tmp *
+                                        qb[ij];
                     }
                   }
 
@@ -652,6 +713,11 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
                       /* store outside part for base pair (i,j) */
                       tmp2 += q_g *
                               tmp;
+
+                      if (report_bpp)
+                        probs_int[i] += q_g *
+                                        tmp *
+                                        qb[ij];
                     }
                   }
 
@@ -669,6 +735,11 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
                     /* store outside part for base pair (i,j) */
                     tmp2 += q_g *
                             tmp;
+
+                    if (report_bpp)
+                      probs_int[i] += q_g *
+                                      tmp *
+                                      qb[ij];
                   }
                 }
               }
