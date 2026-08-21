@@ -663,6 +663,9 @@ report_n_clear_bpp(vrna_fold_compound_t *fc,
 
   unsigned int          n         = fc->length;
   int                   *my_iindx = fc->iindx;
+  int                   jindx     = fc->jindx[l];
+  int                   *pscore   = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->pscore + jindx : NULL;
+  double                kTn       = fc->exp_params->kT / 10.; /* kT in cal/mol  */
   FLT_OR_DBL            qbt, *qb  = fc->exp_matrices->qb - l;
   vrna_eqm_probs_f      cb        = d->cb;
   vrna_eqm_probs_data_t cb_data   = d->cb_data;
@@ -673,6 +676,9 @@ report_n_clear_bpp(vrna_fold_compound_t *fc,
     /* add inside contribution for base pair probability */
     for (unsigned int k = 1; k < l; k++) {
       qbt = qb[my_iindx[k]];
+
+      if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+        qbt *= exp(-pscore[k] / kTn);
 
       d->probs_ext[k] *= qbt;
       d->probs_hp[k]  *= qbt;
