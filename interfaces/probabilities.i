@@ -10,6 +10,171 @@
 %ignore mean_bp_dist;
 %ignore assign_plist_gquad_from_pr;
 
+/* scripting language access through 'fold_compound' instead of 'vrna_fold_compound_t' */
+%rename(eqm_probs_opt) vrna_eqm_probs_opt_t;
+
+#ifdef SWIGPYTHON
+/* create object oriented interface for vrna_eqm_probs_opt_t */
+%extend vrna_eqm_probs_opt_t {
+
+ std::string
+  __str__()
+  {
+    std::ostringstream out;
+
+    out << "{ mode: " ;
+    if ($self->mode & VRNA_EQM_PROBS_BPP)
+      out << "EQM_PROBS_BPP";
+    out << ", up_length: " << $self->up_length;
+    out << ", hx_length: " << $self->hx_length;
+    out << " }";
+
+    return std::string(out.str());
+  }
+
+%pythoncode %{
+def __repr__(self):
+    # reformat string representation (self.__str__()) to something
+    # that looks like a constructor argument list
+    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
+    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+%}
+}
+#endif
+
+
+%rename (eqm_probs_bpp) my_eqm_probs_bpp;
+%rename (eqm_probs_up)  my_eqm_probs_up;
+%rename (eqm_probs_hx)  my_eqm_probs_hx;
+
+%{
+    std::vector<vrna_ep_t>
+    my_eqm_probs_bpp(vrna_fold_compound_t *fc,
+                     double               cutoff = 1e-5)
+    {
+      std::vector<vrna_ep_t> result;
+      vrna_array(vrna_ep_t) c_result;
+
+      c_result  = vrna_eqm_probs_bpp(fc, cutoff);
+      result    = { &(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
+
+      vrna_array_free(c_result);
+
+      return result;
+    }
+
+    std::vector<vrna_ep_t>
+    my_eqm_probs_up(vrna_fold_compound_t *fc,
+                    unsigned int         min_u = 1,
+                    unsigned int         max_u = 0,
+                    double               cutoff = 1e-5)
+    {
+      std::vector<vrna_ep_t> result;
+      vrna_array(vrna_ep_t) c_result;
+
+      c_result  = vrna_eqm_probs_up(fc, min_u, max_u, cutoff);
+      result    = { &(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
+
+      vrna_array_free(c_result);
+
+      return result;
+    }
+
+    std::vector<vrna_ep_t>
+    my_eqm_probs_hx(vrna_fold_compound_t *fc,
+                    unsigned int         min_size = 1,
+                    unsigned int         max_size = 0,
+                    double               cutoff = 1e-5)
+    {
+      std::vector<vrna_ep_t> result;
+      vrna_array(vrna_ep_t) c_result;
+
+      c_result  = vrna_eqm_probs_hx(fc, min_size, max_size, cutoff);
+      result    = { &(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
+
+      vrna_array_free(c_result);
+
+      return result;
+    }
+%}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_eqm_probs_bpp;
+%feature("kwargs")  my_eqm_probs_bpp;
+%feature("autodoc") my_eqm_probs_up;
+%feature("kwargs")  my_eqm_probs_up;
+%feature("autodoc") my_eqm_probs_hx;
+%feature("kwargs")  my_eqm_probs_hx;
+#endif
+
+std::vector<vrna_ep_t>
+my_eqm_probs_bpp(vrna_fold_compound_t *fc,
+                 double               cutoff = 1e-5);
+
+
+std::vector<vrna_ep_t>
+my_eqm_probs_up(vrna_fold_compound_t *fc,
+                unsigned int         min_u = 1,
+                unsigned int         max_u = 0,
+                double               cutoff = 1e-5);
+
+
+std::vector<vrna_ep_t>
+my_eqm_probs_hx(vrna_fold_compound_t *fc,
+                unsigned int         min_size = 1,
+                unsigned int         max_size = 0,
+                double               cutoff = 1e-5);
+
+
+#ifdef SWIGPYTHON
+%feature("autodoc") vrna_fold_compound_t::eqm_probs_bpp;
+%feature("kwargs")  vrna_fold_compound_t::eqm_probs_bpp;
+%feature("autodoc") vrna_fold_compound_t::eqm_probs_up;
+%feature("kwargs")  vrna_fold_compound_t::eqm_probs_up;
+%feature("autodoc") vrna_fold_compound_t::eqm_probs_hx;
+%feature("kwargs")  vrna_fold_compound_t::eqm_probs_hx;
+#endif
+
+%extend vrna_fold_compound_t {
+
+    std::vector<vrna_ep_t>
+    eqm_probs_bpp(double cutoff = 1e-5)
+    {
+      return my_eqm_probs_bpp($self, cutoff);
+    }
+
+    std::vector<vrna_ep_t>
+    eqm_probs_up(unsigned int min_u = 1,
+                 unsigned int max_u = 0,
+                 double       cutoff = 1e-5)
+    {
+      return my_eqm_probs_up($self, min_u, max_u, cutoff);
+    }
+
+    std::vector<vrna_ep_t>
+    eqm_probs_hx(unsigned int min_size = 1,
+                 unsigned int max_size = 0,
+                 double       cutoff = 1e-5)
+    {
+      return my_eqm_probs_hx($self, min_size, max_size, cutoff);
+    }
+}
+
+
+%constant unsigned int LOOP_TYPE_EXT  = VRNA_LOOP_TYPE_EXT;
+%constant unsigned int LOOP_TYPE_HP   = VRNA_LOOP_TYPE_HP;
+%constant unsigned int LOOP_TYPE_INT  = VRNA_LOOP_TYPE_INT;
+%constant unsigned int LOOP_TYPE_MB   = VRNA_LOOP_TYPE_MB;
+%constant unsigned int LOOP_TYPE_ANY  = VRNA_LOOP_TYPE_ANY;
+
+%constant unsigned int EQM_PROBS_BPP            = VRNA_EQM_PROBS_BPP;
+%constant unsigned int EQM_PROBS_UP             = VRNA_EQM_PROBS_UP;
+%constant unsigned int EQM_PROBS_HX             = VRNA_EQM_PROBS_HX;
+%constant unsigned int EQM_PROBS_SPLIT          = VRNA_EQM_PROBS_SPLIT;
+%constant unsigned int EQM_PROBS_STORE_OUTSIDE  = VRNA_EQM_PROBS_STORE_OUTSIDE;
+%constant unsigned int EQM_PROBS_OUTSIDE_PF     = VRNA_EQM_PROBS_OUTSIDE_PF;
+
+
 %extend vrna_fold_compound_t{
 
   double
@@ -109,121 +274,9 @@
   std::vector<vrna_ep_t>
   stack_prob(double cutoff = 1e-5)
   {
-    std::vector<vrna_ep_t > ep_v;
-    vrna_ep_t               *ptr, *plist;
-
-    plist = vrna_stack_prob($self, cutoff);
-
-    for (ptr = plist; ptr->i && ptr->j; ptr++) {
-      vrna_ep_t pl;
-      pl.i = ptr->i;
-      pl.j = ptr->j;
-      pl.p = ptr->p;
-      pl.type = ptr->type;
-      ep_v.push_back(pl);
-    }
-
-    free(plist);
-
-    return ep_v;
+    return my_eqm_probs_hx($self, 2, 2, cutoff);
   }
 }
-
-
-/* scripting language access through 'fold_compound' instead of 'vrna_fold_compound_t' */
-%rename(eqm_probs_opt) vrna_eqm_probs_opt_t;
-
-#ifdef SWIGPYTHON
-/* create object oriented interface for vrna_eqm_probs_opt_t */
-%extend vrna_eqm_probs_opt_t {
-
- std::string
-  __str__()
-  {
-    std::ostringstream out;
-
-    out << "{ mode: " ;
-    if ($self->mode & VRNA_EQM_PROBS_BPP)
-      out << "EQM_PROBS_BPP";
-    out << ", up_length: " << $self->up_length;
-    out << ", hx_length: " << $self->hx_length;
-    out << " }";
-
-    return std::string(out.str());
-  }
-
-%pythoncode %{
-def __repr__(self):
-    # reformat string representation (self.__str__()) to something
-    # that looks like a constructor argument list
-    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
-    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
-%}
-}
-#endif
-
-
-%rename (eqm_probs_up)  my_eqm_probs_up;
-
-%{
-    std::vector<vrna_ep_t>
-    my_eqm_probs_up(vrna_fold_compound_t *fc,
-                    unsigned int         min_u,
-                    unsigned int         max_u,
-                    double               cutoff)
-    {
-      std::vector<vrna_ep_t> result;
-
-      vrna_array(vrna_ep_t) c_result;
-      c_result = vrna_eqm_probs_up(fc, min_u, max_u, cutoff);
-
-      result = {&(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
-
-      vrna_array_free(c_result);
-
-      return result;
-    }
-%}
-
-%extend vrna_fold_compound_t {
-
-    std::vector<vrna_ep_t>
-    my_eqm_probs_up(unsigned int         min_u,
-                    unsigned int         max_u,
-                    double               cutoff)
-    {
-      std::vector<vrna_ep_t> result;
-
-      vrna_array(vrna_ep_t) c_result;
-      c_result = vrna_eqm_probs_up($self, min_u, max_u, cutoff);
-
-      result = {&(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
-
-      vrna_array_free(c_result);
-
-      return result;
-    }
-}
-
-std::vector<vrna_ep_t>
-my_eqm_probs_up(vrna_fold_compound_t *fc,
-                unsigned int         min_u,
-                unsigned int         max_u,
-                double               cutoff);
-
-
-%constant unsigned int LOOP_TYPE_EXT  = VRNA_LOOP_TYPE_EXT;
-%constant unsigned int LOOP_TYPE_HP   = VRNA_LOOP_TYPE_HP;
-%constant unsigned int LOOP_TYPE_INT  = VRNA_LOOP_TYPE_INT;
-%constant unsigned int LOOP_TYPE_MB   = VRNA_LOOP_TYPE_MB;
-%constant unsigned int LOOP_TYPE_ANY  = VRNA_LOOP_TYPE_ANY;
-
-%constant unsigned int EQM_PROBS_BPP            = VRNA_EQM_PROBS_BPP;
-%constant unsigned int EQM_PROBS_UP             = VRNA_EQM_PROBS_UP;
-%constant unsigned int EQM_PROBS_HX             = VRNA_EQM_PROBS_HX;
-%constant unsigned int EQM_PROBS_SPLIT          = VRNA_EQM_PROBS_SPLIT;
-%constant unsigned int EQM_PROBS_STORE_OUTSIDE  = VRNA_EQM_PROBS_STORE_OUTSIDE;
-%constant unsigned int EQM_PROBS_OUTSIDE_PF     = VRNA_EQM_PROBS_OUTSIDE_PF;
 
 
 %include  <ViennaRNA/probabilities/basic.h>
