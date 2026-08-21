@@ -141,8 +141,9 @@ PY_LOG_DRIVER    = env AM_TAP_AWK='$(AWK)' $(SHELL) \
                    $(top_srcdir)/config/tap-driver.sh
 
 # add test scripts here
-PYTHON3_TESTS = python/test_RNA-combinatorics.py \
+PYTHON3_TESTS = python/test_RNA-accessibility.py \
                 python/test_RNA-constraints.py \
+                python/test_RNA-combinatorics.py \
                 python/test_RNA-constraints-soft.py \
                 python/test_RNA-constraints-SHAPE.py \
                 python/test_RNA-constraints-special.py \
