@@ -137,26 +137,28 @@ The instructions below are for installing the ViennaRNA package from source code
           make
           sudo make install
 
-        If you do not have root privileges on your computer, you might want to install the ViennaRNA
-        Package to a location where you actually have write access to. To do so, you can set the
-        installation prefix of the :code:`./configure` script like so::
+        .. note::
 
-          tar -zxvf @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.gz
-          cd @PACKAGE_NAME@-@PACKAGE_VERSION@
-          ./configure --prefix=$HOME/.local
-          make
-          make install
+            If you do not have root privileges on your computer, you might want to install the ViennaRNA
+            Package to a location where you actually have write access to. To do so, you can set the
+            installation prefix of the :code:`./configure` script like so::
 
-        This will install the entire ViennaRNA Package into your home's :code:`~/.local/` directory that
-        is commonly used for user-installed software. Just make sure that your :code:`PATH` environment
-        variable contains the :code:`$HOME/.local/bin` directory such that our executables are looked-up
-        for at the proper location.
+              tar -zxvf @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.gz
+              cd @PACKAGE_NAME@-@PACKAGE_VERSION@
+              ./configure --prefix=$HOME/.local
+              make
+              make install
 
-        .. tip::
+            This will install the entire ViennaRNA Package into your home's :code:`~/.local/` directory that
+            is commonly used for user-installed software. Just make sure that your :code:`PATH` environment
+            variable contains the :code:`$HOME/.local/bin` directory such that our executables are looked-up
+            for at the proper location.
 
-            The :code:`--prefix` can be any other directory if you want to keep your installed software
-            separate from each other. The :code:`make install` command will then create the corresponding
-            :code:`bin/`, :code:`lib/`, :code:`share/` directories within the directory you specified.
+            .. tip::
+
+                The :code:`--prefix` can be any other directory if you want to keep your installed software
+                separate from each other. The :code:`make install` command will then create the corresponding
+                :code:`bin/`, :code:`lib/`, :code:`share/` directories within the directory you specified.
 
         .. admonition:: MacOS X quirks
 
