@@ -227,6 +227,7 @@ option  "bm-output" -
 string
 typestr="filename"
 optional
+dependon="benchmark"
 hidden
 
 
@@ -239,25 +240,38 @@ hidden
 
 
 option  "bm-rm-pk" -
-"Remove pseudo-knots from the reference structure before computing benchmark.\n\n"
+"Remove pseudo-knots from the reference structure before computing benchmark.\n"
+details="This option adds a new output column \"IR\" to keep track of the number\
+ of reference structure base pairs that have been ignored for the benchmark.\n\n"
 flag
 off
+dependon="benchmark"
+hidden
+
+
+option  "bm-ignore-compat" -
+"Ignore predicted base pairs compatible with the reference strucure.\n"
+details = "Predicted base pairs that are absent from the reference but do not structurally\
+ contradict it (i.e. do not cross any reference base pair) are excluded from the false\
+ positive count and reclassified as true negatives for these relaxed metrics.\n\
+ This option adds a new output column \"IP\" to keep track of the number of predicted\
+ base pairs that have been ignored for the benchmark.\n\n"
+flag
+off
+dependon="benchmark"
 hidden
 
 
 option  "benchmark-fuzzy" -
-"Allow base pair slippage of up to this many nucleotides when comparing the predicted structure to the reference during benchmarking (see --benchmark). A predicted base pair (p,q) is counted as a true positive if it lies within +/- this many nucleotides of a reference base pair (i,j). Each reference base pair can only be matched by one predicted base pair; once claimed it can't be counted again by another predicted pair.\n\n"
+"Allow base pair slippage when comparing the predicted structure to the reference.\n"
+details="A predicted base pair (p,q) is counted as a true positive if it lies within +/- this many\
+ nucleotides of a reference base pair (i,j). Each reference base pair can only be matched by one\
+ predicted base pair; once claimed it can't be counted again by another predicted pair.\n\n"
 int
 typestr="INT"
 default="0"
 optional
-hidden
-
-
-option  "benchmark-relaxed" -
-"Additionally report a relaxed precision (PPV_relaxed) during benchmarking (see --benchmark), together with its derived F1_relaxed and MCC_relaxed scores, and the underlying relaxed false positive (FP_relaxed) and true negative (TN_relaxed) counts. Predicted base pairs that are absent from the reference but do not structurally contradict it (i.e. do not cross any reference base pair) are excluded from the false positive count and reclassified as true negatives for these relaxed metrics.\n\n"
-flag
-off
+dependon="benchmark"
 hidden
 
 

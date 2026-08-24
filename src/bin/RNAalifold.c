@@ -108,9 +108,9 @@ struct options {
   double          benchmark_fp;
   double          benchmark_tn;
   double          benchmark_fn;
-  double          benchmark_compatible;
+  double          benchmark_ign_pred;
+  double          benchmark_ign_ref;
   int             benchmark_fuzzy;
-  int             benchmark_relaxed;
 
   int             jobs;
   int             keep_order;
@@ -295,9 +295,9 @@ init_default_options(struct options *opt)
   opt->benchmark_fp       = 0.;
   opt->benchmark_tn       = 0.;
   opt->benchmark_fn       = 0.;
-  opt->benchmark_compatible = 0.;
-  opt->benchmark_fuzzy   = 0;
-  opt->benchmark_relaxed  = 0;
+  opt->benchmark_ign_pred = 0.;
+  opt->benchmark_ign_ref  = 0.;
+  opt->benchmark_fuzzy    = 0;
 
   opt->jobs               = 1;
   opt->keep_order         = 1;
@@ -585,11 +585,11 @@ main(int  argc,
     if (args_info.bm_rm_pk_given)
       opt.benchmark |= 1 << 2;
 
+    if (args_info.bm_ignore_compat_given)
+      opt.benchmark |= 1 << 4;
+
     if (args_info.benchmark_fuzzy_given)
       opt.benchmark_fuzzy = args_info.benchmark_fuzzy_arg;
-
-    if (args_info.benchmark_relaxed_given)
-      opt.benchmark_relaxed = 1;
 
     fprintf(opt.benchmark_file,
             "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
@@ -602,15 +602,13 @@ main(int  argc,
             "PPV",
             "MCC",
             "F1");
-
-    if (opt.benchmark_relaxed)
+    if (opt.benchmark & (1 << 2))
       fprintf(opt.benchmark_file,
-              "\t%s\t%s\t%s\t%s\t%s",
-              "FP_relaxed",
-              "TN_relaxed",
-              "PPV_relaxed",
-              "MCC_relaxed",
-              "F1_relaxed");
+              "\tIR");
+
+    if (opt.benchmark & (1 << 4))
+      fprintf(opt.benchmark_file,
+              "\tIP");
 
     fprintf(opt.benchmark_file, "\n");
 
@@ -785,8 +783,7 @@ main(int  argc,
     vrna_score_t scores = vrna_score_from_confusion_matrix(opt.benchmark_tp,
                                                            opt.benchmark_tn,
                                                            opt.benchmark_fp,
-                                                           opt.benchmark_fn,
-                                                           opt.benchmark_compatible);
+                                                           opt.benchmark_fn);
 
     THREADSAFE_FILE_OUTPUT(({
       fprintf(opt.benchmark_file,
@@ -801,14 +798,15 @@ main(int  argc,
               scores.MCC,
               scores.F1);
 
-      if (opt.benchmark_relaxed)
+      if (opt.benchmark & (1 << 2))
         fprintf(opt.benchmark_file,
-                "\t%.1f\t%.1f\t%f\t%f\t%f",
-                scores.FP - scores.compatible,
-                scores.TN + scores.compatible,
-                scores.PPV_relaxed,
-                scores.MCC_relaxed,
-                scores.F1_relaxed);
+                "\t%.1f",
+                opt.benchmark_ign_ref);
+
+      if (opt.benchmark & (1 << 4))
+        fprintf(opt.benchmark_file,
+                "\t%.1f",
+                opt.benchmark_ign_pred);
 
       fprintf(opt.benchmark_file, "\n");
     }))
@@ -1188,16 +1186,23 @@ process_record(struct record_data *record)
   vrna_mx_mfe_free(vc);
 
   if (opt->benchmark) {
+    unsigned int ign_pred = 0;
+    unsigned int ign_ref  = 0;
+
     ref_structure = vrna_db_from_WUSS(record->consensus_structure);
 
     short *pt = vrna_ptable(mfe_structure);
     short *pt_gold = vrna_ptable_from_string(ref_structure, VRNA_BRACKETS_ANY);
 
     if (opt->benchmark & (1 << 2)) {
+      unsigned int bp_before = vrna_ptable_count_bp(pt_gold);
+
       /* remove pseudoknots */
       short *tmp = vrna_pt_pk_remove(pt_gold, 0);
       free(pt_gold);
       pt_gold = tmp;
+
+      ign_ref += bp_before - vrna_ptable_count_bp(pt_gold);
     }
 
 #if 0
@@ -1224,6 +1229,10 @@ process_record(struct record_data *record)
     }
 #endif
 
+    if (opt->benchmark & (1 << 4))
+      /* remove compatible but non-TP base pairs from pt */
+      ign_pred += vrna_ptable_compat_remove(pt, pt_gold);
+
     vrna_score_t scores = vrna_compare_structure_pt(pt_gold, pt, opt->benchmark_fuzzy);
 
     ATOMIC_BLOCK({
@@ -1231,7 +1240,8 @@ process_record(struct record_data *record)
       opt->benchmark_fp += scores.FP;
       opt->benchmark_tn += scores.TN;
       opt->benchmark_fn += scores.FN;
-      opt->benchmark_compatible += scores.compatible;
+      opt->benchmark_ign_pred += ign_pred;
+      opt->benchmark_ign_ref  += ign_ref;
     })
 
     if (opt->benchmark_file != stdout) {
@@ -1263,16 +1273,18 @@ process_record(struct record_data *record)
               scores.MCC,
               scores.F1);
 
-      if (opt->benchmark_relaxed)
+      if (opt->benchmark & ((1 << 2) | (1 << 3)))
         fprintf(opt->benchmark_file,
-                "\t%.1f\t%.1f\t%f\t%f\t%f",
-                scores.FP - scores.compatible,
-                scores.TN + scores.compatible,
-                scores.PPV_relaxed,
-                scores.MCC_relaxed,
-                scores.F1_relaxed);
+                "\t%.1f",
+                (double)ign_ref);
 
-      fprintf(opt->benchmark_file, "\n");
+      if (opt->benchmark & (1 << 4))
+        fprintf(opt->benchmark_file,
+                "\t%.1f",
+                (double)ign_pred);
+
+      fprintf(opt->benchmark_file,
+              "\n");
     }))
 
     fflush(opt->benchmark_file);
