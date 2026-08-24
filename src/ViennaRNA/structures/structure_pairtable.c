@@ -269,6 +269,34 @@ vrna_ptable_compat_remove(short       *pt,
 }                          
 
 
+PUBLIC unsigned int
+vrna_ptable_count_bp(const short *pt)
+{
+  unsigned int cnt = 0;
+
+  if (pt)
+    for (unsigned int i = 1; i <= pt[0]; i++)
+      if (i < pt[i])
+        cnt++;
+
+  return cnt;
+}                          
+
+
+PUBLIC unsigned int
+vrna_ptable_count_up(const short *pt)
+{
+  unsigned int cnt = 0;
+
+  if (pt)
+    for (unsigned int i = 1; i <= pt[0]; i++)
+      if (pt[i] == 0)
+        cnt++;
+
+  return cnt;
+}                          
+
+
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #

@@ -156,6 +156,15 @@ unsigned int
 vrna_ptable_compat_remove(short       *pt,
                           const short *pt_ref);
 
+
+unsigned int
+vrna_ptable_count_bp(const short *pt);
+
+
+unsigned int
+vrna_ptable_count_up(const short *pt);
+
+
 /* End pair table interface */
 /** @} */
 
