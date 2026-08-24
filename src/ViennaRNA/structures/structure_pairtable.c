@@ -241,6 +241,34 @@ vrna_ptable_from_string(const char    *string,
 }
 
 
+PUBLIC unsigned int
+vrna_ptable_compat_remove(short       *pt,
+                          const short *pt_ref)
+{
+  unsigned int removed = 0;
+
+  if ((pt) &&
+      (pt_ref) &&
+      (pt[0] == pt_ref[0])) {
+    int *lidx = vrna_loopidx_from_ptable(pt_ref);
+
+    for (unsigned int i = 1; i <= pt[0]; i++) {
+      if ((i < pt[i]) &&
+          (lidx[i] == lidx[pt[i]]) &&
+          (pt_ref[i] == 0) &&
+          (pt_ref[pt[i]] == 0)) {
+        pt[i] = pt[pt[i]] = 0;
+        removed++;
+      }
+    }
+
+    free(lidx);
+  }
+
+  return removed;
+}                          
+
+
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #

@@ -291,10 +291,28 @@ vrna_db_from_WUSS(const char *wuss);
  */
 
 /**
- *  @brief Get a loop index representation of a structure
+ *  @brief  Remove base pairs compatible with a reference structure
+ *
+ *  This function compares two structures (@p structure and @p structure_ref)
+ *  of the same length in dot-bracket format and removes all base pairs
+ *  in @p structure that are not present in the reference @p structure_ref
+ *  as long as they are compatible with @p structure_ref.
+ *
+ *  This is useful in cases where one wants to score the difference
+ *  between two structures but not account for additional compatible
+ *  base pairs, e.g. during benchmarking.
+ *
+ *  @see vrna_compare_structure(), vrna_ptable_compat_remove
+ *
+ *  @param  structure     The structure in dot-bracket format that might undergo base pair removal
+ *  @param  structure_ref The reference structure in dot-bracket format
+ *  @param  removed       A pointer to a variable where the the number of removed base pairs is stored to (maybe @b NULL)
+ *  @return               A copy of @p structure missing the compatible base pairs
  */
-int *
-vrna_loopidx_from_ptable(const short *pt);
+char *
+vrna_db_compat_remove(const char    *structure,
+                      const char    *structure_ref,
+                      unsigned int  *removed);
 
 /** @} */
 

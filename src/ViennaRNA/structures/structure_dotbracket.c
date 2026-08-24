@@ -931,6 +931,49 @@ vrna_db_insert_gq(char          *db,
 }
 
 
+PUBLIC char *
+vrna_db_compat_remove(const char    *structure,
+                      const char    *structure_ref,
+                      unsigned int  *removed)
+{
+  char          *result;
+  short         *pt, *ptref;
+  unsigned int  r, n, nref;
+  
+  result  = NULL;
+  r       = 0;
+
+  if ((structure) &&
+      (n = strlen(structure))) {
+    if (structure_ref) {
+      if (n == (nref = strlen(structure_ref))) {
+        pt      = vrna_ptable(structure);
+        ptref   = vrna_ptable(structure_ref);
+        r       = vrna_ptable_compat_remove(pt, ptref);
+        result  = vrna_db_from_ptable(pt);
+
+        free(pt);
+        free(ptref);
+      } else {
+        vrna_log_warning("Structure and reference have unequal lengths (%u vs. %u)",
+                         n,
+                         nref);
+      }
+    } else {
+      vrna_log_warning("Reference structure missing");
+      result    = (char *)vrna_alloc(sizeof(char) * (n + 1));
+      result    = memcpy(result, structure, sizeof(char) * (n));
+      result[n] = '\0';
+    }
+  }
+
+  if (removed)
+    *removed = r;
+
+  return result;
+}
+
+
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #

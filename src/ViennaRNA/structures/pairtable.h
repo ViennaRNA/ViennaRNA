@@ -134,6 +134,28 @@ vrna_pt_pk_remove(const short   *ptable,
                   unsigned int  options);
 
 
+/**
+ *  @brief  Remove base pairs compatible with a reference structure
+ *
+ *  This function compares two structures (@p pt and @p pt_ref) of
+ *  the same length in pair table format and removes all base pairs
+ *  in @p pt that are not present in the reference @p pt_ref as
+ *  long as they are compatible with @p pt_ref.
+ *
+ *  This is useful in cases where one wants to score the difference
+ *  between two structures but not account for additional compatible
+ *  base pairs, e.g. during benchmarking.
+ *
+ *  @see vrna_compare_structure_pt()
+ *
+ *  @param  pt      The structure in pair table format that might undergo base pair removal
+ *  @param  pt_ref  The reference structure in pair table format
+ *  @return         The number of base pairs removed from @p pt
+ */
+unsigned int
+vrna_ptable_compat_remove(short       *pt,
+                          const short *pt_ref);
+
 /* End pair table interface */
 /** @} */
 
