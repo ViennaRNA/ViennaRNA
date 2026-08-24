@@ -889,15 +889,6 @@ typedef struct {
   double NPV;
   double F1;
   double MCC;
-  double compatible;
-  double PPV_relaxed;
-  double FPR_relaxed;
-  double FOR_relaxed;
-  double TNR_relaxed;
-  double FDR_relaxed;
-  double NPV_relaxed;
-  double F1_relaxed;
-  double MCC_relaxed;
 } vrna_score_t;
 
 %extend vrna_score_t {
@@ -905,13 +896,12 @@ typedef struct {
     vrna_score_t(double TP=0.,
                  double TN=0.,
                  double FP=0.,
-                 double FN=0.,
-                 double compatible=0.)
+                 double FN=0.)
     {
       vrna_score_t *score;
 
       score         = (vrna_score_t *)vrna_alloc(sizeof(vrna_score_t));
-      *score = vrna_score_from_confusion_matrix(TP, TN, FP, FN, compatible);
+      *score = vrna_score_from_confusion_matrix(TP, TN, FP, FN);
 
       return score;
     }
@@ -935,15 +925,6 @@ typedef struct {
       out << ", NPV: " << $self->NPV;
       out << ", F1: " << $self->F1;
       out << ", MCC: " << $self->MCC;
-      out << ", compatible: " << $self->compatible;
-      out << ", PPV_relaxed: " << $self->PPV_relaxed;
-      out << ", FPR_relaxed: " << $self->FPR_relaxed;
-      out << ", FOR_relaxed: " << $self->FOR_relaxed;
-      out << ", TNR_relaxed: " << $self->TNR_relaxed;
-      out << ", FDR_relaxed: " << $self->FDR_relaxed;
-      out << ", NPV_relaxed: " << $self->NPV_relaxed;
-      out << ", F1_relaxed: " << $self->F1_relaxed;
-      out << ", MCC_relaxed: " << $self->MCC_relaxed;
       out << " }";
 
       return std::string(out.str());
