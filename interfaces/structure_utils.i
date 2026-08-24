@@ -108,6 +108,7 @@ def __repr__(self):
 %rename (pack_structure) my_pack_structure;
 %rename (unpack_structure) my_unpack_structure;
 %rename (db_to_element_string) vrna_db_to_element_string;
+%rename (db_compat_remove)  my_db_compat_remove;
 
 %newobject my_unpack_structure;
 %newobject my_pack_structure;
@@ -115,6 +116,9 @@ def __repr__(self):
 %newobject vrna_db_unpack;
 %newobject vrna_db_pack;
 %newobject vrna_db_to_element_string;
+%newobject  my_db_compat_remove;
+
+%apply  unsigned int *OUTPUT { unsigned int *removed_bp };
 
 %{
 #include <vector>
@@ -211,6 +215,26 @@ def __repr__(self):
     free(c_str);
     return SHAPE;
   }
+
+  std::string
+  my_db_compat_remove(std::string   structure,
+                      std::string   structure_reference,
+                      unsigned int  *removed_bp)
+  {
+    char        *c_result;
+    std::string result;
+
+    c_result = vrna_db_compat_remove(structure.c_str(),
+                                     structure_reference.c_str(),
+                                     removed_bp);
+
+    if (c_result)
+      result = std::string(c_result);
+
+    free(c_result);
+
+    return result;
+  }
 %}
 
 
@@ -223,6 +247,8 @@ def __repr__(self):
 %feature("kwargs") my_unpack_structure;
 %feature("autodoc") abstract_shapes;
 %feature("kwargs") abstract_shapes;
+%feature("autodoc") my_db_compat_remove;
+%feature("kwargs") my_db_compat_remove;
 #endif
 
 char        *my_pack_structure(const char *s);
@@ -235,7 +261,9 @@ std::string db_from_WUSS(std::string wuss);
 std::string abstract_shapes(std::string structure, unsigned int  level = 5);
 std::string abstract_shapes(std::vector<int> pt, unsigned int  level = 5);
 std::string abstract_shapes(var_array<short> const &pt, unsigned int  level = 5);
+std::string my_db_compat_remove(std::string structure, std::string structure_reference, unsigned int *removed_bp);
 
+%clear  unsigned int removed_bp;
 
 /************************************/
 /*  Pairtable wrappers              */
@@ -244,6 +272,7 @@ std::string abstract_shapes(var_array<short> const &pt, unsigned int  level = 5)
 %rename (ptable_from_string) my_ptable_from_string;
 %rename (ptable_pk) my_ptable_pk;
 %rename (pt_pk_remove)  my_pt_pk_remove;
+%rename (ptable_compat_remove)  my_ptable_compat_remove;
 
 %{
 #include <vector>
@@ -334,6 +363,13 @@ std::string abstract_shapes(var_array<short> const &pt, unsigned int  level = 5)
                          VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED | VAR_ARRAY_OWNED);
   }
 
+  unsigned int
+  my_ptable_compat_remove(var_array<short> &pt,
+                          var_array<short> const &pt_ref)
+  {
+    return vrna_ptable_compat_remove(pt.data,
+                                     pt_ref.data);
+  }
 %}
 
 #ifdef SWIGPYTHON
@@ -343,6 +379,8 @@ std::string abstract_shapes(var_array<short> const &pt, unsigned int  level = 5)
 %feature("kwargs") my_ptable_pk;
 %feature("autodoc") my_pt_pk_remove;
 %feature("kwargs") my_pt_pk_remove;
+%feature("autodoc") my_ptable_compat_remove;
+%feature("kwargs") my_ptable_compat_remove;
 #endif
 
 #ifdef SWIGPYTHON
@@ -354,6 +392,9 @@ std::vector<int> my_ptable(std::string str, unsigned int options = VRNA_BRACKETS
 std::vector<int> my_ptable_pk(std::string str);
 std::vector<int> my_pt_pk_remove(std::vector<int> pt, unsigned int options = 0);
 var_array<short> *my_pt_pk_remove(var_array<short> const &pt, unsigned int options = 0);
+unsigned int
+my_ptable_compat_remove(var_array<short> &pt,
+                        var_array<short> const &pt_ref);
 
 %ignore vrna_pt_pk_remove;
 
