@@ -11,8 +11,7 @@ PUBLIC vrna_score_t
 vrna_score_from_confusion_matrix(double TP,
                                  double TN,
                                  double FP,
-                                 double FN,
-                                 double compatible)
+                                 double FN)
 {
   vrna_score_t score;
 
@@ -20,7 +19,6 @@ vrna_score_from_confusion_matrix(double TP,
   score.TN  = TN > 0. ? TN : 0.;
   score.FP  = FP > 0. ? FP : 0.;
   score.FN  = FN > 0. ? FN : 0.;
-  score.compatible = compatible > 0. ? compatible : 0.;
 
   score.TPR = (score.TP + score.FN) > 0 ? score.TP / (score.TP + score.FN) : 0.;
   score.PPV = (score.TP + score.FP) > 0 ? score.TP / (score.TP + score.FP) : 0.;
@@ -36,31 +34,6 @@ vrna_score_from_confusion_matrix(double TP,
 
   score.MCC = sqrt(score.PPV * score.TPR * score.TNR * score.NPV) -
               sqrt(score.FDR * score.FNR * score.FPR * score.FOR);
-
-  /*
-   * relaxed metrics: compatible false positives are reclassified as true
-   * negatives, so TNR/NPV (and their complements) must be recomputed from
-   * the same relaxed confusion matrix as PPV_relaxed, not the original one
-   */
-  double denominator_relaxed = (score.TP + score.FP - score.compatible);
-  double TN_relaxed          = score.TN + score.compatible;
-  double FP_relaxed          = score.FP - score.compatible;
-
-  score.PPV_relaxed = denominator_relaxed > 0 ? score.TP / denominator_relaxed : 0.;
-  score.FDR_relaxed = 1. - score.PPV_relaxed;
-  score.F1_relaxed  = (score.TPR + score.PPV_relaxed) > 0 ?
-                      2. * score.TPR * score.PPV_relaxed / (score.TPR + score.PPV_relaxed) :
-                      0.;
-
-  score.TNR_relaxed = (TN_relaxed + FP_relaxed) > 0 ?
-                      TN_relaxed / (TN_relaxed + FP_relaxed) : 0.;
-  score.FPR_relaxed = 1. - score.TNR_relaxed;
-  score.NPV_relaxed = (TN_relaxed + score.FN) > 0 ?
-                      TN_relaxed / (TN_relaxed + score.FN) : 0.;
-  score.FOR_relaxed = 1. - score.NPV_relaxed;
-
-  score.MCC_relaxed = sqrt(score.PPV_relaxed * score.TPR * score.TNR_relaxed * score.NPV_relaxed) -
-                      sqrt(score.FDR_relaxed * score.FNR * score.FPR_relaxed * score.FOR_relaxed);
 
   return score;
 }
@@ -187,7 +160,7 @@ vrna_compare_structure_pt(const short *pt_gold,
 
   free(gold_used);
 
-  return vrna_score_from_confusion_matrix(TP, TN, FP, FN, (double)compatible);
+  return vrna_score_from_confusion_matrix(TP, TN, FP, FN);
 }
 
 

@@ -42,16 +42,6 @@ struct vrna_score_s {
   double  NPV;            /**< @brief Negative Predictive Value */
   double  F1;             /**< @brief F1 Score */
   double  MCC;            /**< @brief Matthews Correlation Coefficient */
-
-  double  compatible;     /**< @brief Count of false positive base pairs that do not structurally contradict the reference: neither endpoint is already paired to a different partner in the reference, and the pair does not cross any reference pair (in either opening order) */
-  double  PPV_relaxed;    /**< @brief Positive Predictive Value with #compatible false positives excluded */
-  double  FPR_relaxed;    /**< @brief False Positive Rate with #compatible false positives reclassified as true negatives */
-  double  FOR_relaxed;    /**< @brief False Omission Rate derived from #NPV_relaxed */
-  double  TNR_relaxed;    /**< @brief True Negative Rate with #compatible false positives reclassified as true negatives */
-  double  FDR_relaxed;    /**< @brief False Discovery Rate derived from #PPV_relaxed */
-  double  NPV_relaxed;    /**< @brief Negative Predictive Value with #compatible false positives reclassified as true negatives */
-  double  F1_relaxed;     /**< @brief F1 Score derived from #PPV_relaxed */
-  double  MCC_relaxed;    /**< @brief Matthews Correlation Coefficient derived from #PPV_relaxed, #FPR_relaxed, #TNR_relaxed and #NPV_relaxed */
 };
 
 
@@ -62,15 +52,13 @@ struct vrna_score_s {
  *  @param TN          True negative count
  *  @param FP          False positive count
  *  @param FN          False negative count
- *  @param compatible  Count of false positive base pairs that do not structurally contradict the reference. Used to compute #vrna_score_s.PPV_relaxed and its derived metrics.
  *  @return  The score data structure to write
  */
 vrna_score_t
 vrna_score_from_confusion_matrix(double TP,
                                  double TN,
                                  double FP,
-                                 double FN,
-                                 double compatible);
+                                 double FN);
 
 
 /**
