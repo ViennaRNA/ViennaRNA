@@ -11,8 +11,39 @@ seq1          = "CGCAGGGAUACCCGCG"
 struct1       = "(((.(((...))))))"
 struct1pk     = "(.(.(([....)))])"
 struct2       = "(..............)"
+struct3       = "((((...(((...)))..(((...))).))))"
+struct4       = "((((((((((...)))))(((...))))))))"
 
 class GeneralTests(unittest.TestCase):
+    def test_filename_sanitize_simple(self):
+        """Sanitize file names - with directories and special characters"""
+        fn = "bla/bla??_foo\\bar\"r<u>m:ble"
+        fs = RNA.filename_sanitize(fn)
+        self.assertEqual(fs, "blabla_foobarrumble")
+        fs = RNA.filename_sanitize(fn, '-')
+        self.assertEqual(fs, "bla-bla--_foo-bar-r-u-m-ble")
+
+
+    def test_filename_sanitize_special(self):
+        """Sanitize file names - special characters"""
+        fn = "??"
+        fs = RNA.filename_sanitize(fn)
+        self.assertEqual(fs, "")
+        fs = RNA.filename_sanitize(fn, '.')
+        self.assertEqual(fs, "")
+
+
+    def test_filename_sanitize_long(self):
+        """Sanitize (too) long file names"""
+        fn = "%s%s%sDEFGHIJ.svg" % ("A" * 120, "B" * 120, "C" * 10)
+        fs = RNA.filename_sanitize(fn)
+        self.assertEqual(fs, "%s%s%sD.svg" % ("A" * 120, "B" * 120, "C" * 10))
+        fn = "A.%s%s%sDEFGHIsvg" % ("A" * 120, "B" * 120, "C" * 10)
+        fs = RNA.filename_sanitize(fn)
+        self.assertEqual(fs, "A.%s%s%sDEF" % ("A" * 120, "B" * 120, "C" * 10))
+
+
+class StructureUtilsTests(unittest.TestCase):
     def test_pairtable(self):
         """Create pair table"""
         pairTable = list(RNA.ptable(struct1))
@@ -66,33 +97,26 @@ class GeneralTests(unittest.TestCase):
         print(plist)
 
 
-    def test_filename_sanitize_simple(self):
-        """Sanitize file names - with directories and special characters"""
-        fn = "bla/bla??_foo\\bar\"r<u>m:ble"
-        fs = RNA.filename_sanitize(fn)
-        self.assertEqual(fs, "blabla_foobarrumble")
-        fs = RNA.filename_sanitize(fn, '-')
-        self.assertEqual(fs, "bla-bla--_foo-bar-r-u-m-ble")
+    def test_db_compat_remove(self):
+        """Removal of compatible base pairs (dot-bracket)"""
+        s, r = RNA.db_compat_remove(struct4, struct3)
+
+        self.assertEqual(r, 3)
+        self.assertEqual(s, struct3)
 
 
-    def test_filename_sanitize_special(self):
-        """Sanitize file names - special characters"""
-        fn = "??"
-        fs = RNA.filename_sanitize(fn)
-        self.assertEqual(fs, "")
-        fs = RNA.filename_sanitize(fn, '.')
-        self.assertEqual(fs, "")
+    def test_pt_compat_remove(self):
+        """Removal of compatible base pairs (pairtable)"""
+        pt  = RNA.ptable(struct4)
+        ptr = RNA.ptable(struct3)
 
+        r = RNA.ptable_compat_remove(pt, ptr)
 
-    def test_filename_sanitize_long(self):
-        """Sanitize (too) long file names"""
-        fn = "%s%s%sDEFGHIJ.svg" % ("A" * 120, "B" * 120, "C" * 10)
-        fs = RNA.filename_sanitize(fn)
-        self.assertEqual(fs, "%s%s%sD.svg" % ("A" * 120, "B" * 120, "C" * 10))
-        fn = "A.%s%s%sDEFGHIsvg" % ("A" * 120, "B" * 120, "C" * 10)
-        fs = RNA.filename_sanitize(fn)
-        self.assertEqual(fs, "A.%s%s%sDEF" % ("A" * 120, "B" * 120, "C" * 10))
-
+        self.assertEqual(r, 3)
+        self.assertEqual(len(pt), len(ptr))
+        # go through pair tables and check for same entries
+        for p, p_ref in zip(pt, ptr):
+            self.assertEqual(p, p_ref)
 
 
 if __name__ == '__main__':
