@@ -23,18 +23,26 @@ section](#pull-request-process) below to find information on how to do that.
 Please note that we have a code of conduct. Please follow it in all your interactions
 with this project.
 
+::: {note}
 If you wish to contribute to this project, please first discuss any proposed changes
 with the owners and main developers. You may do that either through making an issue
 at [our official GitHub presence](https://github.com/ViennaRNA/ViennaRNA),
 [by email](mailto:rna@tbi.univie.ac.at), or any other personal communication with the
 core developer team.
+:::
 
+::: {important}
 More importantly, if you wish to contribute any files or software, you need to agree
 to our ViennaRNA Package Contributors License Agreement (CLA)! Otherwise, your
 contributions can't be merged into our source tree. [See below](#contributors-license-agreement)
 for further information and the full CLA details.
+:::
 
 ## Reporting Bugs
+
+If in doubt our program is right, nature is at fault.
+
+Comments and bug reports should be sent to rna@tbi.univie.ac.at
 
 1. Please make an issue at GitHub or notify us by emailing to rna@tbi.univie.ac.at
 2. In your report, include as much information as possible, such that we are able
