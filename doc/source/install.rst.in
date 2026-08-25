@@ -706,3 +706,39 @@ type::
 For more general information on the build process see the *INSTALL* file.
 
 
+Build your own Binary Package from SourceCode
+---------------------------------------------
+
+If you don't find a precompiled package for your linux distribution, or in case
+you just want to create a binary package by yourself, have a look into the ``packaging/``
+directory of our source tarball. It includes a list of some configuration files that
+we use for package generation:
+
+- For RPM based distributions, we use :download:`this SPEC file <../../packaging/viennarna.spec>`,
+  originally written for Fedora, but meanwhile extended to work for at least the Linux
+  distributions we provide binary packages ourselves.
+
+- Our binary package for ArchLinux was generated using
+  :download:`this PKGBUILD file <../../packaging/PKGBUILD>`, which is also part of the
+  ``viennarna`` source package available through the
+  `ArchLinux User Repository (AUR) <https://aur.archlinux.org/packages/viennarna/>`__.
+
+- The configuration files for our binary Debian and Ubuntu packages are included in the
+  source tarball within the ``packaging/debian`` directory.
+
+- Finally, for our MacOS X package, we make use of the ``pkgbuild``, ``productbuild``, and
+  ``hditool`` commandline tools. The corresponding configuration files are included in our
+  tarball in the directory ``packaging/macosx``. For simplicity, you can instruct the
+  ``autotools`` toolchain to automatically build the installer disk image by adding the
+  following configure switch::
+
+    ./configure --enable-macosx-installer
+
+  This creates a file ``packaging/macosx/ViennaRNA-@PACKAGE_VERSION@-MacOSX.dmg``.
+
+
+Our binary packages in the above section are mainly build using the
+`openSUSE Build Service <https://build.opensuse.org/package/show/home:tbi/viennarna>`__,
+while the Windows Installer is created using the `MinGW cross-compiler <http://mingw-w64.org/>`__
+and the `NSIS <http://nsis.sourceforge.io/>`__ install system. The MacOS X installer is
+build on github via github actions.
