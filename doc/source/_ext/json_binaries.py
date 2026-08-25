@@ -99,27 +99,48 @@ class ShowBinaryPackagesDirective(SphinxDirective):
 
         if len(data) == 1:
             flavor_v, d = next(iter( data.items() ))
+            flavor_v_text = flavor_v.replace("-", " ").replace("_", " ")
+            flavor_v_link = flavor_v.replace("-", "_").replace(".", "_").lower()
             for v in d:
-                rst.append(lindent + f":octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
-                       f"`{v['description']} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v}/{v['filename']}>`__ " \
-                       f":bdg-primary:`{v['version']}`" \
-                       f":bdg-info:`{v['release'] if v['release'] != "" else '1'}`" \
-                       f":bdg-danger:`{v['architecture']} ; Target Architecture`" \
-                       f":bdg-secondary:`{flavor_v}`\n")
+#                rst.append(lindent + f":octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
+#                       f"`{v['description']} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}>`__ - " \
+#                       f":bdg-primary:`{v['version']}`" \
+#                       f":bdg-info:`{v['release'] if v['release'] != "" else '1'}`" \
+#                       f":bdg-danger:`{v['architecture']}`" \
+#                       f":bdg-secondary:`{flavor_v_text}`\n")
+                rst.append(lindent + f".. button-link:: https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}")
+                rst.append(lindent + f"    :color: primary")
+                rst.append(lindent + f"    :outline:")
+                rst.append(lindent + f"    :tooltip: Download {v['description']} - v{v['version']}-{v['release'] if v['release'] != "" else '1'} for {flavor_v_text} and {v['architecture']} architecture")
+                rst.append(lindent + f"    :expand:\n")
+                rst.append(lindent + f"    :octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
+                                     f"{v['description']} " \
+                                     f":bdg-info:`{v['version']}-{v['release'] if v['release'] != "" else '1'}`" \
+                                     f":bdg-danger:`{v['architecture']}`\n")
         else:
             rst.append(lindent + ".. tab-set::")
             rst.append(lindent + "    :class: sd-align-major-start\n")
             for flavor_v, d in data.items():
-                rst.append(lindent + f"    .. tab-item:: {flavor_v}")
+                flavor_v_text = flavor_v.replace("-", " ").replace("_", " ")
+                flavor_v_link = flavor_v.replace("-", "_").replace(".", "_").lower()
+                rst.append(lindent + f"    .. tab-item:: {flavor_v_text}")
                 rst.append(lindent + f"        :class-label: sd-text-center\n")
                 for v in d:
-#                    rst.append(lindent * 2 + f"    .. div:: \n")
-                    rst.append(lindent + f"        :octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
-                           f"`{v['description']} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v}/{v['filename']}>`__ " \
-                           f":bdg-primary:`{v['version']}`" \
-                           f":bdg-info:`{v['release'] if v['release'] != "" else '1'}`" \
-                           f":bdg-danger:`{v['architecture']} ; Target Architecture`" \
-                           f":bdg-secondary:`{flavor_v}`\n")
+#                    rst.append(lindent + f"        :octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
+#                           f"`{v['description']} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}>`__ - " \
+#                           f":bdg-primary:`{v['version']}`" \
+#                           f":bdg-info:`{v['release'] if v['release'] != "" else '1'}`" \
+#                           f":bdg-danger:`{v['architecture']} ; Target Architecture`" \
+#                           f":bdg-secondary:`{flavor_v_text}`\n")
+                    rst.append(lindent + f"        .. button-link:: https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}")
+                    rst.append(lindent + f"            :color: primary")
+                    rst.append(lindent + f"            :outline:")
+                    rst.append(lindent + f"            :tooltip: Download {v['description']} - v{v['version']}-{v['release'] if v['release'] != "" else '1'} for {flavor_v_text} and {v['architecture']} architecture")
+                    rst.append(lindent + f"            :expand:\n")
+                    rst.append(lindent + f"            :octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
+                                         f"{v['description']} " \
+                                         f":bdg-info:`{v['version']}-{v['release'] if v['release'] != "" else '1'}`" \
+                                         f":bdg-danger:`{v['architecture']}`\n")
 
         text = ""
         for line in rst:
