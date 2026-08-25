@@ -27,21 +27,34 @@ Changelog for version 2.7.0.
 
 Version 2.6.0
 -------------
+{bdg-primary-line}`06 - 09 - 2023`
 
-This version introduces modified nucleotides support and a physics-based model to
-correct for predictions at non-standard (monovalent) salt concentrations.
-At this time we include publically available energy parameters for inosine,
-pseudouridine, m6A, 7DA, and purine (a.k.a. nebularine). In addition, we add
+::: {div} sd-text-primary sd-font-weight-bold
+With version 2.6 we introduce modifed base support and mono-valent salt corrections!
+:::
+
+Several of our executable tools received support for adding additional energy parameters
+for modified bases. At this time we include publically available energy parameters for
+inosine, pseudouridine, m6A, 7DA, and purine (a.k.a. nebularine). In addition, we add
 stacking parameters for dihydrouridine as predicted by Rosetta/RECESS.
+The implementations allow for easily adding more parameters if they become available.
+Additionally, we finally integrate a physics-based model to correct energy contributions
+based on the concentrations of mono-valent ions in solution, such as sodium. This
+correction is available for virtually all executable programs and easily accessible
+within our C-library.
 
 See the Changelog for version 2.6.0 for a complete list of new features and bugfixes.
 
 
 Version 2.5.0
 -------------
+{bdg-primary-line}`11 - 08 - 2021`
 
-The all new release of version 2.5 brings multi-strand interaction prediction! The
-new executable tool RNAmultifold is the successor of the RNA-RNA dimer interaction
+::: {div} sd-text-primary sd-font-weight-bold
+The all new release of version 2.5 brings multi-strand interaction prediction!
+:::
+
+The new executable tool RNAmultifold is the successor of the RNA-RNA dimer interaction
 prediction tool RNAcofold and effectively lifts the restriction to just two interacting
 strands. It follows the same principle of concatenating the RNA strands that shall
 form a complex and then predicts MFE and partition function. Along with that, it can
@@ -53,8 +66,12 @@ and fixed bugs.
 
 Version 2.4.0
 -------------
+{bdg-primary-line}`08 - 01 - 2017`
 
+::: {div} sd-text-primary sd-font-weight-bold
 With version 2.4 sliding-window structure prediction receives the constraint framework!
+:::
+
 Starting with this version, the sliding-window secondary structure prediction implementations
 as available through RNALfold, RNAplfold, and RNALalifold are constraints-aware. Thus, they
 can readily incorporate RNA structure probing data, such as from SHAPE experiments, etc. 
@@ -63,16 +80,22 @@ See the Changelog for version 2.4.0 for a complete list of new features and bugf
 
 Version 2.3.0
 -------------
+{bdg-primary-line}`11 - 01 - 2016`
 
-This version introduces the unstructured domain extension of the RNA folding grammar! This
-extension adds RNA-ligand interactions, e.g. RNA-protein, for unpaired stretches in RNA
-secondary structures. The feature is easy to use through the command file interface in RNAfold.
+::: {div} sd-text-primary sd-font-weight-bold
+Version 2.3 introduces the unstructured domain extension of the RNA folding grammar!
+:::
+
+This extension adds RNA-ligand interactions, e.g. RNA-protein, for unpaired stretches in
+RNA secondary structures. The feature is easy to use through the command file interface
+in RNAfold.
 
 See the Changelog for version 2.3.0 for a complete list of new features and bugfixes.
 
 
 Version 2.2.0
 -------------
+{bdg-primary-line}`01 - 25 - 2016`
 
 After almost a year without a new release, we are happy to announce many new features. This
 version officially introduces (generic) hard- and soft-constraints for many of the folding
@@ -87,11 +110,16 @@ See the Changelog for version 2.2.0 for a complete list of new features and bugf
 
 Version 2.1.9
 -------------
+{bdg-primary-line}`02 - 05 - 2015`
 
-This is a major bugfix release that changes the way how the ViennaRNA Package handles
-dangling end and terminal mismatch contributions for exterior-, and multibranch loops. We strongly
-recommend upgrading your installation to this or a newer version to obtain predictions that are
-better comparable to RNAstructure or UNAFold.
+::: {div} sd-text-primary sd-font-weight-bold
+This is a major bugfix release
+:::
+
+This release changes the way how the ViennaRNA Package handles dangling end and terminal mismatch
+contributions for exterior-, and multibranch loops. We strongly recommend upgrading your
+installation to this or a newer version to obtain predictions that are better comparable to
+RNAstructure or UNAFold.
 
 Please see the Changelog for version 2.1.9 for further details on the actual changes to the
 underlying energy parameters.
@@ -99,6 +127,7 @@ underlying energy parameters.
 
 Version 2.1.7
 -------------
+{bdg-primary-line}`04 - 13 - 2014`
 
 For a long time, Mac OS X users were not able to correctly build the Perl/Python interface of the
 ViennaRNA Package. Starting with v2.1.7, this limitation has been removed, and the interface should
@@ -109,6 +138,7 @@ Please see the Install Notes for Mac OS X users for further details.
 
 Version 2.1.0
 -------------
+{bdg-primary-line}`01 - 25 - 2013`
 
 Since ViennaRNA Package Version 2.1.0 we have enabled G-Quadruplex prediction support into
 RNAfold, RNAcofold, RNALfold, RNAalifold, RNAeval and RNAplot.
