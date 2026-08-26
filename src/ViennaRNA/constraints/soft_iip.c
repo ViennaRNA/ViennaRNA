@@ -1609,10 +1609,7 @@ xlink_hp_en(vrna_fold_compound_t  *fc,
   if (dat->overlap5[i])
     for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
       r = dat->overlap5[i][cnt];
-      if ((r->a <= i) &&
-          (r->b >= i) &&
-          (r->b < j) &&
-          (r->c <= j) &&
+      if ((r->c <= j) &&
           (r->d >= j))
         return r->score;
     }
@@ -1636,10 +1633,7 @@ xlink_hp_exp_en(vrna_fold_compound_t  *fc,
   if (dat->overlap5[i]) {
     for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
       r = dat->overlap5[i][cnt];
-      if ((r->a <= i) &&
-          (r->b >= i) &&
-          (r->b < j) &&
-          (r->c <= j) &&
+      if ((r->c <= j) &&
           (r->d >= j))
         return r->exp_score;
     }
