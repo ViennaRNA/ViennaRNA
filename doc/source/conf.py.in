@@ -291,13 +291,33 @@ jb_packages = {
               'package-items' : {
                 'viennarna-win'     : package_descriptions['viennarna-win']
               },
-              'label': "Windows"
+              'label': "Windows",
+              'text' : [
+                { 'warning' : "The Windows installer will **not** change the ``PATH`` variable of your system. " \
+                              "In order to omit the path to the binaries while using the programs of the " \
+                              "ViennaRNA Package, please add the path of your ViennaRNA Package installation " \
+                              "directory to your ``PATH`` variable **manually**."
+                },
+                { 'tip' : "The Windows installer doesn't include python bindings for ``RNAlib``! However, " \
+                          "they can be manually installed from `PyPI <https://pypi.org/project/ViennaRNA/>`__."
+                }
+              ]
             } ,
   "osx":    {
               'package-items' : {
                 'viennarna-macosx'  : package_descriptions['viennarna-macosx']
               },
-              'label': "MacOS X"
+              'label': "MacOS X",
+              'text' : [
+                { 'note' : "Two installers for Mac OS X are available here, one for ``x86_64`` Intel CPUs " \
+                           "(:bdg-danger:`x86_64`) that should work out of the box for all ``x86_64`` based " \
+                           "Macs, and a second (:bdg-danger:`arm64`) that runs on newer ARM-based Macs (M1-M3)."
+                },
+                { 'tip' : "The installers include Python bindings for the Python versions that ship with the " \
+                          "respective MacOS X. If you require Python bindings for any other Python version, " \
+                          "please install them separately, e.g. from `PyPI <https://pypi.org/project/ViennaRNA/>`__."
+                }
+              ]
             }
 }
 

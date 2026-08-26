@@ -21,26 +21,45 @@ Download
 
 .. tab-set::
 
-    .. tab-item:: Source Code
+    .. tab-item:: :octicon:`file-code;1em;sd-text-primary` Source Code
 
         Installing from sourcecode is the recommended way to get most out of the ViennaRNA Package.
         For best portability the ViennaRNA package uses the GNU tools :code:`autoconf`, :code:`automake`,
         and :code:`libtool` and can thus be compiled and installed on almost every computer platform.
 
+        See :ref:`install-source` for instructions to install the source code package.
+
         .. binary-packages::
             :flavor: sourcecode
             :flavor-version: @PACKAGE_VERSION@
 
-    .. tab-item:: Binary Packages
+        .. dropdown:: Older Versions
+            :animate: fade-in-slide-down
+            :name:  older-versions
+            :color: warning
+            :icon: archive
+
+            There should rarely be a good reason to use any but the latest version of our software.
+            However if you want to look up the old bugs, here's a list with most of the older
+            releases for download.
+
+            .. binary-packages::
+                :flavor: sourcecode
+
+
+    .. tab-item:: :octicon:`file-binary;1em;sd-text-primary` Binary Packages
 
         For your convenience, we also provide precompiled binary packages for several Linux
         distributions and installer executables for Windows and MacOS X.
 
-        .. include:: binary_download.rstinc
+        .. dropdown:: Notes on split packages
+            :animate: fade-in-slide-down
+            :name:  older-versions
+            :color: warning
+            :icon: alert
 
-        .. note::
-
-            If required by packaging standards we split the ViennaRNA Package into
+            To comply with the packaging standards of the corresponding Linux distributions we split the
+            ViennaRNA Package into
 
             Core
                 Usually the executable programs and utility scripts
@@ -57,18 +76,24 @@ Download
             Reference Manual
                 The documentation for the ViennaRNA Package
 
-    .. tab-item:: Other Packages
+        See :ref:`install-binaries` for instructions to install the binary packages.
+
+        .. include:: binary_download.rstinc
+
+    .. tab-item:: :octicon:`file-code;1em;sd-text-primary`  Other Packages
 
         Here we list all versions of the ViennaRNA Package that contain special features which
         have not been included into the main release yet:
 
-        * :octicon:`download;1em;sd-text-danger sd-font-weight-bold` `ViennaRNA Package v2.6.0b <https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.6.0b.tar.gz>`__ :bdg-primary:`2.6.0b`:bdg-danger:`src`:bdg-secondary:`2.6.x`
+        * Preliminary version with CUDA (Nvidia GPU) support for RNAfold
 
-          Preliminary release with support for non-standard salt concentrations and with modified nucleobases
+          .. button-link::  https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.3.0cuda.tar.gz
+              :color: primary
+              :outline:
+              :tooltip: Download ViennaRNA Package v2.3.0cuda Source Code
+              :expand:
 
-        * :octicon:`download;1em;sd-text-danger sd-font-weight-bold` `ViennaRNA Package v2.3.0cuda <https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.3.0cuda.tar.gz>`__ :bdg-primary:`2.3.0cuda`:bdg-danger:`src`:bdg-secondary:`2.3.x`
-
-          This is a preliminary version with CUDA (Nvidia GPU) support for RNAfold
+              :octicon:`download;1em;sd-text-danger sd-font-weight-bold` ViennaRNA Package v2.3.0cuda Source Code :bdg-info:`v2.3.0cuda`:bdg-danger:`src`
 
           Configure with
 
@@ -92,25 +117,18 @@ Download
           `W. Langdons CUDA RNAfold website <http://www0.cs.ucl.ac.uk/staff/W.Langdon/rnafold/>`__.
 
 
-        * :octicon:`download;1em;sd-text-danger sd-font-weight-bold`
-          `ViennaRNA Package v2.1.9h <https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.1.9h.tar.gz>`__
-          :bdg-primary:`2.1.9h`:bdg-danger:`src`:bdg-secondary:`2.1.x`
+        * Preliminary version implementing RNA/DNA hybrid support
 
-          This is a preliminary version implementing RNA/DNA hybrid support
+          .. button-link::  https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.1.9h.tar.gz
+              :color: primary
+              :outline:
+              :tooltip: Download ViennaRNA Package v2.1.9h Source Code
+              :expand:
 
-    .. tab-item:: Older Version
+              :octicon:`download;1em;sd-text-danger sd-font-weight-bold` ViennaRNA Package v2.1.9h Source Code :bdg-info:`v2.1.9h`:bdg-danger:`src`
 
-        There should rarely be a good reason to use any but the latest version of our software.
-        However if you want to look up the old bugs, here's a list with most of the older
-        releases for download.
 
-        .. note::
-
-            Just click on the version numbers below to display the corresponding ViennaRNA Package releases.
-
-        .. binary-packages::
-            :flavor: sourcecode
-
+.. _install-source:
 
 Installing from Source
 ----------------------
@@ -137,7 +155,7 @@ The instructions below are for installing the ViennaRNA package from source code
           make
           sudo make install
 
-        .. note::
+        .. tip::
 
             If you do not have root privileges on your computer, you might want to install the ViennaRNA
             Package to a location where you actually have write access to. To do so, you can set the
@@ -154,11 +172,9 @@ The instructions below are for installing the ViennaRNA package from source code
             variable contains the :code:`$HOME/.local/bin` directory such that our executables are looked-up
             for at the proper location.
 
-            .. tip::
-
-                The :code:`--prefix` can be any other directory if you want to keep your installed software
-                separate from each other. The :code:`make install` command will then create the corresponding
-                :code:`bin/`, :code:`lib/`, :code:`share/` directories within the directory you specified.
+            The :code:`--prefix` can be any other directory if you want to keep your installed software
+            separate from each other. The :code:`make install` command will then create the corresponding
+            :code:`bin/`, :code:`lib/`, :code:`share/` directories within the directory you specified.
 
         .. admonition:: MacOS X quirks
 
@@ -324,6 +340,7 @@ The instructions below are for installing the ViennaRNA package from source code
             be build as usual.
 
 
+.. _install-binaries:
 
 Installing Pre-compiled Packages
 --------------------------------
@@ -334,7 +351,9 @@ Installing Pre-compiled Packages
 
         To install the pre-compiled Linux packages that we provide in the :ref:`install:download` section
         above, simply download the corresponding files and use the installer program of your
-        linux distribution. Some examples to install the core programs and the Python 3 interface
+        linux distribution.
+
+        Some examples to install the core programs and the Python 3 interface
         are shown below.
 
         .. tab-set::
