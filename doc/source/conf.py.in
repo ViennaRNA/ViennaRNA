@@ -157,6 +157,10 @@ html_static_path = ['_static']
 html_css_files = [
     'css/custom.css',
 ]
+html_js_files = [
+    'js/jquery-4.0.0.js',
+    'js/viennarna.js',
+]
 html_show_sourcelink = False
 html_title = "@PACKAGE_NAME@ Package"
 
