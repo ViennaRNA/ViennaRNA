@@ -2,6 +2,7 @@ import json
 import os, re
 
 from docutils import nodes
+from docutils.parsers.rst.directives import flag, unchanged_required
 from sphinx.util.docutils import SphinxDirective
 
 
@@ -33,15 +34,17 @@ def detect_architecture(filename):
 
 class ShowBinaryPackagesDirective(SphinxDirective):
     has_content = True
-    optional_arguments = 2
+    optional_arguments = 3
     option_spec = {
       'flavor': str,
-      'flavor-version': str
+      'flavor-version': str,
+      'plain-link': flag,
     }
 
     def run(self) -> list:
         flavor          = self.options.get('flavor', '')
         flavor_version  = self.options.get('flavor-version', '')
+        plain           = True if 'plain-link' in self.options else False
 
         if not hasattr(self.env, 'jb_packages'):
             self.env.jb_packages = {}
@@ -66,7 +69,7 @@ class ShowBinaryPackagesDirective(SphinxDirective):
               else:
                   data = self.env.jb_packages[flavor]
 
-              rst += self._get_rst_flavor(flavor, label, data, standalone = True, indent = 0)
+              rst += self._get_rst_flavor(flavor, label, data, standalone = True, indent = 0, plain = plain)
               rst += self._add_flavor_extras(flavor, standalone = True, indent = 0)
 
               rst += "\n"
@@ -80,7 +83,7 @@ class ShowBinaryPackagesDirective(SphinxDirective):
                     continue
 
                 label = self.env.jb_package_labels.get(flavor, flavor)
-                rst += self._get_rst_flavor(flavor, label, data)
+                rst += self._get_rst_flavor(flavor, label, data, plain = plain)
                 rst += self._add_flavor_extras(flavor)
 
                 rst += "\n"
@@ -119,7 +122,7 @@ class ShowBinaryPackagesDirective(SphinxDirective):
         return text
 
 
-    def _get_rst_flavor(self, flavor, label, data, standalone = False, indent = 4) -> str:
+    def _get_rst_flavor(self, flavor, label, data, standalone = False, indent = 4, plain = False) -> str:
         if not label or label == "":
             label = flavor
         mindent = " " * indent
@@ -140,22 +143,20 @@ class ShowBinaryPackagesDirective(SphinxDirective):
                 version_string = f"v{v['version']}"
                 if v['release'] != "":
                     version_string += f"-{v['release']}"
-#                rst.append(lindent + f":octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
-#                       f"`{v['description']} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}>`__ - " \
-#                       f":bdg-primary:`{v['version']}`" \
-#                       f":bdg-info:`{v['release'] if v['release'] != "" else '1'}`" \
-#                       f":bdg-danger:`{v['architecture']}`" \
-#                       f":bdg-secondary:`{flavor_v_text}`\n")
-                rst.append(lindent + f".. button-link:: https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}")
-                rst.append(lindent + f"    :color: primary")
-                rst.append(lindent + f"    :outline:")
-                rst.append(lindent + f"    :tooltip: Download {v['description']} - v{v['version']}-{v['release'] if v['release'] != "" else '1'} for {flavor_v_text} and {v['architecture']} architecture")
-                rst.append(lindent + f"    :expand:")
-                rst.append(lindent + f"    :class: dl-{v['package']}-{v['version']}-{flavor}-{flavor_v_link}-{v['architecture']}\n")
-                rst.append(lindent + f"    :octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
-                                     f"{v['description']} " \
-                                     f":bdg-info:`{version_string}`" \
-                                     f":bdg-danger:`{v['architecture']}`\n")
+
+                if not plain:
+                    rst.append(lindent + f".. button-link:: https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}")
+                    rst.append(lindent + f"    :color: primary")
+                    rst.append(lindent + f"    :outline:")
+                    rst.append(lindent + f"    :tooltip: Download {v['description']} - v{v['version']}-{v['release'] if v['release'] != "" else '1'} for {flavor_v_text} and {v['architecture']} architecture")
+                    rst.append(lindent + f"    :expand:")
+                    rst.append(lindent + f"    :class: dl-{v['package']}-{v['version']}-{flavor}-{flavor_v_link}-{v['architecture']}\n")
+                    rst.append(lindent + f"    :octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
+                                         f"{v['description']} " \
+                                         f":bdg-info:`{version_string}`" \
+                                         f":bdg-danger:`{v['architecture']}`\n")
+                else:
+                    rst.append(lindent + f"`{v['description']} - {version_string} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}>`__")
         else:
             rst.append(lindent + ".. tab-set::")
             rst.append(lindent + "    :class: sd-align-major-start\n")
@@ -168,22 +169,20 @@ class ShowBinaryPackagesDirective(SphinxDirective):
                     version_string = f"v{v['version']}"
                     if v['release'] != "":
                         version_string += f"-{v['release']}"
-#                    rst.append(lindent + f"        :octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
-#                           f"`{v['description']} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}>`__ - " \
-#                           f":bdg-primary:`{v['version']}`" \
-#                           f":bdg-info:`{v['release'] if v['release'] != "" else '1'}`" \
-#                           f":bdg-danger:`{v['architecture']} ; Target Architecture`" \
-#                           f":bdg-secondary:`{flavor_v_text}`\n")
-                    rst.append(lindent + f"        .. button-link:: https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}")
-                    rst.append(lindent + f"            :color: primary")
-                    rst.append(lindent + f"            :outline:")
-                    rst.append(lindent + f"            :tooltip: Download {v['description']} - v{v['version']}-{v['release'] if v['release'] != "" else '1'} for {flavor_v_text} and {v['architecture']} architecture")
-                    rst.append(lindent + f"            :expand:")
-                    rst.append(lindent + f"            :class: dl-{v['package']}-{v['version']}-{flavor}-{flavor_v_link}-{v['architecture']}\n")
-                    rst.append(lindent + f"            :octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
-                                         f"{v['description']} " \
-                                         f":bdg-info:`{version_string}`" \
-                                         f":bdg-danger:`{v['architecture']}`\n")
+
+                    if not plain:
+                        rst.append(lindent + f"        .. button-link:: https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}")
+                        rst.append(lindent + f"            :color: primary")
+                        rst.append(lindent + f"            :outline:")
+                        rst.append(lindent + f"            :tooltip: Download {v['description']} - v{v['version']}-{v['release'] if v['release'] != "" else '1'} for {flavor_v_text} and {v['architecture']} architecture")
+                        rst.append(lindent + f"            :expand:")
+                        rst.append(lindent + f"            :class: dl-{v['package']}-{v['version']}-{flavor}-{flavor_v_link}-{v['architecture']}\n")
+                        rst.append(lindent + f"            :octicon:`download;1em;sd-text-danger sd-font-weight-bold` " \
+                                             f"{v['description']} " \
+                                             f":bdg-info:`{version_string}`" \
+                                             f":bdg-danger:`{v['architecture']}`\n")
+                    else:
+                        rst.append(lindent + f"        `{v['description']} - {version_string} <https://www.tbi.univie.ac.at/RNA/download/{flavor}/{flavor_v_link}/{v['filename']}>`__")
 
         text = ""
         for line in rst:

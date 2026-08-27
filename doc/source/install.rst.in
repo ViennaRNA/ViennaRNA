@@ -8,9 +8,11 @@ and scripts as well as a C-library that provides access to our
 implemented algorithms. Moreover, the C-library is wrapped to
 scripting languages such as ``Perl 5`` and ``Python``.
 
-.. note::
+.. only:: html
 
-    The latest stable release is **Version @PACKAGE_VERSION@**
+    .. note::
+
+        The latest stable release is **Version @PACKAGE_VERSION@**
 
 .. toctree::
     :hidden:
@@ -27,105 +29,127 @@ Download
         For best portability the ViennaRNA package uses the GNU tools :code:`autoconf`, :code:`automake`,
         and :code:`libtool` and can thus be compiled and installed on almost every computer platform.
 
-        See :ref:`install-source` for instructions to install the source code package.
-
-        .. binary-packages::
-            :flavor: sourcecode
-            :flavor-version: @PACKAGE_VERSION@
-
-        .. dropdown:: Older Versions
-            :animate: fade-in-slide-down
-            :name:  older-versions
-            :color: warning
-            :icon: archive
-
-            There should rarely be a good reason to use any but the latest version of our software.
-            However if you want to look up the old bugs, here's a list with most of the older
-            releases for download.
+        .. only:: latex
 
             .. binary-packages::
                 :flavor: sourcecode
+                :flavor-version: @PACKAGE_VERSION@
+                :plain:
 
+        .. only:: html
+
+            .. binary-packages::
+                :flavor: sourcecode
+                :flavor-version: @PACKAGE_VERSION@
+
+        See :ref:`install-source` for instructions to install the source code package.
+
+        .. only:: html
+
+            .. dropdown:: Older Versions
+                :animate: fade-in-slide-down
+                :name:  older-versions
+                :color: warning
+                :icon: archive
+
+                  There should rarely be a good reason to use any but the latest version of our software.
+                  However if you want to look up the old bugs, here's a list with most of the older
+                  releases for download.
+
+                  .. binary-packages::
+                      :flavor: sourcecode
 
     .. tab-item:: :octicon:`file-binary;1em;sd-text-primary` Binary Packages
 
         For your convenience, we also provide precompiled binary packages for several Linux
         distributions and installer executables for Windows and MacOS X.
 
-        .. dropdown:: Notes on split packages
-            :animate: fade-in-slide-down
-            :name:  older-versions
-            :color: warning
-            :icon: alert
+        .. only:: latex
 
-            To comply with the packaging standards of the corresponding Linux distributions we split the
-            ViennaRNA Package into
+            Pre-compiled binary packages for various Linux distributions and installers
+            for Windows and MacOSX can be obtained from the official website at
+            https://www.tbi.univie.ac.at/RNA/index.html#binary_packages
 
-            Core
-                Usually the executable programs and utility scripts
+            See :ref:`install-binaries` for instructions to install the binary packages.
 
-            Development Files
-                The RNAlib C-library and the corresponding header files 
+        .. only:: html
 
-            Perl Bindings
-                The RNA module to access RNAlib C-library functions from within Perl scripts
+            .. dropdown:: Notes on split packages
+                :animate: fade-in-slide-down
+                :name:  older-versions
+                :color: warning
+                :icon: alert
 
-            Python Bindings
-                The RNA class to access RNAlib C-library functions from within Python scripts 
+                To comply with the packaging standards of the corresponding Linux distributions we split the
+                ViennaRNA Package into
 
-            Reference Manual
-                The documentation for the ViennaRNA Package
+                Core
+                    Usually the executable programs and utility scripts
 
-        See :ref:`install-binaries` for instructions to install the binary packages.
+                Development Files
+                    The RNAlib C-library and the corresponding header files 
 
-        .. include:: binary_download.rstinc
+                Perl Bindings
+                    The RNA module to access RNAlib C-library functions from within Perl scripts
 
-    .. tab-item:: :octicon:`file-code;1em;sd-text-primary`  Other Packages
+                Python Bindings
+                    The RNA class to access RNAlib C-library functions from within Python scripts 
 
-        Here we list all versions of the ViennaRNA Package that contain special features which
-        have not been included into the main release yet:
+                Reference Manual
+                    The documentation for the ViennaRNA Package
 
-        * Preliminary version with CUDA (Nvidia GPU) support for RNAfold
+            See :ref:`install-binaries` for instructions to install the binary packages.
 
-          .. button-link::  https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.3.0cuda.tar.gz
-              :color: primary
-              :outline:
-              :tooltip: Download ViennaRNA Package v2.3.0cuda Source Code
-              :expand:
+            .. include:: binary_download.rstinc
 
-              :octicon:`download;1em;sd-text-danger sd-font-weight-bold` ViennaRNA Package v2.3.0cuda Source Code :bdg-info:`v2.3.0cuda`:bdg-danger:`src`
+    .. only:: html
 
-          Configure with
+        .. tab-item:: :octicon:`file-code;1em;sd-text-primary`  Other Packages
 
-          .. code:: bash
+            Here we list all versions of the ViennaRNA Package that contain special features which
+            have not been included into the main release yet:
 
-              ./configure NVCC_PATH=/path/to/cuda/bin NVCC_SAMPLES=/path/to/cuda/samples CUDA_SMS="35 50 61"
+            * **Preliminary version with CUDA (Nvidia GPU) support for RNAfold**
 
-          where :code:`CUDA_SMS` is a string specifying the CUDA compute capabilities. Here we include support
-          for for Tesla K20, GTX745, and GTX 1060. You can check the appropriate CUDA compute capability
-          for your GPU here: https://developer.nvidia.com/cuda-gpus. Simply use the compute level as
-          displayed at the NVIDIA web site and multiply it by 10 to get a nice and clean integer number
-          for :code:`CUDA_SMS`. To find out the correct path to NVCC a simple :code:`which nvcc` should suffice.
+              .. button-link::  https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.3.0cuda.tar.gz
+                  :color: primary
+                  :outline:
+                  :tooltip: Download ViennaRNA Package v2.3.0cuda Source Code
+                  :expand:
 
-          For all CUDA related environment variables, check the output of 
+                  :octicon:`download;1em;sd-text-danger sd-font-weight-bold` ViennaRNA Package v2.3.0cuda Source Code :bdg-info:`v2.3.0cuda`:bdg-danger:`src`
 
-          .. code::
+              Configure with
 
-              ./configure --help
+              .. code:: bash
 
-          Some answers to frequently asked questions can be found at
-          `W. Langdons CUDA RNAfold website <http://www0.cs.ucl.ac.uk/staff/W.Langdon/rnafold/>`__.
+                  ./configure NVCC_PATH=/path/to/cuda/bin NVCC_SAMPLES=/path/to/cuda/samples CUDA_SMS="35 50 61"
+
+              where :code:`CUDA_SMS` is a string specifying the CUDA compute capabilities. Here we include support
+              for for Tesla K20, GTX745, and GTX 1060. You can check the appropriate CUDA compute capability
+              for your GPU here: https://developer.nvidia.com/cuda-gpus. Simply use the compute level as
+              displayed at the NVIDIA web site and multiply it by 10 to get a nice and clean integer number
+              for :code:`CUDA_SMS`. To find out the correct path to NVCC a simple :code:`which nvcc` should suffice.
+
+              For all CUDA related environment variables, check the output of 
+
+              .. code::
+
+                  ./configure --help
+
+              Some answers to frequently asked questions can be found at
+              `W. Langdons CUDA RNAfold website <http://www0.cs.ucl.ac.uk/staff/W.Langdon/rnafold/>`__.
 
 
-        * Preliminary version implementing RNA/DNA hybrid support
+            * **Preliminary version implementing RNA/DNA hybrid support**
 
-          .. button-link::  https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.1.9h.tar.gz
-              :color: primary
-              :outline:
-              :tooltip: Download ViennaRNA Package v2.1.9h Source Code
-              :expand:
+              .. button-link::  https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-2.1.9h.tar.gz
+                  :color: primary
+                  :outline:
+                  :tooltip: Download ViennaRNA Package v2.1.9h Source Code
+                  :expand:
 
-              :octicon:`download;1em;sd-text-danger sd-font-weight-bold` ViennaRNA Package v2.1.9h Source Code :bdg-info:`v2.1.9h`:bdg-danger:`src`
+                  :octicon:`download;1em;sd-text-danger sd-font-weight-bold` ViennaRNA Package v2.1.9h Source Code :bdg-info:`v2.1.9h`:bdg-danger:`src`
 
 
 .. _install-source:
