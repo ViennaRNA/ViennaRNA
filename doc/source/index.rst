@@ -25,16 +25,9 @@ Predicting and Comparing RNA Secondary Structures
         code or even used in your scripts and pipelines through our :doc:`/wrappers`
         for :doc:`Python <api_python>` and Perl 5.
 
-    .. grid-item-card:: Installation
-        :link:  install
-        :link-type: ref
+    .. grid-item-card:: Get Started
 
         * :doc:`Download and Install instructions <install>`
-
-    .. grid-item-card:: Usage and Tutorials
-
-        Learn how to use the ViennaRNA Package
-
         * :doc:`getting_started`
         * :doc:`using_rnalib`
         * :doc:`io`
@@ -42,9 +35,20 @@ Predicting and Comparing RNA Secondary Structures
 
     .. grid-item-card:: RNAlib API Reference
 
+        * :doc:`api`
+        * :doc:`wrappers`
+        * :doc:`api_python`
+
 
     .. grid-item-card:: Miscelleaneous
 
+        * :doc:`What's new <news>`
+        * :doc:`changelog`
+        * :doc:`bibliography`
+        * :doc:`Citation <citing>`
+        * :doc:`FAQ <faq>`
+        * :doc:`Contributing <contributing>`
+        * :doc:`license`
 
 
 The latest version of the package including source code and html
@@ -52,41 +56,37 @@ versions of the documentation can be found at
 https://www.tbi.univie.ac.at/RNA and https://github.com/ViennaRNA/ViennaRNA.
 
 .. toctree::
-    :caption: Installation
+    :caption: Get Started
     :maxdepth: 1
     :hidden:
 
     install
     getting_started
+    manpages
+    using_rnalib
+    io
 
 .. toctree::
-   :caption: Usage and Tutorials:
-   :maxdepth: 1
-   :hidden:
+    :caption: RNAlib API Reference
+    :maxdepth: 1
+    :hidden:
 
-   manpages
-   using_rnalib
-   io
-
-.. toctree::
-   :caption: RNAlib API Reference
-   :maxdepth: 1
-
-   api
-   wrappers
-   api_python
+    api
+    wrappers
+    api_python
 
 .. toctree::
    :caption: Miscellaneous
    :maxdepth: 1
+    hidden:
 
-   What's new <news>
-   changelog
-   bibliography
-   Citation <citing>
-   FAQ <faq>
-   Contributing <contributing>
-   license
+    What's new <news>
+    changelog
+    bibliography
+    Citation <citing>
+    FAQ <faq>
+    Contributing <contributing>
+    license
 
 Indices and tables
 ------------------
