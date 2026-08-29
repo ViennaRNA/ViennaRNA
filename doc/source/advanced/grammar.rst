@@ -1,17 +1,6 @@
 The RNA Folding Grammar
 =======================
 
-The RNA folding grammar as implemented in RNAlib
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Specialized Modules:
-
-   grammar/constraints
-   grammar/domains_up
-   grammar/domains_struc
-
-
 Introduction
 ------------
 
@@ -78,5 +67,15 @@ may point to some memory storing any additional data required for the grammar ru
 .. seealso::
 
     The detailed API for this mechanism can be found in :ref:`api-grammar-extension`
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Specialized Modules:
+   :hidden:
+
+   grammar/constraints
+   grammar/domains_up
+   grammar/domains_struc
 
 

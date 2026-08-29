@@ -11,6 +11,7 @@ RNAlib API Reference
     api/eval
     api/grammar
     api/mfe
+    api/partfunc
 
     api_python
     callbacks
