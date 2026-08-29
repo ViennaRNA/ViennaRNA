@@ -1,5 +1,8 @@
-Getting Started
-===============
+.. _tutorials:
+
+=========
+Tutorials
+=========
 
 Here you find some more or less elaborate tutorials and manuals on how
 to use our software.
@@ -113,11 +116,4 @@ to use our software.
            tutorial/RNA2Dfold
            tutorial/barriers_treekin
 
-
-    .. grid-item-card:: Other Utilities
-
-        .. toctree::
-           :maxdepth: 1
-
-           utilities
 

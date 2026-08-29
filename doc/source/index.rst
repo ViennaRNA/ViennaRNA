@@ -1,136 +1,137 @@
+:html_theme.sidebar_secondary.remove: true
+
 .. RNA documentation master file, created by
    sphinx-quickstart on Thu Jul 28 23:52:58 2022.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
-
-Predicting and Comparing RNA Secondary Structures
--------------------------------------------------
-
-.. grid:: 1 1 2 3
-    :gutter:  1 1 2 3
-
-    .. grid-item-card::
-        :columns: 12
-
-        .. image:: gfx/vrna.png
-            :height: 200px
-            :align: left
-
-        The core of the **ViennaRNA Package** (:cite:t:`lorenz:2011,hofacker:1994`)
-        is formed by a collection of routines for the prediction and comparison
-        of RNA secondary structures. These routines can be accessed through
-        stand-alone programs, such as *RNAfold*, *RNAdistance* etc., which should
-        be sufficient for most users. For those who wish to develop their own
-        programs we provide *RNAlib*, a C-library that can be linked to your own
-        code or even used in your scripts and pipelines through our :doc:`/wrappers`
-        for :doc:`Python <api_python>` and Perl 5.
-
-    .. grid-item-card:: Get Started
-
-        * :doc:`Download and Install instructions <install>`
-        * :doc:`getting_started`
-        * :doc:`using_rnalib`
-        * :doc:`io`
-        * :doc:`manpages`
-
-    .. grid-item-card:: RNAlib API Reference
-
-        * :doc:`api`
-        * :doc:`wrappers`
-        * :doc:`api_python`
-
-
-    .. grid-item-card:: Miscelleaneous
-
-        * :doc:`What's new <news>`
-        * :doc:`changelog`
-        * :doc:`bibliography`
-        * :doc:`Citation <citing>`
-        * :doc:`FAQ <faq>`
-        * :doc:`Contributing <contributing>`
-        * :doc:`license`
-
-
-The latest version of the package including source code and html
-versions of the documentation can be found at
-https://www.tbi.univie.ac.at/RNA and https://github.com/ViennaRNA/ViennaRNA.
 
 .. toctree::
     :caption: Get Started
     :maxdepth: 1
     :hidden:
 
-    install
-    getting_started
-    manpages
-    using_rnalib
-    io
-
-.. toctree::
-    :caption: RNAlib API Reference
-    :maxdepth: 1
-    :hidden:
-
+    get_started
+    tutorials
+    advanced_usage
     api
-    wrappers
-    api_python
-
-.. toctree::
-   :caption: Miscellaneous
-   :maxdepth: 1
-    hidden:
-
     What's new <news>
     changelog
     bibliography
     Citation <citing>
     FAQ <faq>
-    Contributing <contributing>
+    Contributing <contributors>
     license
 
-Indices and tables
-------------------
+The ViennaRNA Package
+=====================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. image:: gfx/vrna.png
+    :height: 200px
+    :align: left
 
-Contributors
-------------
+The core of the **ViennaRNA Package** (:cite:t:`lorenz:2011,hofacker:1994`)
+is formed by a collection of algorithms for the **prediction and comparison**
+of RNA secondary structures. These implementations can be accessed through
+stand-alone programs, such as ``RNAfold``, ``RNAdistance``, etc., which
+most often are sufficient for regular users.
 
-Over the past decades since the ViennaRNA Package first sprang to life as part
-of Ivo L. Hofackers PhD project, several authors contributed more and more
-algorithm implementations. In 2008, Ronny Lorenz took over the extensive task
-to harmonize and simplify the already existing implementations for the sake
-of easier feature addition. This eventually lead to version 2.0 of the ViennaRNA
-Package. Since then, he (re-)implemented a large portion of the currently existing
-library features, such as the new, generalized constraints framework, RNA folding
-grammar domain extensions, and the major part of the scripting language interface.
+For those who wish to develop their own programs we provide ``RNAlib``,
+a C-library that can be linked against your own programs or used in your
+Python or Perl scripts and pipelines. The latter can be easily accomplished
+through our :doc:`/wrappers` for :doc:`Python <api_python>` and Perl 5.
 
-Below is a list of most people who contributed larger parts of the implementations:
 
-* Daniel Wiegreffe (RNAturtle and RNApuzzler secondary structure layouts)
-* Andreas Gruber (first approach on RNALfold Z-score filtering)
-* Juraj Michalik (non-redundant Boltzmann sampling)
-* Gregor Entzian (neighbor, walk)
-* Mario Koestl (worked on SWIG interface and related unit testing)
-* Dominik Luntzer (pertubation fold)
-* Stefan Badelt (cofold evaluation, RNAdesign.pl, cofold findpath extensions)
-* Stefan Hammer (parts of SWIG interface and corresponding unit tests)
-* Ronny Lorenz (circfold, version 2.0, generic constraints, grammar extensions, and much more)
-* Hakim Tafer (RNAplex, RNAsnoop)
-* Ulrike Mueckstein (RNAup)
-* Stephan Bernhart (RNAcofold, RNAplfold, unpaired probabilities, alifold, and so many more)
-* Stefan Wuchty (RNAsubopt)
-* Ivo Hofacker, Peter Stadler, and Christoph Flamm (almost every implementation up to version 1.8.5)
+.. grid:: 1 1 2 2
+    :gutter:  1 1 2 2
 
-We also want to thank the following people:
+    .. grid-item-card::
+        :img-top: _static/gfx/index_getting_started.svg
 
-* Sebastian Bonhoeffer's implementation of partition function folding served as a precursor to our part_func.c
-* Manfred Tacker hacked constrained folding into fold.c for the first time
-* Martin Fekete made the first attempts at "alignment folding"
-* Andrea Tanzer and Martin Raden (Mann) for not stopping to report bugs found through comprehensive usage of our applications and RNAlib
+        **Get Started**
+        ^^^
 
-Thanks also to everyone else who helped testing and finding bugs, especially
-Christoph Flamm, Martijn Huynen, Baerbel Krakhofer, and many more.
+        * :doc:`Download and Installation <install>`
+        * :doc:`programs`
+        * :doc:`using_rnalib`
+        * :doc:`io`
+
+        +++
+
+        .. button-ref:: get_started
+            :ref-type:  doc
+            :color: primary
+            :align: center
+
+            To the Install and Usage Guide
+
+
+    .. grid-item-card::
+        :img-top: _static/gfx/index_user_guide.svg
+
+        **Advanced User Guide**
+        ^^^
+
+        Our library consists of several modules, each addressing
+        different aspects of RNA secondary structure related problems.
+        Here you find an overview of the *concepts and algorithms* for
+        our implementations.
+
+        +++
+
+        .. button-ref:: advanced_usage
+            :ref-type:  doc
+            :color: primary
+            :align: center
+
+            To the Advanced User Guide
+
+
+    .. grid-item-card::
+        :img-top: _static/gfx/index_api.svg
+
+        **API Reference**
+        ^^^
+
+        Want to learn more about specific ``RNAlib`` functions? The
+        reference guide contains a detailed description of the
+        ``RNAlib`` API. It also describes how the C-functions can
+        be accessed in a scripting language like Python.
+
+        +++
+
+        .. button-ref:: api
+            :ref-type:  doc
+            :color: primary
+            :align: center
+
+            To the API reference
+
+    .. grid-item-card::
+        :img-top: _static/gfx/index_contribute.svg
+
+        **Contribute**
+        ^^^
+
+        Found a bug in our programs? Want to extend the
+        existing implementation? Then have a look at our
+        contributing guidelines to further improve the
+        ViennaRNA Package.
+
+        +++
+
+        .. button-ref:: contributors
+            :ref-type:  doc
+            :color: primary
+            :align: center
+
+            To the Contributors Guide
+
+.. only:: latex
+
+    Indices and tables
+    ------------------
+
+    * :ref:`genindex`
+    * :ref:`modindex`
+    * :ref:`search`
 

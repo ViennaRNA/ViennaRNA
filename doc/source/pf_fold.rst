@@ -74,7 +74,7 @@ Comparative prediction computes an average of the free energy contributions plus
 covariance pseudo-energy term, exactly as we do for the :doc:`/mfe`.
 
 Boltzmann weights for the free energy contributions of individual loops can be
-found in :doc:`/eval/eval_loops`.
+found in :ref:`api-eval_lloops`.
 
 Our implementations also provide a stochastic backtracking procedure to draw
 @ref subopt_stochbt according to their equilibrium probabilty.

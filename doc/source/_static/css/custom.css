@@ -98,3 +98,18 @@ div[class^=highlight] {
 div.rst-versions > div.rst-other-versions > div.injected > dl:nth-child(4) {
     display: none;
 }
+
+
+.sd-card .sd-card-img-top {
+  height: 80px;
+  width: 80px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+}
+
+/* Main index page overview images */
+
+html[data-theme=dark] .sd-card img[src*='.svg'] {
+  filter: invert(0.82) brightness(0.8) contrast(1.2);
+}

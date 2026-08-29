@@ -1,38 +1,19 @@
-=======================
-Concepts and Algorithms
-=======================
+.. _api-reference:
 
-Our library is grouped into several modules, each addressing different
-aspects of RNA secondary structure related problems. This is an overview
-of the concepts and algorithms for which implementations can be found
-in this library.
-
-Almost all of them rely on the physics based Nearest Neighbor Model
-for RNA secondary structure prediction.
+====================
+RNAlib API Reference
+====================
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Modules:
+    :maxdepth: 1
+    :caption: Categories:
 
-   eval
-   grammar
-   landscape
-   mfe
-   pf_fold
-   subopt_and_representatives
-   cofold
-   class_fold
-   inverse
-   probing_data
-   ligand_binding
-   paired_modules
-   modified_bases
-   utils
+    api/eval
+    api/grammar
+    api/mfe
 
-.. toctree::
-   :maxdepth: 1
-   :caption: General Remarks:
+    api_python
+    callbacks
+    deprecated
 
-   vrna_3.0
-   callbacks
-   deprecated
+

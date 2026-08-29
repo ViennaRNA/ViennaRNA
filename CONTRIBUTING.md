@@ -1,4 +1,4 @@
-# Contributing to the ViennaRNA Package
+# How to Contribute
 
 ## Contents
 - [General Remarks](#general-remarks)
