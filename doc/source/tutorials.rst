@@ -1,8 +1,8 @@
 .. _tutorials:
 
-=========
+*********
 Tutorials
-=========
+*********
 
 Here you find some more or less elaborate tutorials and manuals on how
 to use our software.

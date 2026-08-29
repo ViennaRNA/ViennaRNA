@@ -5,29 +5,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. toctree::
-    :caption: Get Started
-    :maxdepth: 1
-    :hidden:
-
-    get_started
-    tutorials
-    advanced_usage
-    api
-    What's new <news>
-    changelog
-    bibliography
-    Citation <citing>
-    FAQ <faq>
-    Contributing <contributors>
-    license
-
+#####################
 The ViennaRNA Package
-=====================
+#####################
 
-.. image:: gfx/vrna.png
-    :height: 200px
-    :align: left
+.. only:: html
+
+    .. image:: gfx/vrna.png
+        :height: 200px
+        :align: left
+
+.. only:: latex
+
+    .. image:: gfx/vrna.png
+        :height: 200px
+        :align: center
 
 The core of the **ViennaRNA Package** (:cite:t:`lorenz:2011,hofacker:1994`)
 is formed by a collection of algorithms for the **prediction and comparison**
@@ -40,98 +32,142 @@ a C-library that can be linked against your own programs or used in your
 Python or Perl scripts and pipelines. The latter can be easily accomplished
 through our :doc:`/wrappers` for :doc:`Python <api_python>` and Perl 5.
 
+.. only:: html
 
-.. grid:: 1 1 2 2
-    :gutter:  1 1 2 2
+    .. grid:: 1 1 2 2
+        :gutter:  1 1 2 2
 
-    .. grid-item-card::
-        :img-top: _static/gfx/index_getting_started.svg
+        .. grid-item-card::
+            :img-top: _static/gfx/index_getting_started.svg
 
-        **Get Started**
-        ^^^
+            **Get Started**
+            ^^^
 
-        * :doc:`Download and Installation <install>`
-        * :doc:`programs`
-        * :doc:`using_rnalib`
-        * :doc:`io`
+            * :doc:`Download and Installation <install>`
+            * :doc:`programs`
+            * :doc:`using_rnalib`
+            * :doc:`io`
 
-        +++
+            +++
 
-        .. button-ref:: get_started
-            :ref-type:  doc
-            :color: primary
-            :align: center
+            .. button-ref:: get_started
+                :ref-type:  doc
+                :color: primary
+                :align: center
 
-            To the Install and Usage Guide
-
-
-    .. grid-item-card::
-        :img-top: _static/gfx/index_user_guide.svg
-
-        **Advanced User Guide**
-        ^^^
-
-        Our library consists of several modules, each addressing
-        different aspects of RNA secondary structure related problems.
-        Here you find an overview of the *concepts and algorithms* for
-        our implementations.
-
-        +++
-
-        .. button-ref:: advanced_usage
-            :ref-type:  doc
-            :color: primary
-            :align: center
-
-            To the Advanced User Guide
+                To the Install and Usage Guide
 
 
-    .. grid-item-card::
-        :img-top: _static/gfx/index_api.svg
+        .. grid-item-card::
+            :img-top: _static/gfx/index_user_guide.svg
 
-        **API Reference**
-        ^^^
+            **Advanced User Guide**
+            ^^^
 
-        Want to learn more about specific ``RNAlib`` functions? The
-        reference guide contains a detailed description of the
-        ``RNAlib`` API. It also describes how the C-functions can
-        be accessed in a scripting language like Python.
+            Our library consists of several modules, each addressing
+            different aspects of RNA secondary structure related problems.
+            Here you find an overview of the *concepts and algorithms* for
+            our implementations.
 
-        +++
+            +++
 
-        .. button-ref:: api
-            :ref-type:  doc
-            :color: primary
-            :align: center
+            .. button-ref:: advanced_usage
+                :ref-type:  doc
+                :color: primary
+                :align: center
 
-            To the API reference
+                To the Advanced User Guide
 
-    .. grid-item-card::
-        :img-top: _static/gfx/index_contribute.svg
 
-        **Contribute**
-        ^^^
+        .. grid-item-card::
+            :img-top: _static/gfx/index_api.svg
 
-        Found a bug in our programs? Want to extend the
-        existing implementation? Then have a look at our
-        contributing guidelines to further improve the
-        ViennaRNA Package.
+            **API Reference**
+            ^^^
 
-        +++
+            Want to learn more about specific ``RNAlib`` functions? The
+            reference guide contains a detailed description of the
+            ``RNAlib`` API. It also describes how the C-functions can
+            be accessed in a scripting language like Python.
 
-        .. button-ref:: contributors
-            :ref-type:  doc
-            :color: primary
-            :align: center
+            +++
 
-            To the Contributors Guide
+            .. button-ref:: api
+                :ref-type:  doc
+                :color: primary
+                :align: center
 
-.. only:: latex
+                To the API reference
 
-    Indices and tables
-    ------------------
+        .. grid-item-card::
+            :img-top: _static/gfx/index_contribute.svg
 
-    * :ref:`genindex`
-    * :ref:`modindex`
-    * :ref:`search`
+            **Contribute**
+            ^^^
+
+            Found a bug in our programs? Want to extend the
+            existing implementation? Then have a look at our
+            contributing guidelines to further improve the
+            ViennaRNA Package.
+
+            +++
+
+            .. button-ref:: contributors
+                :ref-type:  doc
+                :color: primary
+                :align: center
+
+                To the Contributors Guide
+
+
+.. raw:: latex
+
+    \part{Quickstart}
+
+.. toctree::
+    :maxdepth: 3
+    :caption: Get Started
+    :hidden:
+
+    get_started
+
+.. raw:: latex
+
+    \part{User Guides}
+
+.. toctree::
+    :maxdepth: 3
+    :caption: Tutorials
+    :hidden:
+
+    tutorials
+
+.. raw:: latex
+
+    \part{Advanced Usage}
+
+.. toctree::
+    :maxdepth: 3
+    :caption: Advanced User Guide
+    :hidden:
+
+    advanced_usage
+    api
+
+.. raw:: latex
+
+    \part{Miscellaneous}
+
+.. toctree::
+    :maxdepth: 3
+    :caption: Miscellaneous
+    :hidden:
+
+    What's new <news>
+    changelog
+    bibliography
+    Citation <citing>
+    FAQ <faq>
+    Contributing <contributors>
+    license
 

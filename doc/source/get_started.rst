@@ -1,7 +1,6 @@
-===========
+***********
 Get Started
-===========
-
+***********
 
 .. toctree::
     :caption: Get Started
