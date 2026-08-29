@@ -9,7 +9,7 @@ clean_latex = \
 { \
   test ! -d build/latex \
   ||  { cd build/latex \
-        && rm -f *.ps *.dvi *.aux *.toc *.idx *.ind *.ilg *.log *.out *.brf *.blg *.bbl viennarna.pdf sphinx.log \
+        && rm -f *.ps *.dvi *.aux *.toc *.idx *.ind *.ilg *.log *.out *.brf *.blg *.bbl viennarna.pdf \
         && cd ../.. ; \
       } \
 }
@@ -88,21 +88,21 @@ if WITH_REFERENCE_MANUAL_PDF
 
 $(REFERENCE_MANUAL_FILES_PDF): doxygen/doxygen-xml
 	$(sphinx_verbose)$(clean_latex); \
-  $(SPHINXBUILD) -M latex source build >>sphinx.log 2>&1 && \
-  cd build/latex; $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1; \
-  $(MAKEINDEX_CMD) -s python.ist viennarna.idx >>sphinx.log 2>&1; \
-  $(BIBTEX_CMD) viennarna >>sphinx.log 2>&1; \
-  $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1; \
-  $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1; \
+  $(SPHINXBUILD) -M latex source build >sphinx_latex.log 2>&1 && \
+  cd build/latex; $(LATEX_CMD) -interaction=nonstopmode viennarna >>../../sphinx_latex.log 2>&1; \
+  $(MAKEINDEX_CMD) -s python.ist viennarna.idx >>../../sphinx_latex.log 2>&1; \
+  $(BIBTEX_CMD) viennarna >>../../sphinx_latex.log 2>&1; \
+  $(LATEX_CMD) -interaction=nonstopmode viennarna >>../../sphinx_latex.log 2>&1; \
+  $(LATEX_CMD) -interaction=nonstopmode viennarna >>../../sphinx_latex.log 2>&1; \
   latex_count=8 ; \
   while grep -E -s 'Rerun (LaTeX|to get cross-references right)' viennarna.log && [ $$latex_count -gt 0 ] ;\
       do \
         echo "Rerunning latex...." ;\
-        $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1;\
+        $(LATEX_CMD) -interaction=nonstopmode viennarna >>../../sphinx_latex.log 2>&1;\
         latex_count=`expr $$latex_count - 1` ;\
       done; \
-  $(MAKEINDEX_CMD) -s python.ist viennarna.idx >>sphinx.log 2>&1;\
-  $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1; \
+  $(MAKEINDEX_CMD) -s python.ist viennarna.idx >>../../sphinx_latex.log 2>&1;\
+  $(LATEX_CMD) -interaction=nonstopmode viennarna >>../../sphinx_latex.log 2>&1; \
   mv viennarna.pdf "../../$(REFERENCE_MANUAL_FILES_PDF)"; \
   cd ../..; \
   $(clean_latex);
