@@ -30,12 +30,12 @@ REFMAN_MANPAGES = \
 
 SUFFIXES = .1 .rst
 
-vpath %.1 = ../../../man
+vpath %.1 = ../../../../man
 
 if WITH_REFERENCE_MANUAL
 
 .1.rst:
-	$(man2rst_verbose)$(PYTHON3) ../../man2rst.py -i $< -o $@
+	$(man2rst_verbose)$(PYTHON3) $(top_srcdir)/doc/man2rst.py -i $< -o $@
 
 endif WITH_REFERENCE_MANUAL
 

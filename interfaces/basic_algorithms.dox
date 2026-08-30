@@ -4,7 +4,7 @@
 @scripting
 @parblock
 This function is available as global function @p maximum_matching().
-See e.g. @rstinline:py:func:`RNA.maximum_matching()` in the :doc:`/api_python`@endrst.
+See e.g. @rstinline:py:func:`RNA.maximum_matching()` in the :doc:`/api/python`@endrst.
 @endparblock
 
 
@@ -13,7 +13,7 @@ See e.g. @rstinline:py:func:`RNA.maximum_matching()` in the :doc:`/api_python`@e
 @parblock
 This function is attached as method @p maximum_matching() to objects
 of type @p fold_compound. See e.g.
-@rstinline:py:meth:`RNA.fold_compound.maximum_matching()` in the :doc:`/api_python`@endrst.
+@rstinline:py:meth:`RNA.fold_compound.maximum_matching()` in the :doc:`/api/python`@endrst.
 @endparblock
 
 */

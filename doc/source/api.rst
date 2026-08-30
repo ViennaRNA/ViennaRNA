@@ -12,9 +12,9 @@ RNAlib API Reference
     api/grammar
     api/mfe
     api/partfunc
-
-    api_python
-    callbacks
-    deprecated
+    api/swig_wrapper
+    api/python
+    api/callbacks
+    api/deprecated
 
 

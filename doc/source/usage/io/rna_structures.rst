@@ -33,8 +33,8 @@ Consider the following secondary structure in dot-bracket notation:
 
 which, drawn as a secondary structure graph, looks like:
 
-.. image:: ../gfx/bracket.png
-    :alt: secondary structure layout iamge
+.. image:: ../../gfx/bracket.png
+    :alt: secondary structure layout image
     :align: center
 
 It is a stem-loop structure consisting of a an outer helix of 3 base pairs followed by

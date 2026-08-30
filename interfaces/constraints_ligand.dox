@@ -5,7 +5,7 @@
 @parblock
 This function is attached as method @p sc_add_hi_motif() to objects of type @p fold_compound. The
 last parameter is optional an defaults to @p options = #VRNA_OPTION_DEFAULT. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_add_hi_motif()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_add_hi_motif()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 */

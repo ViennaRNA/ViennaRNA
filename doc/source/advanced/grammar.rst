@@ -31,21 +31,6 @@ to certain loop configurations.
   in each step of the recursive structure decomposition, for instance during MFE
   prediction.
 
-.. seealso::
-
-    High-level interfaces that build upon the soft constraints framework
-    can be obtained by the implementations in the submodules:
-
-    * :doc:`/modified_bases`
-    * :doc:`/probing_data`
-    * :doc:`/probing/SHAPE`
-    * :doc:`/ligands/constraints`
-
-    An implementation that generates soft constraints for unpaired nucleotides
-    by minimizing the discrepancy between their predicted and expected pairing
-    probability is available in submodule :doc:`/probing/perturbation`.
-
-
 In contrast, some applications of RNA secondary structure prediction require
 an extension of the *regular RNA folding grammar*. For instance one would
 like to include proteins and other ligands binding to unpaired loop regions
@@ -142,6 +127,18 @@ of the callback:
 
 
 .. seealso::
+
+    High-level interfaces that build upon the soft constraints framework
+    can be obtained by the implementations in the submodules:
+
+    * :doc:`/modified_bases`
+    * :doc:`/probing_data`
+    * :doc:`/probing/SHAPE`
+    * :doc:`/ligands/constraints`
+
+    An implementation that generates soft constraints for unpaired nucleotides
+    by minimizing the discrepancy between their predicted and expected pairing
+    probability is available in submodule :doc:`/probing/perturbation`.
 
     A full list of available functions and data structures for soft constraints can
     be found under :ref:`api-grammar-constraints-soft`.

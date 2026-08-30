@@ -461,7 +461,7 @@ hidden
 
 
 section "Experimental Structure Probing Data"
-sectiondesc="The following arguments and siwtches control various implementations that allow for\
+sectiondesc="The following arguments and switches control various implementations that allow for\
  guiding the structure prediction with the help of additional (experimental) RNA structure probing\
  data, such as SHAPE, DMS, etc.\n\n"
 

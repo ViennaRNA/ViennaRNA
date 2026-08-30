@@ -183,10 +183,10 @@ should look as follows:
 
 |alirna| |alidot|
 
-.. |alirna| image:: ../gfx/tutorial/alirna.png
+.. |alirna| image:: ../../gfx/tutorial/alirna.png
    :width: 45%
 
-.. |alidot| image:: ../gfx/tutorial/alidot.png
+.. |alidot| image:: ../../gfx/tutorial/alidot.png
    :width: 45%
 
 In the example given, many pairs show such inconsistencies. This is because

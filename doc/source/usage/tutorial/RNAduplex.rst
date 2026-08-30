@@ -97,10 +97,10 @@ binding regions predicted by RNAduplex are marked in red:
 
 |ompN| |rybB|
 
-.. |ompN| image:: ../gfx/tutorial/ompN_ss.png
+.. |ompN| image:: ../../gfx/tutorial/ompN_ss.png
    :width: 45%
 
-.. |rybB| image:: ../gfx/tutorial/RybB_ss.png
+.. |rybB| image:: ../../gfx/tutorial/RybB_ss.png
    :width: 25%
 
 .. code::
@@ -112,6 +112,6 @@ binding regions predicted by RNAduplex are marked in red:
 Compare the ``RNAduplex`` prediction with the interaction predicted by
 ``RNAcofold``, ``RNAup`` and the handcrafted prediction you see above.
 
-.. image:: ../gfx/tutorial/OmpN_cofold.png
+.. image:: ../../gfx/tutorial/OmpN_cofold.png
    :width: 66%
    :align: center

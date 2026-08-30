@@ -46,8 +46,8 @@ Two Sequences one Structure
    :widths: 50 50
    :align: center
 
-   * - .. image:: ../gfx/tutorial/t_ss.png
-     - .. image:: ../gfx/tutorial/t_dp.png
+   * - .. image:: ../../gfx/tutorial/t_ss.png
+     - .. image:: ../../gfx/tutorial/t_dp.png
 
 
 In the dot plot a cross marks the chain break between the two concatenated sequences.
@@ -141,7 +141,7 @@ read data file in X Y1 Y2 ... format.
 Concentration Dependency Plot
 =============================
 
-.. image:: ../gfx/tutorial/tconcdep.png
+.. image:: ../../gfx/tutorial/tconcdep.png
    :width: 66%
    :align: center
 

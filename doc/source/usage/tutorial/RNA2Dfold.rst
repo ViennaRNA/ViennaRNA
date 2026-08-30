@@ -78,8 +78,8 @@ gri output.
 
 |2df1| |2df2|
 
-.. |2df1| image:: ../gfx/tutorial/2dfold_out_m.png
+.. |2df1| image:: ../../gfx/tutorial/2dfold_out_m.png
    :width: 45%
 
-.. |2df2| image:: ../gfx/tutorial/2dfold_2_out_m.png
+.. |2df2| image:: ../../gfx/tutorial/2dfold_2_out_m.png
    :width: 45%

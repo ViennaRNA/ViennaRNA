@@ -5,7 +5,7 @@
 @parblock
 This function is attached as an overloaded method @p neighbors() to objects of type @p fold_compound.
 The optional parameter @p options defaults to #VRNA_MOVESET_DEFAULT if it is omitted. See, e.g.
-@rstinline:py:meth:`RNA.fold_compound.neighbors()` in the :doc:`/api_python`@endrst.
+@rstinline:py:meth:`RNA.fold_compound.neighbors()` in the :doc:`/api/python`@endrst.
 @endparblock
 
 */

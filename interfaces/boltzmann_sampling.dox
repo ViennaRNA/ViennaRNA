@@ -5,7 +5,7 @@
 @parblock
 This function is attached as overloaded method @p pbacktrack5() to objects of
 type @p fold_compound. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack5()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack5()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -14,7 +14,7 @@ and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @en
 @parblock
 This function is attached as overloaded method @p pbacktrack() to objects of type
 @p fold_compound. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -23,7 +23,7 @@ and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @en
 @parblock
 This function is attached as overloaded method @p pbacktrack_sub() to objects of type
 @em fold_compound. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack_sub()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack_sub()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -33,7 +33,7 @@ and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @en
 This function is attached as overloaded method @p pbacktrack5() to objects of type
 @p fold_compound with optional last argument @p options = #VRNA_PBACKTRACK_DEFAULT.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack5()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack5()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -43,7 +43,7 @@ and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @en
 This function is attached as overloaded method @p pbacktrack() to objects of type
 @p fold_compound with optional last argument @p options = #VRNA_PBACKTRACK_DEFAULT.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.@endparblock
 
 @fn char **vrna_pbacktrack_sub_num(vrna_fold_compound_t *fc, unsigned int num_samples, unsigned int start, unsigned int end, unsigned int options)
@@ -52,7 +52,7 @@ and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @en
 This function is attached as overloaded method @p pbacktrack_sub() to objects of type
 @p fold_compound with optional last argument @p options = #VRNA_PBACKTRACK_DEFAULT.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack_sub()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack_sub()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.@endparblock
 
 @fn unsigned int vrna_pbacktrack5_cb(vrna_fold_compound_t *fc, unsigned int num_samples, unsigned int length, vrna_bs_result_f cb, void *data, unsigned int options)
@@ -61,7 +61,7 @@ and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @en
 This function is attached as overloaded method @p pbacktrack5() to objects of type
 @p fold_compound with optional last argument @p options = #VRNA_PBACKTRACK_DEFAULT.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack5()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack5()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -71,7 +71,7 @@ and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @en
 This function is attached as overloaded method @p pbacktrack() to objects of type
 @p fold_compound with optional last argument @p options = #VRNA_PBACKTRACK_DEFAULT.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -81,7 +81,7 @@ and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @en
 This function is attached as overloaded method @p pbacktrack() to objects of type
 @p fold_compound with optional last argument @p options = #VRNA_PBACKTRACK_DEFAULT.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -93,7 +93,7 @@ This function is attached as overloaded method @p pbacktrack5() to objects of ty
 In addition to the list of structures, this function also returns the @p nr_mem
 data structure as first return value.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack5()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack5()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -105,7 +105,7 @@ This function is attached as overloaded method @p pbacktrack() to objects of typ
 In addition to the list of structures, this function also returns the @p nr_mem
 data structure as first return value.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -117,7 +117,7 @@ This function is attached as overloaded method @p pbacktrack_sub() to objects of
 In addition to the list of structures, this function also returns the @p nr_mem
 data structure as first return value.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack_sub()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack_sub()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -129,7 +129,7 @@ This function is attached as overloaded method @p pbacktrack5() to objects of ty
 In addition to the number of structures backtraced, this function also returns the @p nr_mem
 data structure as first return value.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack5()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack5()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -141,7 +141,7 @@ This function is attached as overloaded method @p pbacktrack() to objects of typ
 In addition to the number of structures backtraced, this function also returns the @p nr_mem
 data structure as first return value.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 
@@ -153,7 +153,7 @@ This function is attached as overloaded method @p pbacktrack_sub() to objects of
 In addition to the number of structures backtraced, this function also returns the @p nr_mem
 data structure as first return value.
 See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.pbacktrack_sub()` in the :doc:`/api_python` @endrst
+@rstinline :py:meth:`RNA.fold_compound.pbacktrack_sub()` in the :doc:`/api/python` @endrst
 and the @rstinline :ref:`examples/python:boltzmann sampling` Python examples @endrst.
 @endparblock
 

@@ -98,7 +98,7 @@ minima ascending in energy. The meaning of the first 5 columns is as follows
 ``barriers`` produced two additional files, the *PostScript* file ``tree.eps``
 which represents the basic information of the ``barseq.bar`` file visually:
 
-.. image:: ../gfx/tutorial/tree.png
+.. image:: ../../gfx/tutorial/tree.png
    :width: 50%
    :align: center
 
@@ -120,10 +120,10 @@ rate matrix in the file ``rates.out``.
 
 |kin| |dot|
 
-.. |kin| image:: ../gfx/tutorial/FOO.png
+.. |kin| image:: ../../gfx/tutorial/FOO.png
    :width: 55%
 
-.. |dot| image:: ../gfx/tutorial/FOO_dp.png
+.. |dot| image:: ../../gfx/tutorial/FOO_dp.png
    :width: 40%
 
 The simulation starts with all the population density in the open chain

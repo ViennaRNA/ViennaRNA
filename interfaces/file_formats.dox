@@ -5,7 +5,7 @@
 @parblock
 This function exists as an overloaded version where the @p options parameter may be omitted!
 In that case, the @p options parameter defaults to #VRNA_FILE_FORMAT_MSA_DEFAULT. See, e.g.
-@rstinline :py:func:`RNA.file_msa_detect_format()` in the :doc:`/api_python` @endrst.
+@rstinline :py:func:`RNA.file_msa_detect_format()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -17,7 +17,7 @@ are passed to the corresponding function. The other arguments, which serve as ou
 C-library, are available as additional return values.
 This function exists as an overloaded version where the @p options parameter may be omitted!
 In that case, the @p options parameter defaults to #VRNA_FILE_FORMAT_MSA_STOCKHOLM. See, e.g.
-@rstinline :py:func:`RNA.file_msa_read()` in the :doc:`/api_python` @endrst and
+@rstinline :py:func:`RNA.file_msa_read()` in the :doc:`/api/python` @endrst and
 @rstinline :ref:`examples/python:parsing alignments` @endrst in the Python examples.
 @endparblock
 
@@ -30,7 +30,7 @@ are passed to the corresponding function. The other arguments, which serve as ou
 C-library, are available as additional return values.
 This function exists as an overloaded version where the @p options parameter may be omitted!
 In that case, the @p options parameter defaults to #VRNA_FILE_FORMAT_MSA_STOCKHOLM. See, e.g.
-@rstinline :py:func:`RNA.file_msa_read_record()` in the :doc:`/api_python` @endrst and
+@rstinline :py:func:`RNA.file_msa_read_record()` in the :doc:`/api/python` @endrst and
 @rstinline :ref:`examples/python:parsing alignments` @endrst in the Python examples.
 @endparblock
 
@@ -41,6 +41,6 @@ In that case, the @p options parameter defaults to #VRNA_FILE_FORMAT_MSA_STOCKHO
 In the target scripting language, this function exists as a set of overloaded versions,
 where the last four parameters may be omitted. If the @p options parameter is missing the
 options default to (#VRNA_FILE_FORMAT_MSA_STOCKHOLM | #VRNA_FILE_FORMAT_MSA_APPEND). See, e.g.
-@rstinline :py:func:`RNA.file_msa_write()` in the :doc:`/api_python` @endrst.
+@rstinline :py:func:`RNA.file_msa_write()` in the :doc:`/api/python` @endrst.
 @endparblock
 */

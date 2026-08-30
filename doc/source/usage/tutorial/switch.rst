@@ -85,10 +85,10 @@ Simply try to make sure.
 
 |bt1| |bt2|
 
-.. |bt1| image:: ../gfx/tutorial/switch_barriertree.png
+.. |bt1| image:: ../../gfx/tutorial/switch_barriertree.png
    :width: 48%
 
-.. |bt2| image:: ../gfx/tutorial/switch_barriertree_e13.png
+.. |bt2| image:: ../../gfx/tutorial/switch_barriertree_e13.png
    :width: 48%
 
 left: Barriers tree as it should look like, all branches connected to the main root
@@ -116,7 +116,7 @@ The graph could look like the one below, remember everytime you use ``switch.pl`
 it can give you different sequences so the output varies too. Here the one from
 the example.
 
-.. image:: ../gfx/tutorial/switch_treekin.png
+.. image:: ../../gfx/tutorial/switch_treekin.png
    :width: 66%
    :align: center
 

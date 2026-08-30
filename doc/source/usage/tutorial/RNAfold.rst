@@ -2,10 +2,6 @@
 The Program ``RNAfold``
 =======================
 
-.. contents:: Table of Contents
-    :depth: 1
-    :local:
-
 Introduction
 ============
 
@@ -210,7 +206,7 @@ diversity is very high for such a short sequence.
 Rotate the structure plot
 =========================
 
-.. image:: ../gfx/tutorial/test_ss.png
+.. image:: ../../gfx/tutorial/test_ss.png
    :width: 25%
    :align: center
 
@@ -227,7 +223,7 @@ the information to get your secondary structure in a vertical position.
 The base pair probability dot plot
 ==================================
 
-.. image::  ../gfx/tutorial/test_dp.png
+.. image::  ../../gfx/tutorial/test_dp.png
    :width: 50%
    :align: center
 
@@ -282,8 +278,8 @@ Fold the 5S rRNA sequence and visualize the structure. (The ``5S.seq`` is shippe
    :widths: 50 50
    :align: center
 
-   * - .. image:: ../gfx/tutorial/5S_mt.png
-     - .. image:: ../gfx/tutorial/5S_rot.png
+   * - .. image:: ../../gfx/tutorial/5S_mt.png
+     - .. image:: ../../gfx/tutorial/5S_rot.png
 
 
 A mountain plot is especially useful for long sequences where conventional
@@ -616,7 +612,7 @@ riboswitch with the sequence::
 
 The theopylline aptamer structure has been actively researched during the last two decades.
 
-.. image:: ../gfx/tutorial/theo_aptamer.png
+.. image:: ../../gfx/tutorial/theo_aptamer.png
    :width: 75%
    :align: center
 
@@ -667,7 +663,7 @@ G-quadruplexes
 G-Quadruplexes are a common conformation found in G-rich sequences where four runs of
 consecutive G's are separated by three short sequence stretches.
 
-.. image:: ../gfx/tutorial/gquad_pattern.png
+.. image:: ../../gfx/tutorial/gquad_pattern.png
    :width: 50%
    :align: center
 
@@ -675,7 +671,7 @@ consecutive G's are separated by three short sequence stretches.
 They form local self-enclosed stacks of G-quartets bound together through 8 Hogsteen-Watson
 Crick bonds and further stabilized by a metal ion (usually potassium).
 
-.. image:: ../gfx/tutorial/gquad.png
+.. image:: ../../gfx/tutorial/gquad.png
    :width: 50%
    :align: center
 
@@ -730,14 +726,14 @@ interacting G's, and green triangles where the color intensity encodes the G-qua
 probability, respectively. Have a closer look at the actual G-quadruplex probabilities
 by opening the dot plot *PostScript* file with a text browser again.
 
-.. image:: ../gfx/tutorial/gquad_menon.png
+.. image:: ../../gfx/tutorial/gquad_menon.png
    :width: 75%
    :align: center
 
 
 A better drawing of the predicted G-quadruplex might look as follows
 
-.. image:: ../gfx/tutorial/gquad_menon_nice.png
+.. image:: ../../gfx/tutorial/gquad_menon_nice.png
    :width: 50%
    :align: center
 
@@ -810,7 +806,7 @@ The RNA sequence file ``forties_bundschuh.fa`` for this experiment is::
 
 which yields the following MFE structure
 
-.. image:: ../gfx/tutorial/forties_ss.png
+.. image:: ../../gfx/tutorial/forties_ss.png
    :width: 50%
    :align: center
 
@@ -834,7 +830,7 @@ per-nucleotide protein binding probabilities
 
 and the produced probability dot plot can be inspected.
 
-.. image:: ../gfx/tutorial/forties_50nM_dp.png
+.. image:: ../../gfx/tutorial/forties_50nM_dp.png
    :width: 50%
    :align: center
 

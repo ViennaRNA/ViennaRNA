@@ -1,7 +1,7 @@
 .. _install:
 
-Installation
-============
+Get Started
+===========
 
 The ViennaRNA Package comes with a variety of executable programs
 and scripts as well as a C-library that provides access to our
@@ -13,10 +13,6 @@ scripting languages such as ``Perl 5`` and ``Python``.
     .. note::
 
         The latest stable release is **Version @PACKAGE_VERSION@**
-
-.. toctree::
-    :hidden:
-
 
 Download
 --------
@@ -34,7 +30,7 @@ Download
             .. binary-packages::
                 :flavor: sourcecode
                 :flavor-version: @PACKAGE_VERSION@
-                :plain:
+                :plain-link:
 
         .. only:: html
 
@@ -68,7 +64,7 @@ Download
 
             Pre-compiled binary packages for various Linux distributions and installers
             for Windows and MacOSX can be obtained from the official website at
-            https://www.tbi.univie.ac.at/RNA/index.html#binary_packages
+            https://www.tbi.univie.ac.at/RNA/index.html#binary_packages.
 
             See :ref:`install-binaries` for instructions to install the binary packages.
 

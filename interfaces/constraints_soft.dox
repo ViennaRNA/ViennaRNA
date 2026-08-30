@@ -4,7 +4,7 @@
 @scripting
 @parblock
 This function is attached as method @p sc_init() to objects of type @p fold_compound. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_init()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_init()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -12,7 +12,7 @@ This function is attached as method @p sc_init() to objects of type @p fold_comp
 @scripting
 @parblock
 This function is attached as method @p sc_remove() to objects of type @p fold_compound. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_remove()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_remove()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -20,7 +20,7 @@ This function is attached as method @p sc_remove() to objects of type @p fold_co
 @scripting
 @parblock
 This function is attached as method @p sc_set_bp() to objects of type @p fold_compound. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_set_bp()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_set_bp()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -39,7 +39,7 @@ contributions for any base pair (i,j) with @f$ 1 \leq i < j \leq n @f$:
 fold_compound.sc_add_bp(matrix, options)
 ```
 In both variants, the optional argument @p options defaults to #VRNA_OPTION_DEFAULT. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_add_bp()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_add_bp()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -47,7 +47,7 @@ In both variants, the optional argument @p options defaults to #VRNA_OPTION_DEFA
 @scripting
 @parblock
 This function is attached as method @p sc_set_up() to objects of type @p fold_compound. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_set_up()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_set_up()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -66,7 +66,7 @@ with @f$ 1 \leq i \leq n @f$:
 fold_compound.sc_add_bp(vector, options)
 ```
 In both variants, the optional argument @p options defaults to #VRNA_OPTION_DEFAULT. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_add_up()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_add_up()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -74,7 +74,7 @@ In both variants, the optional argument @p options defaults to #VRNA_OPTION_DEFA
 @scripting
 @parblock
 This function is attached as method @p sc_add_data() to objects of type @p fold_compound. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_add_data()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_add_data()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -82,7 +82,7 @@ This function is attached as method @p sc_add_data() to objects of type @p fold_
 @scripting
 @parblock
 This function is attached as method @p sc_add_f() to objects of type @p fold_compound. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_add_f()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_add_f()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -90,7 +90,7 @@ This function is attached as method @p sc_add_f() to objects of type @p fold_com
 @scripting
 @parblock
 This function is attached as method @p sc_add_bt() to objects of type @p fold_compound. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_add_bt()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_add_bt()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -98,7 +98,7 @@ This function is attached as method @p sc_add_bt() to objects of type @p fold_co
 @scripting
 @parblock
 This function is attached as method @p sc_add_exp_f() to objects of type @p fold_compound. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_add_exp_f()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_add_exp_f()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -107,7 +107,7 @@ This function is attached as method @p sc_add_exp_f() to objects of type @p fold
 @parblock
 This function is attached as overloaded method @p sc_mod_json() to objects of type
 @p fold_compound with default @p options = #VRNA_SC_MOD_DEFAULT. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_mod_json()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_mod_json()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -116,7 +116,7 @@ This function is attached as overloaded method @p sc_mod_json() to objects of ty
 @parblock
 This function is attached as overloaded method @p sc_mod_jsonfile() to objects of type
 @p fold_compound with default @p options = #VRNA_SC_MOD_DEFAULT.  See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_mod_jsonfile()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_mod_jsonfile()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -125,7 +125,7 @@ This function is attached as overloaded method @p sc_mod_jsonfile() to objects o
 @parblock
 This function is attached as overloaded method @p sc_mod() to objects of type
 @p fold_compound with default @p options = #VRNA_SC_MOD_DEFAULT. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_mod()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_mod()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -134,7 +134,7 @@ This function is attached as overloaded method @p sc_mod() to objects of type
 @parblock
 This function is attached as overloaded method @p sc_mod_m6A() to objects of type
 @p fold_compound with default @p options = #VRNA_SC_MOD_DEFAULT. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_mod_m6A()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_mod_m6A()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -143,7 +143,7 @@ This function is attached as overloaded method @p sc_mod_m6A() to objects of typ
 @parblock
 This function is attached as overloaded method @p sc_mod_pseudouridine() to objects of type
 @p fold_compound with default @p options = #VRNA_SC_MOD_DEFAULT. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_mod_pseudouridine()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_mod_pseudouridine()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -152,7 +152,7 @@ This function is attached as overloaded method @p sc_mod_pseudouridine() to obje
 @parblock
 This function is attached as overloaded method @p sc_mod_inosine() to objects of type
 @p fold_compound with default @p options = #VRNA_SC_MOD_DEFAULT. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_mod_inosine()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_mod_inosine()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -161,7 +161,7 @@ This function is attached as overloaded method @p sc_mod_inosine() to objects of
 @parblock
 This function is attached as overloaded method @p sc_mod_7DA() to objects of type
 @p fold_compound with default @p options = #VRNA_SC_MOD_DEFAULT. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_mod_7DA()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_mod_7DA()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -170,7 +170,7 @@ This function is attached as overloaded method @p sc_mod_7DA() to objects of typ
 @parblock
 This function is attached as overloaded method @p sc_mod_purine() to objects of type
 @p fold_compound with default @p options = #VRNA_SC_MOD_DEFAULT. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_mod_purine()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_mod_purine()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -179,7 +179,7 @@ This function is attached as overloaded method @p sc_mod_purine() to objects of 
 @parblock
 This function is attached as overloaded method @p sc_mod_dihydrouridine() to objects of type
 @p fold_compound with default @p options = #VRNA_SC_MOD_DEFAULT. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.sc_mod_dihydrouridine()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.sc_mod_dihydrouridine()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -188,7 +188,7 @@ This function is attached as overloaded method @p sc_mod_dihydrouridine() to obj
 @parblock
 This function is available as an overloaded function @p sc_mod_read_from_jsonfile() where
 the @p md parameter may be omitted and defaults to `NULL`. See, e.g.
-@rstinline :py:func:`RNA.sc_mod_read_from_jsonfile()` in the :doc:`/api_python` @endrst.
+@rstinline :py:func:`RNA.sc_mod_read_from_jsonfile()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 
@@ -197,7 +197,7 @@ the @p md parameter may be omitted and defaults to `NULL`. See, e.g.
 @parblock
 This function is available as an overloaded function @p sc_mod_read_from_json() where
 the @p md parameter may be omitted and defaults to `NULL`. See, e.g.
-@rstinline :py:func:`RNA.sc_mod_read_from_json()` in the :doc:`/api_python` @endrst.
+@rstinline :py:func:`RNA.sc_mod_read_from_json()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 */

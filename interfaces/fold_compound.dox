@@ -18,6 +18,6 @@ functions that mainly operate on the corresponding @p C data structure:<br>
 - @p length() - Get the length of the sequence(s) or alignment stored within the @p fold_compound.
 
 See, e.g.
-@rstinline:py:class:`RNA.fold_compound` in the :doc:`/api_python`@endrst.
+@rstinline:py:class:`RNA.fold_compound` in the :doc:`/api/python`@endrst.
 @endparblock
 */

@@ -3,6 +3,7 @@
 Ivo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler, Ronny Lorenz
 
 [EXAMPLES]
+.SS "Basic Usage Examples"
 
 Single line sequence input and calculation of partition function and MEA structure
 
@@ -78,7 +79,7 @@ which would result in an output like this
 .fi
 
 [>EXAMPLES]
-.SH "CONSTRAINT EXAMPLES"
+.SS "Constraint Examples"
 
 Secondary structure constraints may be given in addition to the sequence information, too.
 Using the first sequence of the previous example and restricting the nucleotides of the
@@ -187,7 +188,7 @@ option:
 
 
 [>EXAMPLES]
-.SH "EXPERIMENTAL STRUCTURE PROBING DATA"
+.SS "Structure Probing Data Example"
 
 Structure predictions can be guided by additional structure probing data. Such data
 may be derived from SHAPE, DMS, or similar techniques. In our software we implement
@@ -235,7 +236,7 @@ with SHAPE reactivity data!
 
 
 [>EXAMPLES]
-.SH "POST-TRANSCRIPTIONAL MODIFICATION EXAMPLES"
+.SS "Post-transcriptional Modification Example"
 
 Many RNA molecules harbor (post-transcriptional) modifications. These modified base
 often change the pairing behavior or energy contribution for the loops they are part of.
@@ -272,7 +273,7 @@ effects of P within base pair stacks can be done as follows:
 
 
 [>EXAMPLES]
-.SH "LIGAND BINDING"
+.SS "Ligand Binding Examples"
 
 .I Ligand binding contributions to specific hairpin/interior loop motifs
 

@@ -7,7 +7,7 @@ In the target scripting language, this function is wrapped as overloaded functio
 last parameter, the @p model_details data structure, is optional. If it is omitted, default model settings
 are applied, i.e. default nucleotide letter conversion. The wrapped function returns a list/tuple of integer
 representations of the input sequence. See, e.g.
-@rstinline:py:func:`RNA.seq_encode()` in the :doc:`/api_python`@endrst.
+@rstinline:py:func:`RNA.seq_encode()` in the :doc:`/api/python`@endrst.
 @endparblock
 
 */

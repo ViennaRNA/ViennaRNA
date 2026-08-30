@@ -1,6 +1,6 @@
 include $(top_srcdir)/silent_rules.mk
 
-SUBDIRS = CLA source/man
+SUBDIRS = CLA source/usage/man
 
 pkgdata_DATA = \
     viennarna.bib
@@ -15,31 +15,31 @@ clean_latex = \
 }
 
 REFMAN_MANPAGES = \
-    source/man/RNA2Dfold.rst \
-    source/man/RNAaliduplex.rst \
-    source/man/RNAalifold.rst \
-    source/man/RNAcofold.rst \
-    source/man/RNAdistance.rst \
-    source/man/RNAdos.rst \
-    source/man/RNAduplex.rst \
-    source/man/RNAeval.rst \
-    source/man/RNAfold.rst \
-    source/man/RNAheat.rst \
-    source/man/RNAinverse.rst \
-    source/man/RNALalifold.rst \
-    source/man/RNALfold.rst \
-    source/man/RNAmultifold.rst \
-    source/man/RNApaln.rst \
-    source/man/RNAparconv.rst \
-    source/man/RNApdist.rst \
-    source/man/RNAPKplex.rst \
-    source/man/RNAplex.rst \
-    source/man/RNAplfold.rst \
-    source/man/RNAplot.rst \
-    source/man/RNApvmin.rst \
-    source/man/RNAsnoop.rst \
-    source/man/RNAsubopt.rst \
-    source/man/RNAup.rst
+    source/usage/man/RNA2Dfold.rst \
+    source/usage/man/RNAaliduplex.rst \
+    source/usage/man/RNAalifold.rst \
+    source/usage/man/RNAcofold.rst \
+    source/usage/man/RNAdistance.rst \
+    source/usage/man/RNAdos.rst \
+    source/usage/man/RNAduplex.rst \
+    source/usage/man/RNAeval.rst \
+    source/usage/man/RNAfold.rst \
+    source/usage/man/RNAheat.rst \
+    source/usage/man/RNAinverse.rst \
+    source/usage/man/RNALalifold.rst \
+    source/usage/man/RNALfold.rst \
+    source/usage/man/RNAmultifold.rst \
+    source/usage/man/RNApaln.rst \
+    source/usage/man/RNAparconv.rst \
+    source/usage/man/RNApdist.rst \
+    source/usage/man/RNAPKplex.rst \
+    source/usage/man/RNAplex.rst \
+    source/usage/man/RNAplfold.rst \
+    source/usage/man/RNAplot.rst \
+    source/usage/man/RNApvmin.rst \
+    source/usage/man/RNAsnoop.rst \
+    source/usage/man/RNAsubopt.rst \
+    source/usage/man/RNAup.rst
 
 if WITH_REFERENCE_MANUAL
 

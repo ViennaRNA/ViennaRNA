@@ -5,7 +5,7 @@
 @parblock
 This function is available as overloaded function @p equilibrium_constants() where the last two parameters @p strands and @p complexes are optional.
 In case they are omitted, the respective numbers will be determined from the length of the input list parameters @p dG_complexes and @p dG_strands,
-respectively. See also @rstinline:py:func:`RNA.equilibrium_constants()` in the :doc:`/api_python`@endrst.
+respectively. See also @rstinline:py:func:`RNA.equilibrium_constants()` in the :doc:`/api/python`@endrst.
 @endparblock
 
 

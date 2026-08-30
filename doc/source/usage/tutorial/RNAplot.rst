@@ -21,7 +21,7 @@ program (for information see its ``man`` page). Here's a somewhat complicated ex
   $ gv 5S_ss.ps
 
 
-.. image:: ../gfx/tutorial/5S_ss.png
+.. image:: ../../gfx/tutorial/5S_ss.png
    :width: 50%
    :align: center
 

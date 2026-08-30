@@ -145,8 +145,8 @@ html_favicon = 'gfx/vrna_32.png'
 #html_theme = 'sphinx_rtd_theme'
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
-    'logo_only': False,
     'display_version': False,
+    "header_links_before_dropdown": 4,
     'github_url' : "https://github.com/ViennaRNA/ViennaRNA"
 }
 
@@ -181,8 +181,11 @@ html_context = {
 
 # remove sidebar from install page
 html_sidebars = {
-  "install": []
+  "index": [],
+  "install": [],
 }
+# Use 'part' as the top-level sectioning unit instead of 'chapter'
+#latex_toplevel_sectioning = 'part'
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').

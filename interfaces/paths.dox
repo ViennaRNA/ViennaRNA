@@ -5,7 +5,7 @@
 @parblock
 This function is attached as an overloaded method @p path_findpath_saddle() to objects of type @p fold_compound.
 The optional parameter @p width defaults to 1 if it is omitted. See, e.g.
-@rstinline:py:meth:`RNA.fold_compound.path_findpath_saddle()` in the :doc:`/api_python`@endrst.
+@rstinline:py:meth:`RNA.fold_compound.path_findpath_saddle()` in the :doc:`/api/python`@endrst.
 @endparblock
 
 @fn int vrna_path_findpath_saddle_ub(vrna_fold_compound_t *fc, const char *s1, const char *s2, int width, int maxE)
@@ -15,7 +15,7 @@ This function is attached as an overloaded method @p path_findpath_saddle() to o
 The optional parameter @p width defaults to 1 if it is omitted, while the optional parameter @p maxE defaults to
 #INF. In case the function did not find a path with @f$E_{saddle} < E_{max}@f$ the function returns a @p NULL object,
 i.e. @p undef for Perl and @p None for Python. See, e.g.
-@rstinline:py:meth:`RNA.fold_compound.path_findpath_saddle()` in the :doc:`/api_python`@endrst.
+@rstinline:py:meth:`RNA.fold_compound.path_findpath_saddle()` in the :doc:`/api/python`@endrst.
 @endparblock
 
 @fn vrna_path_t *vrna_path_findpath(vrna_fold_compound_t *fc, const char *s1, const char *s2, int width)
@@ -23,7 +23,7 @@ i.e. @p undef for Perl and @p None for Python. See, e.g.
 @parblock
 This function is attached as an overloaded method @p path_findpath() to objects of type @p fold_compound.
 The optional parameter @p width defaults to 1 if it is omitted. See, e.g.
-@rstinline:py:meth:`RNA.fold_compound.path_findpath()` in the :doc:`/api_python`@endrst.
+@rstinline:py:meth:`RNA.fold_compound.path_findpath()` in the :doc:`/api/python`@endrst.
 @endparblock
 
 @fn vrna_path_t *vrna_path_findpath_ub(vrna_fold_compound_t *fc, const char *s1, const char *s2, int width, int maxE)
@@ -32,7 +32,7 @@ The optional parameter @p width defaults to 1 if it is omitted. See, e.g.
 This function is attached as an overloaded method @p path_findpath() to objects of type @p fold_compound.
 The optional parameter @p width defaults to 1 if it is omitted, while the optional parameter @p maxE defaults to
 #INF. In case the function did not find a path with @f$E_{saddle} < E_{max}@f$ the function returns an empty list. See, e.g.
-@rstinline:py:meth:`RNA.fold_compound.path_findpath()` in the :doc:`/api_python`@endrst.
+@rstinline:py:meth:`RNA.fold_compound.path_findpath()` in the :doc:`/api/python`@endrst.
 @endparblock
 
 @fn vrna_path_t *vrna_path_direct(vrna_fold_compound_t *fc, const char *s1,const char *s2, vrna_path_options_t options)
@@ -40,7 +40,7 @@ The optional parameter @p width defaults to 1 if it is omitted, while the option
 @parblock
 This function is attached as an overloaded method @p path_direct() to objects of type @p fold_compound.
 The optional parameter @p options defaults to `NULL` if it is omitted. See, e.g.
-@rstinline:py:meth:`RNA.fold_compound.path_direct()` in the :doc:`/api_python`@endrst.
+@rstinline:py:meth:`RNA.fold_compound.path_direct()` in the :doc:`/api/python`@endrst.
 @endparblock
 
 
@@ -51,7 +51,7 @@ This function is attached as an overloaded method @p path_direct() to objects of
 The optional parameter @p maxE defaults to #INT_MAX - 1 if it is omitted, while the optional parameter @p options
 defaults to `NULL`. In case the function did not find a path with @f$E_{saddle} < E_{max}@f$ it returns
 an empty list. See, e.g.
-@rstinline:py:meth:`RNA.fold_compound.path_direct()` in the :doc:`/api_python`@endrst.
+@rstinline:py:meth:`RNA.fold_compound.path_direct()` in the :doc:`/api/python`@endrst.
 @endparblock
 
 @fn vrna_path_options_t vrna_path_options_findpath(int width, unsigned int type);
@@ -60,6 +60,6 @@ an empty list. See, e.g.
 This function is available as overloaded function @p path_options_findpath().
 The optional parameter @p width defaults to 10 if omitted, while the optional parameter @p type
 defaults to #VRNA_PATH_TYPE_DOT_BRACKET. See, e.g.
-@rstinline:py:func:`RNA.path_options_findpath()` in the :doc:`/api_python`@endrst.
+@rstinline:py:func:`RNA.path_options_findpath()` in the :doc:`/api/python`@endrst.
 @endparblock
 */

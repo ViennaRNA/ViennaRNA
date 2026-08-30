@@ -5,7 +5,7 @@
 @parblock
 This function is available as global function @p enumerate_necklaces() which accepts lists
 input, an produces list of lists output. See, e.g.
-@rstinline :py:func:`RNA.enumerate_necklaces()` in the :doc:`/api_python` @endrst.
+@rstinline :py:func:`RNA.enumerate_necklaces()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 @fn unsigned int vrna_rotational_symmetry_num(const unsigned int *string, size_t string_length)
@@ -15,7 +15,7 @@ This function is available as global function @p rotational_symmetry(). See vrna
 for details.
 Note, that in the target language the length of the list @p string is always known a-priori, so
 the parameter @p string_length must be omitted. See, e.g.
-@rstinline :py:func:`RNA.rotational_symmetry()` in the :doc:`/api_python` @endrst.
+@rstinline :py:func:`RNA.rotational_symmetry()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 @fn unsigned int vrna_rotational_symmetry_pos_num(const unsigned int *string, size_t string_length, unsigned int **positions)
@@ -25,7 +25,7 @@ This function is available as global function @p rotational_symmetry(). See vrna
 for details.
 Note, that in the target language the length of the list @p string is always known a-priori, so
 the parameter @p string_length must be omitted. See, e.g.
-@rstinline :py:func:`RNA.rotational_symmetry()` in the :doc:`/api_python` @endrst.
+@rstinline :py:func:`RNA.rotational_symmetry()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 @fn unsigned int vrna_rotational_symmetry(const char *string)
@@ -33,7 +33,7 @@ the parameter @p string_length must be omitted. See, e.g.
 @parblock
 This function is available as global function @p rotational_symmetry(). See vrna_rotational_symmetry_pos()
 for details. See, e.g.
-@rstinline :py:func:`RNA.rotational_symmetry()` in the :doc:`/api_python` @endrst.
+@rstinline :py:func:`RNA.rotational_symmetry()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 @fn unsigned int vrna_rotational_symmetry_pos(const char *string, unsigned int **positions)
@@ -45,7 +45,7 @@ vrna_rotational_symmetry_num(), and vrna_rotational_symmetry_pos_num(). In contr
 C-implementation, this function doesn't return the order of rotational symmetry as a single
 value, but returns a list of cyclic permutation shifts that result in a rotationally symmetric
 string. The length of the list then determines the order of rotational symmetry. See, e.g.
-@rstinline :py:func:`RNA.rotational_symmetry()` in the :doc:`/api_python` @endrst.
+@rstinline :py:func:`RNA.rotational_symmetry()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 @fn unsigned int vrna_rotational_symmetry_db(vrna_fold_compound_t *fc, const char *structure)
@@ -53,7 +53,7 @@ string. The length of the list then determines the order of rotational symmetry.
 @parblock
 This function is attached as method @p rotational_symmetry_db() to objects of type @p fold_compound
 (i.e. #vrna_fold_compound_t). See vrna_rotational_symmetry_db_pos() for details. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.rotational_symmetry_db()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.rotational_symmetry_db()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 @fn unsigned int vrna_rotational_symmetry_db_pos(vrna_fold_compound_t *fc, const char *structure, unsigned int **positions)
@@ -65,7 +65,7 @@ C-implementation, this function doesn't simply return the order of rotational sy
 secondary structure, but returns the list @p position of cyclic permutation shifts that result
 in a rotationally symmetric structure. The length of the list then determines the order of rotational
 symmetry. See, e.g.
-@rstinline :py:meth:`RNA.fold_compound.rotational_symmetry_db()` in the :doc:`/api_python` @endrst.
+@rstinline :py:meth:`RNA.fold_compound.rotational_symmetry_db()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 @fn unsigned int vrna_boustrophedon_pos(size_t start, size_t end, size_t pos)
@@ -73,14 +73,14 @@ symmetry. See, e.g.
 @parblock
 This function is available as overloaded global function @p boustrophedon(). Omitting
 the @p pos argument yields the entire sequence from @p start to @p end. See, e.g.
-@rstinline :py:func:`RNA.boustrophedon()` in the :doc:`/api_python` @endrst.
+@rstinline :py:func:`RNA.boustrophedon()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 @fn unsigned int vrna_boustrophedon(size_t start, size_t end)
 @scripting
 @parblock
 This function is available as overloaded global function @p boustrophedon(). See, e.g.
-@rstinline :py:func:`RNA.boustrophedon()` in the :doc:`/api_python` @endrst.
+@rstinline :py:func:`RNA.boustrophedon()` in the :doc:`/api/python` @endrst.
 @endparblock
 
 */

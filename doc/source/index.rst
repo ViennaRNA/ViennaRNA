@@ -1,10 +1,3 @@
-:html_theme.sidebar_secondary.remove: true
-
-.. RNA documentation master file, created by
-   sphinx-quickstart on Thu Jul 28 23:52:58 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 #####################
 The ViennaRNA Package
 #####################
@@ -13,7 +6,7 @@ The ViennaRNA Package
 
     .. image:: gfx/vrna.png
         :height: 200px
-        :align: left
+        :align: right
 
 .. only:: latex
 
@@ -23,14 +16,20 @@ The ViennaRNA Package
 
 The core of the **ViennaRNA Package** (:cite:t:`lorenz:2011,hofacker:1994`)
 is formed by a collection of algorithms for the **prediction and comparison**
-of RNA secondary structures. These implementations can be accessed through
-stand-alone programs, such as ``RNAfold``, ``RNAdistance``, etc., which
-most often are sufficient for regular users.
+of RNA secondary structures.
 
-For those who wish to develop their own programs we provide ``RNAlib``,
-a C-library that can be linked against your own programs or used in your
-Python or Perl scripts and pipelines. The latter can be easily accomplished
-through our :doc:`/wrappers` for :doc:`Python <api_python>` and Perl 5.
+**Physics based RNA secondary structure prediction** is the main functionality
+in the package. We provide variants of three different kinds of dynamic
+programming algorithms for structure prediction, (i) the **minimum free energy**
+algorithm of :cite:t:`zuker:1981` which yields a single optimal structure,
+(ii) the **partition function** algorithm of :cite:t:`mccaskill:1990` that allows
+for **base pair probability** computation or stochastic backtracking of structure
+samples, and (iii) the **suboptimal folding** algorithm of :cite:t:`wuchty:1999`
+which generates all suboptimal structures within a given energy range of the
+optimal energy. For secondary structure comparison, the package contains
+several measures of distance (dissimilarities) using either **string alignment**
+or **tree-editing** :cite:t:`shapiro:1990`. Finally, we provide an algorithm to
+design sequences with a predefined structure, i.e. **inverse folding**.
 
 .. only:: html
 
@@ -39,54 +38,63 @@ through our :doc:`/wrappers` for :doc:`Python <api_python>` and Perl 5.
 
         .. grid-item-card::
             :img-top: _static/gfx/index_getting_started.svg
+            :text-align: justify
 
             **Get Started**
             ^^^
 
-            * :doc:`Download and Installation <install>`
-            * :doc:`programs`
-            * :doc:`using_rnalib`
-            * :doc:`io`
-
+            New to the ViennaRNA Package? This guide describes
+            how to **download and install** our software, including
+            instructions for **customizing the build process** to
+            your requirements.
             +++
 
-            .. button-ref:: get_started
+            .. button-ref:: install
                 :ref-type:  doc
                 :color: primary
                 :align: center
+                :expand:
+                :outline:
+                :click-parent:
+                :tooltip: To the Installation Guide
 
-                To the Install and Usage Guide
+                To the Installation Guide
 
 
         .. grid-item-card::
             :img-top: _static/gfx/index_user_guide.svg
+            :text-align: justify
 
-            **Advanced User Guide**
+            **User Guides and Tutorials**
             ^^^
 
-            Our library consists of several modules, each addressing
-            different aspects of RNA secondary structure related problems.
-            Here you find an overview of the *concepts and algorithms* for
-            our implementations.
+            * :doc:`usage/programs`
+            * :doc:`usage/tutorials`
+            * :doc:`usage/io`
+            * :doc:`advanced_usage`
 
             +++
 
-            .. button-ref:: advanced_usage
+            .. button-ref:: user_guides
                 :ref-type:  doc
                 :color: primary
                 :align: center
+                :expand:
+                :outline:
+                :tooltip: To the User Guides and Tutorials
 
-                To the Advanced User Guide
+                To the User Guides
 
 
         .. grid-item-card::
             :img-top: _static/gfx/index_api.svg
+            :text-align: justify
 
             **API Reference**
             ^^^
 
             Want to learn more about specific ``RNAlib`` functions? The
-            reference guide contains a detailed description of the
+            reference guide contains a **detailed description** of the
             ``RNAlib`` API. It also describes how the C-functions can
             be accessed in a scripting language like Python.
 
@@ -96,19 +104,24 @@ through our :doc:`/wrappers` for :doc:`Python <api_python>` and Perl 5.
                 :ref-type:  doc
                 :color: primary
                 :align: center
+                :expand:
+                :outline:
+                :click-parent:
+                :tooltip: To the API reference
 
                 To the API reference
 
         .. grid-item-card::
             :img-top: _static/gfx/index_contribute.svg
+            :text-align: justify
 
             **Contribute**
             ^^^
 
             Found a bug in our programs? Want to extend the
             existing implementation? Then have a look at our
-            contributing guidelines to further improve the
-            ViennaRNA Package.
+            contributing guidelines to further **improve the
+            ViennaRNA Package**.
 
             +++
 
@@ -116,6 +129,10 @@ through our :doc:`/wrappers` for :doc:`Python <api_python>` and Perl 5.
                 :ref-type:  doc
                 :color: primary
                 :align: center
+                :expand:
+                :outline:
+                :click-parent:
+                :tooltip: To the Contributors Guide
 
                 To the Contributors Guide
 
@@ -129,18 +146,18 @@ through our :doc:`/wrappers` for :doc:`Python <api_python>` and Perl 5.
     :caption: Get Started
     :hidden:
 
-    get_started
+    install
 
 .. raw:: latex
 
-    \part{User Guides}
+    \part{User Guides and Tutorials}
 
 .. toctree::
     :maxdepth: 3
     :caption: Tutorials
     :hidden:
 
-    tutorials
+    user_guides
 
 .. raw:: latex
 
