@@ -123,7 +123,8 @@ class Doxy2SWIG:
                  constructor_suffixes = None,
                  typedef_mapping = dict(),
                  ignore_list = dict(),
-                 deprecated_version = None):
+                 deprecated_version = None,
+                 noremoveunnamed = False):
         """Initialize the instance given a source object.  `src` can
         be a file or filename.  If you do not want to include function
         definitions from doxygen then set
@@ -148,6 +149,7 @@ class Doxy2SWIG:
         self.typedef_mapping = typedef_mapping
         self.ignore_list = ignore_list
         self.deprecated_version = '2.6.0' if not deprecated_version else deprecated_version
+        self.noremoveunnamed = noremoveunnamed
 
         # state:
         self.indent = 0
@@ -179,6 +181,10 @@ class Doxy2SWIG:
                         'argsstring', 'definition', 'exceptions']
         #self.generics = []
 
+        if not self.noremoveunnamed:
+            self.remove_unnnamed_structs(self.xmldoc)
+
+
     def generate(self):
         """Parses the file set in the initialization.  The resulting
         data is stored in `self.pieces`.
@@ -203,6 +209,19 @@ class Doxy2SWIG:
                         break
                 # append node as last in parent
                 n.parentNode.childNodes.append(n)
+
+    def remove_unnnamed_structs(self, node):
+        if  node.nodeType == node.ELEMENT_NODE and node.tagName == "compounddef" and \
+            node.attributes['kind'].value in ('class', 'struct') and \
+            node.attributes['prot'].value == 'public':
+            name = self.extract_text(self.get_specific_subnodes(node, 'compoundname'))
+            if "::[struct].__unnamed" in name:
+                parent = node.parentNode
+                parent.removeChild(node)
+        else:
+            for n in node.childNodes:
+                self.remove_unnnamed_structs(n)
+
 
     def enforce_numpydoc_order(self, node):
         """
@@ -1199,6 +1218,11 @@ def main():
                       dest = 'i',
                       default = None,
                       help = 'load file that specifies which functions are ignored and possibly overwritten')
+    parser.add_option('--no-remove-unnamed-members',
+                      action='store_true',
+                      default=False,
+                      dest='nrum',
+                      help='By default, unnamed members, e.g. unions and structs are removed')
 
     options, args = parser.parse_args()
     if len(args) != 2:
@@ -1245,7 +1269,8 @@ def main():
                   constructor_suffixes = options.cs,
                   typedef_mapping = typedef_mapping,
                   ignore_list = ignore_list,
-                  deprecated_version = options.d)
+                  deprecated_version = options.d,
+                  noremoveunnamed = options.nrum)
     p.generate()
     p.write(args[1])
 
