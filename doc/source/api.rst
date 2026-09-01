@@ -12,6 +12,7 @@ RNAlib API Reference
     api/grammar
     api/mfe
     api/partfunc
+    api/subopt
     api/swig_wrapper
     api/python
     api/callbacks

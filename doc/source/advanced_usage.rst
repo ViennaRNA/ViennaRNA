@@ -28,8 +28,68 @@ of the **concepts and algorithms** we've been implementing.
 
 .. only:: html
 
-    .. grid:: 1 1 2 2
+    .. grid:: 1 1 2 3
         :gutter: 1 2 3 4
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Minimum Free Energy (MFE)**
+            ^^^
+            Uncertain how to predict MFE structures, e.g. for **very
+            long RNA sequences** or **multiple sequence alignments (MSA)**?
+            Answers might be in this section.
+            +++
+            .. button-ref:: advanced/mfe
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the MFE Algorithms Guide
+
+                MFE Algorithms Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Partition Function**
+            ^^^
+            Want to predict **thermodynamic properties** within
+            the entire structure ensemble, such as
+            **base pair probabilities**? Learn more in this section.
+            +++
+            .. button-ref:: advanced/partfunc
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Partition Function and Equilibrium Probabilitiy Guide
+
+                Partition Function Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Suboptimal Structures**
+            ^^^
+            Want to explore or even enumerate the ensemble of structures?
+            Find algorithms for **representative and suboptimal**
+            structures here.
+            +++
+            .. button-ref:: advanced/subopt
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Suboptimals and Representative Structures Guide
+
+                Suboptimal Structures Guide
 
         .. grid-item-card::
             :text-align: justify
@@ -58,8 +118,8 @@ of the **concepts and algorithms** we've been implementing.
             :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **RNA Folding Grammar**
             ^^^
             Require **constraints** for the prediction algorithms or
-            want to use or add **auxiliary RNA folding grammar rules**?
-            Find soultions how to accomplish that here!
+            want to add **auxiliary RNA folding grammar rules**?
+            Find solutions how to accomplish that here!
             +++
             .. button-ref:: advanced/grammar
                 :ref-type:  doc
@@ -75,31 +135,8 @@ of the **concepts and algorithms** we've been implementing.
         .. grid-item-card::
             :text-align: justify
 
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Minimum Free Energy (MFE)**
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **RNA-RNA Interaction**
             ^^^
-            Uncertain how to predict MFE structures, e.g. for **very
-            long RNA sequences** or **multiple sequence alignments (MSA)**?
-            Answers might be in this section.
-            +++
-            .. button-ref:: advanced/mfe
-                :ref-type:  doc
-                :color: primary
-                :align: center
-                :expand:
-                :click-parent:
-                :outline:
-                :tooltip: To the MFE Algorithms Guide
-
-                MFE Algorithms Guide
-
-        .. grid-item-card::
-            :text-align: justify
-
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Partition Function**
-            ^^^
-            Want to compute **base pair probabilities** or other
-            **thermodynamic properties** that include the entire
-            structure ensemble? Learn more in this section.
             +++
             .. button-ref:: advanced/partfunc
                 :ref-type:  doc
@@ -108,9 +145,146 @@ of the **concepts and algorithms** we've been implementing.
                 :expand:
                 :click-parent:
                 :outline:
-                :tooltip: To the Partition Function and Equilibrium Probabilitiy Guide
+                :tooltip: To the RNA-RNA Interaction Guide
 
-                Partition Function Guide
+                RNA-RNA Interaction Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Classified Dynamic Programming Variants**
+            ^^^
+            +++
+            .. button-ref:: advanced/partfunc
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Classified Dynamic Programming Variants Guide
+
+                Classified Dynamic Programming Variants Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Inverse Folding (Design)**
+            ^^^
+            +++
+            .. button-ref:: advanced/partfunc
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Inverse Folding (Design) Guide
+
+                Inverse Folding (Design) Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Experimental Structure Probing Data**
+            ^^^
+            +++
+            .. button-ref:: advanced/partfunc
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Experimental Structure Probing Data Guide
+
+                Experimental Structure Probing Data Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Post-transcriptional Base Modifications**
+            ^^^
+            +++
+            .. button-ref:: advanced/partfunc
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Post-transcriptional Base Modifications Guide
+
+                Post-transcriptional Base Modifications Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Ligands Binding to RNA Structures**
+            ^^^
+            +++
+            .. button-ref:: advanced/partfunc
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Ligands Binding to RNA Structures Guide
+
+                Ligands Binding to RNA Structures Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Structure Modules and Pseudoknots**
+            ^^^
+            +++
+            .. button-ref:: advanced/partfunc
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Structure Modules and Pseudoknots Guide
+
+                Structure Modules and Pseudoknots Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **The Secondary Structure Landscape**
+            ^^^
+            +++
+            .. button-ref:: advanced/partfunc
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the The RNA Secondary Structure Landscape Guide
+
+                The RNA Secondary Structure Landscape Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Utilities**
+            ^^^
+            +++
+            .. button-ref:: advanced/partfunc
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Utilities Guide
+
+                Utilities Guide
+
 
 
 .. toctree::
@@ -122,8 +296,8 @@ of the **concepts and algorithms** we've been implementing.
     advanced/grammar
     advanced/mfe
     advanced/partfunc
+    advanced/subopt
     landscape
-    subopt_and_representatives
     cofold
     class_fold
     inverse
