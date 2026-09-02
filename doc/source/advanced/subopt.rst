@@ -13,31 +13,81 @@ in particular viroids, as presented in :cite:t:`steger:1984`.
 Suboptimal Structures within an Energy Band around the MFE
 ----------------------------------------------------------
 
-.. code:: python
+Callback Based Suboptimals
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    import RNA
+.. tab-set::
 
-    sequence = "GGGGAAAACCCC"
+    .. tab-item:: C
 
-    subopt_data = { 'counter' : 1, 'sequence' : sequence }
+        .. code-block:: c
 
-    # Print a subopt result as FASTA record
-    def print_subopt_result(structure, energy, data):
-        if not structure == None:
-            print(f">subopt {data['counter']:d}")
-            print(f"{data['sequence']}\n{structure} [{energy:6.2f}]")
-            # increase structure counter
-            data['counter'] += 1
+            #include <stdlib.h>
+            #include <stdio.h>
 
-    # Get model details with unique ML decomposition
-    md = RNA.md(uniq_ML = 1)
+            #include <ViennaRNA/fold_compound.h>
+            #include <ViennaRNA/utils/basic.h>
+            #include <ViennaRNA/utils/strings.h>
+            #include <ViennaRNA/subopt/basic.h>
 
-    # Create a 'fold_compound' for our sequence
-    fc = RNA.fold_compound(sequence, md)
+            void
+            subopt_callback(const char  *structure,
+                            float       energy,
+                            void        *data)
+            {
+              /* simply print the result and increase the counter variable by 1 */
+              if (structure)
+                printf("%04d\t%s\t%6.2f\n", (*((int *)data))++, structure, energy);
+            }
 
-    # Enumerate all structures 500 dacal/mol = 5 kcal/mol arround
-    # the MFE and print each structure using the function above
-    fc.subopt_cb(500, print_subopt_result, subopt_data);
+
+            int
+            main()
+            {
+              char *sequence = "GGGGAAAACCCC"
+
+              /* Create a fold compound for the sequence */
+              vrna_fold_compound_t  *fc     = vrna_fold_compound(seq, NULL, VRNA_OPTION_DEFAULT);
+              int                   counter = 0;
+
+              /*
+               *  call subopt to enumerate all secondary structures in an energy band of
+               *  5 kcal/mol of the MFE and pass it the address of the callback and counter
+               *  variable
+               */
+              vrna_subopt_cb(fc, 500, &subopt_callback, (void *)&counter);
+
+              /* cleanup memory */
+              free(seq);
+              vrna_fold_compound_free(fc);
+
+              return 0;
+            }
+
+    .. tab-item:: Python
+
+        .. code-block:: python
+
+            import RNA
+
+            sequence = "GGGGAAAACCCC"
+            counter  = 0
+
+            # Print a subopt result and increase counter by 1
+            def print_subopt_result(structure, energy, data):
+                if structure != None:
+                    data += 1
+                    print(f"{data:04d}\t{structure}\t{energy:6.2f}")
+
+            # Get model details with unique ML decomposition
+            md = RNA.md(uniq_ML = 1)
+
+            # Create a 'fold_compound' for our sequence
+            fc = RNA.fold_compound(sequence, md)
+
+            # Enumerate all structures 500 dacal/mol = 5 kcal/mol arround
+            # the MFE and print each structure using the function above
+            fc.subopt_cb(500, print_subopt_result, counter);
 
 
 Boltzmann Sampling
@@ -47,6 +97,9 @@ Below follow a few ``Python`` examples that demonstrate the usage of the
 Boltzmann sampling implementations. To prepare the Boltzmann sampling
 implementation, we first need to compute the partition function and thereby
 fill the dynamic programming matrices required for the stochastic backtracking:
+
+Prerequisites
+^^^^^^^^^^^^^
 
 .. code:: python
 
@@ -84,6 +137,9 @@ fill the dynamic programming matrices required for the stochastic backtracking:
 
 Let us now step by step go through the different ways to create samples
 of (sub)structures from the ensemble.
+
+Sampling Substructures
+^^^^^^^^^^^^^^^^^^^^^^
 
 We begin with sub-structures of a particular length that start at the 5'
 end, i.e. pos 1, of the input sequence:
@@ -180,6 +236,9 @@ sequence as well:
                 print(s)
 
 
+Sampling Full-length Structures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Finally, let us draw full-length structures:
 
 .. tab-set::
@@ -225,6 +284,10 @@ Finally, let us draw full-length structures:
 
             for s in ss:
                 print(s)
+
+
+Non-redundant Sampling
+^^^^^^^^^^^^^^^^^^^^^^
 
 The **non-redundant** mode for Boltzmann sampling (activated by 
 :code:`RNA.PBACKTRACK_NON_REDUNDANT`) removes each sample that has been drawn

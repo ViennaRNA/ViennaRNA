@@ -48,12 +48,12 @@ Download
                 :color: warning
                 :icon: archive
 
-                  There should rarely be a good reason to use any but the latest version of our software.
-                  However if you want to look up the old bugs, here's a list with most of the older
-                  releases for download.
+                There should rarely be a good reason to use any but the latest version of our software.
+                However if you want to look up the old bugs, here's a list with most of the older
+                releases for download.
 
-                  .. binary-packages::
-                      :flavor: sourcecode
+                .. binary-packages::
+                    :flavor: sourcecode
 
     .. tab-item:: :octicon:`file-binary;1em;sd-text-primary` Binary Packages
 
@@ -100,7 +100,7 @@ Download
 
     .. only:: html
 
-        .. tab-item:: :octicon:`file-code;1em;sd-text-primary`  Other Packages
+        .. tab-item:: :octicon:`file-code;1em;sd-text-primary`  Other
 
             Here we list all versions of the ViennaRNA Package that contain special features which
             have not been included into the main release yet:
@@ -175,7 +175,10 @@ The instructions below are for installing the ViennaRNA package from source code
           make
           sudo make install
 
-        .. tip::
+        .. dropdown:: Alternative installation target directory
+            :animate: fade-in-slide-down
+            :color: success
+            :icon: light-bulb
 
             If you do not have root privileges on your computer, you might want to install the ViennaRNA
             Package to a location where you actually have write access to. To do so, you can set the
@@ -196,7 +199,10 @@ The instructions below are for installing the ViennaRNA package from source code
             separate from each other. The :code:`make install` command will then create the corresponding
             :code:`bin/`, :code:`lib/`, :code:`share/` directories within the directory you specified.
 
-        .. admonition:: MacOS X quirks
+        .. dropdown:: MacOS X quirks
+            :animate: fade-in-slide-down
+            :color: info
+            :icon: light-bulb
 
             Although users will find ``/usr/bin/gcc`` and ``/usr/bin/g++`` executables in their directory
             tree, these programs are not at all what they pretend to be. Instead of including the GNU
@@ -225,7 +231,10 @@ The instructions below are for installing the ViennaRNA package from source code
 
           git clone https://github.com/ViennaRNA/ViennaRNA.git
 
-        .. important::
+        .. dropdown:: Important steps before you proceed
+            :animate: fade-in-slide-down
+            :color: warning
+            :icon: zap
 
             To proceed with the configuration and installation you need to perform some additional steps
             **before** actually running the :code:`./configure` script:
@@ -270,7 +279,7 @@ The instructions below are for installing the ViennaRNA package from source code
 
 
 
-    .. tab-item:: Documentation Build
+    .. tab-item:: (Re-)Build the Documentation
         :name:  build-documentation
 
         Our implementations are documented with extra comments that are automatically
@@ -298,7 +307,8 @@ The instructions below are for installing the ViennaRNA package from source code
         - ``myst-parser``
         - ``sphinx-copybutton``
         - ``sphinxcontrib-bibtex``
-        - ``sphinx-rtd-theme``
+        - ``pydata-sphinx-theme``
+        - ``sphinx-design``
 
         If all the above programs and ``python`` packages are available, compilation
         of the reference manual should succeed without any further problems.
@@ -307,7 +317,7 @@ The instructions below are for installing the ViennaRNA package from source code
     .. tab-item:: Python Package
         :name:  build-standalone-python
 
-        Our source code allows for building a stand-alone Python 3 interface.
+        Our source code allows for building a **stand-alone** ``Python`` interface.
         For that, we provide the necessary packaging files
         ``pyproject.toml``, ``setup.cfg``, ``setup.py`` and ``MANIFEST.in``.
         They are created by our ``autoconf`` toolchain after a successful
@@ -323,7 +333,10 @@ The instructions below are for installing the ViennaRNA package from source code
         package (``wheel``) in the ``dist/`` directory. These files can be
         easily installed via Python's ``pip``.
 
-        .. important::
+        .. dropdown:: Important pre-conditions for build with fresh git repository
+            :animate: fade-in-slide-down
+            :color: warning
+            :icon: zap
 
             If you are about to create the Python interface from a fresh
             clone of our git repository, you require additional steps after
@@ -405,6 +418,34 @@ Installing Pre-compiled Packages
 
         Simply download the latest Windows installer for your architecture from the :ref:`download`
         section above and run it. It will guide you through the installation process
+
+    .. tab-item::   Pixi
+
+        ``Pixi`` is a modern and extremely fast alternative to ``conda``. It is based on the conda packages
+        and environment.
+        First `install pixi <https://pixi.prefix.dev/latest/installation/>`_
+        and then set-up the `bioconda channel <https://bioconda.github.io/>`_:
+
+        .. code:: bash
+
+            pixi config set default-channels '["conda-forge", "bioconda"]'
+
+        After these steps, you can install the
+        `ViennaRNA bioconda package <http://bioconda.github.io/recipes/viennarna/README.html>`_ either
+        **globally**
+
+        .. code:: bash
+
+            pixi global install viennarna
+
+        or locally in any workspace/environment:
+
+        .. code:: bash
+
+            pixi add viennarna
+
+        See the `pixi documentation <https://pixi.prefix.dev/latest/>`_ for further information on
+        how to get started and use ``pixi`` for your own workspace(s).
 
     .. tab-item::   Conda
 

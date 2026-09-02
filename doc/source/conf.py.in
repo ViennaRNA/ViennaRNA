@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.abspath('@top_builddir@/interfaces/Python/'))
 # -- Project information -----------------------------------------------------
 
 project = '@PACKAGE_NAME@'
-copyright = '1994 - 2025, Ronny Lorenz, Ivo L. Hofacker, et al.'
+copyright = '1994 - 2026 Ronny Lorenz, Ivo L. Hofacker, et al.'
 author = 'Ronny Lorenz, Ivo L. Hofacker, et al.'
 
 # The full version, including alpha/beta/rc tags
@@ -48,7 +48,7 @@ extensions = [
     'sphinxcontrib.bibtex',
     'breathe',
     'sphinx_copybutton',
-    'sphinx_rtd_theme',
+    'pydata_sphinx_theme',
     'sphinx_design',
     'myst_parser',
     'json_binaries'

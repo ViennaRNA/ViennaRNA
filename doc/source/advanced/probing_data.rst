@@ -10,17 +10,8 @@ as derived from selective 2'-hydroxyl acylation analyzed by primer extension (SH
 dimethyl sulfate (DMS), inline probing, or similar techniques.
 
 Such experimental probing data is usually integrated in the form of small pertubations
-in the evaluated energy contributions (:doc:`/grammar/constraints/soft`) that effectively
+in the evaluated energy contributions (:ref:`advanced-constraints-soft`) that effectively
 guide the prediction towards the information gained from the experiment.
-
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Specialized Modules:
-
-   probing/strategies
-   probing/SHAPE
-   probing/perturbation
 
 
 Structure Probing Data Workflow
@@ -56,8 +47,33 @@ In the following, you'll find the respective API symbols that allow for the inte
 of experimental probing data.
 
 
-Generic Probing Data API
-------------------------
+Strategies for Linear Data
+--------------------------
 
-.. doxygengroup:: probing_data
-    :no-title:
+Recent literature lists several methods and strategies that deal with the
+problem to convert linear experimental RNA structure probing data into pseudo
+energy terms to guide RNA secondary strucure predictions. Such data may come
+from SHAPE, DMS, lead, inline probing, or similar techniques. The most commonly
+used method may be the one presented in :cite:t:`deigan:2009` where the free
+energy evaluation for stacked base pairs adds a pseudo energy contribution
+derived from the reactivity values of the probing data. The higher the
+reactivity the stronger the stack is penalized by a positive energy.
+
+
+
+SHAPE Reactivity Data
+---------------------
+
+Incorporate SHAPE reactivity structure probing data into the folding
+recursions by means of soft constraints.
+
+Details for our implementation to incorporate SHAPE reactivity data to guide
+secondary structure prediction can be found in :cite:t:`lorenz:2016a`.
+
+
+Generate Soft Constraints from Data
+-----------------------------------
+
+Find a vector of perturbation energies that minimizes the discripancies between
+predicted and observed pairing probabilities and the amount of neccessary adjustments.
+

@@ -16,6 +16,14 @@ Algorithms
     api/mfe
     api/partfunc
     api/subopt
+    api/inverse
+    api/class_fold
+    api/rip
+    api/landscape
+    api/probing_data
+    api/ligands
+    api/modified_bases
+    api/paired_modules
 
 
 Utilities

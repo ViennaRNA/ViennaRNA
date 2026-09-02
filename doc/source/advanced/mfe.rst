@@ -1,5 +1,5 @@
-Minimum Free Energy (MFE) Algorithms
-====================================
+Minimum Free Energy (MFE)
+=========================
 
 General Remarks
 ---------------
@@ -50,6 +50,10 @@ The most simple interface to these implementations might be the
 :c:func:`vrna_fold` function. It only requires an input RNA sequence
 in uppercase RNA alphabet (AUCG) to return the MFE in :math:`kcal \cdot mol^{-1}`
 and a corresponding secondary structure in :ref:`dot-bracket-notation`.
+
+Single Sequence MFE
+^^^^^^^^^^^^^^^^^^^
+
 Below, you'll find an example that illustrates how to predict the MFE
 and a corresponding secondary structure for a single (linear) RNA sequence:
 
@@ -84,6 +88,9 @@ The result of the above code should look like:
     GAGUAGUGGAACCAGGCUAUGUUUGUGACUCGCAGACUAACA
     ..(((((........)))))(((((((...)))))))..... [  -8.80 ]
 
+
+Consensus MFE
+^^^^^^^^^^^^^
 
 In cases where you want to predict the consensus MFE structure for a set
 of aligned RNA sequences (MSA), consider the following example:
@@ -209,6 +216,9 @@ The latter allows one to store the results in any possible target data structure
 implementations then pass the results through the user-implemented callback as soon as
 the prediction for a particular window is finished.
 
+Return Valued Based Example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Here is some example code that shows how to use the simple local MFE prediction API:
 
 .. tab-set::
@@ -285,6 +295,9 @@ Here is some example code that shows how to use the simple local MFE prediction 
 In the example above, we didn't provide an output file stream as third argument
 for :c:func:`vrna_Lfold`. Hence, the output was automatically written to
 ``stdout``.
+
+Callback Based Example
+^^^^^^^^^^^^^^^^^^^^^^
 
 In contrast to the previous example, here is a variant that uses the callback
 based local MFE prediction API:

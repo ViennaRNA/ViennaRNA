@@ -1,5 +1,9 @@
-Neighborhood Relation and Move Sets for Secondary Structures
-============================================================
+The RNA Secondary Structure Landscape
+=====================================
+
+
+Neighborhood and Move Sets
+--------------------------
 
 Different functions to generate structural neighbors of a secondary
 structure according to a particular Move Set.
@@ -100,5 +104,32 @@ One has to take all positions of pairs from the environment in order to create v
 The same procedure can be applied for the other direction. This is taking all paired positions within the freed interval
 in order to look for pairs with valid positions in the intervals of the environment.
 
-.. doxygengroup:: neighbors
-    :no-title:
+
+Folding Paths
+-------------
+
+API for various RNA (re-)folding path algorithms that also allow for determination
+of saddle points, energy barriers, and local minima.
+
+This part of our API allows for generating RNA secondary structure (re-)folding
+paths between two secondary structures or simply starting from a single
+structure.
+
+This is most important if an estimate of the refolding energy barrier between
+two structures is required, or a structure's corresponding local minimum needs
+to be determined, e.g. through a gradient-descent walk.
+
+
+Direct Refolding Paths
+^^^^^^^^^^^^^^^^^^^^^^
+
+Heuristics to explore direct, optimal (re-)folding paths between
+two secondary structures.
+
+
+Other Folding Paths
+^^^^^^^^^^^^^^^^^^^
+
+Implementation of gradient- and random walks starting from
+a single secondary structure.
+

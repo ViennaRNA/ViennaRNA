@@ -1,5 +1,5 @@
 *******************
-Advanced User Guide
+RNAlib User Guide
 *******************
 
 Introduction
@@ -18,17 +18,22 @@ applications.
     can be found in :ref:`advanced-python-interface` and
     :ref:`advanced-linking-against-rnalib`.
 
-
-Structure Prediction
-====================
-
 Our library is grouped into several modules, each addressing different
 aspects of RNA secondary structure related problems. Below is an overview
 of the **concepts and algorithms** we've been implementing.
 
+
+Basic Structure Prediction
+==========================
+
+The fundamental algorithms in RNA secondary structure prediction certainly are
+minimum free energy (MFE) prediction and the partition function computation.
+Find useful information on how we implement these ideas and how you can
+use them in your own application in the following guides.
+
 .. only:: html
 
-    .. grid:: 1 1 2 3
+    .. grid:: 1 1 2 2
         :gutter: 1 2 3 4
 
         .. grid-item-card::
@@ -112,47 +117,63 @@ of the **concepts and algorithms** we've been implementing.
 
                 Energy Evaluation Guide
 
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Fundamental Algorithms:
+    :hidden:
+
+    advanced/mfe
+    advanced/partfunc
+    advanced/subopt
+    advanced/eval
+
+
+Advanced Structure Prediction
+=============================
+
+Based on the fundamental algorithms above there exist a variety of special purpose
+approaches for more elaborate structure prediction related tasks. Such tasks may
+cover the prediction of **interactions between two or more RNAs** that form complexes
+with each other, the **inverse folding problem** to find RNA sequences that preferentially
+fold into pre-defined structures (a.k.a. **RNA design**), and many more.
+Find out what we already implement in the following guides.
+
+.. only:: html
+
+    .. grid:: 1 1 2 2
+        :gutter: 1 2 3 4
+
         .. grid-item-card::
             :text-align: justify
 
             :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Interacting RNAs**
             ^^^
+            Interested in how to **predict RNA-RNA interactions** and their
+            **concentration dependency**? Learn about the approaches we
+            implement in our library here.
             +++
-            .. button-ref:: advanced/partfunc
+            .. button-ref:: advanced/rip
                 :ref-type:  doc
                 :color: primary
                 :align: center
                 :expand:
                 :click-parent:
                 :outline:
-                :tooltip: To the RNA-RNA Interaction Guide
+                :tooltip: To the RNA Interaction Guide
 
                 Interacting RNAs Guide
 
         .. grid-item-card::
             :text-align: justify
 
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Classified Dynamic Programming Variants**
-            ^^^
-            +++
-            .. button-ref:: advanced/partfunc
-                :ref-type:  doc
-                :color: primary
-                :align: center
-                :expand:
-                :click-parent:
-                :outline:
-                :tooltip: To the Classified Dynamic Programming Variants Guide
-
-                Classified Dynamic Programming Variants Guide
-
-        .. grid-item-card::
-            :text-align: justify
-
             :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Inverse Folding (Design)**
             ^^^
+            Want to **design RNA sequences** that fold into pre-defined
+            secondary structures? Get an overview about the available
+            implementations here.
             +++
-            .. button-ref:: advanced/partfunc
+            .. button-ref:: advanced/inverse
                 :ref-type:  doc
                 :color: primary
                 :align: center
@@ -166,10 +187,33 @@ of the **concepts and algorithms** we've been implementing.
         .. grid-item-card::
             :text-align: justify
 
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Classified DP Variants**
+            ^^^
+            Require **distance based partitioning** of the structure ensemble or
+            want to compute the **density of states**? This guide demonstrates how
+            to do so.
+            +++
+            .. button-ref:: advanced/class_fold
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Classified Dynamic Programming Variants Guide
+
+                Classified DP Variants Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
             :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **The Secondary Structure Landscape**
             ^^^
+            Attempt to explore the **neighborhood of secondary structures**
+            or predict **folding paths**? Consult this guide to find out
+            more what our library already provides.
             +++
-            .. button-ref:: advanced/partfunc
+            .. button-ref:: advanced/landscape
                 :ref-type:  doc
                 :color: primary
                 :align: center
@@ -183,17 +227,13 @@ of the **concepts and algorithms** we've been implementing.
 
 .. toctree::
     :maxdepth: 1
-    :caption: Structure Prediction:
+    :caption: Advanced Algorithms:
     :hidden:
 
-    advanced/eval
-    advanced/mfe
-    advanced/partfunc
-    advanced/subopt
-    landscape
-    cofold
-    class_fold
-    inverse
+    advanced/rip
+    advanced/inverse
+    advanced/class_fold
+    advanced/landscape
 
 
 Tweaking the Predictions
@@ -219,8 +259,48 @@ e.g. G-quadruplexes or single strand binding (SSB) proteins.
 
 .. only:: html
 
-    .. grid:: 1 1 2 3
+    .. grid:: 1 1 2 2
         :gutter: 1 2 3 4
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Structure Probing Data**
+            ^^^
+            Want to guide the predictions using **(experimental) structure
+            probing data**? Learn about the strategies we provide and how
+            to implement your own in this guide.
+            +++
+            .. button-ref:: advanced/probing_data
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Experimental Structure Probing Data Guide
+
+                Structure Probing Data Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Modified Bases**
+            ^^^
+            Interested in how **post-transcriptional base modifications** impact
+            RNA folding? Find out which modifications we support and how to
+            add support for others.
+            +++
+            .. button-ref:: advanced/modified_bases
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Post-transcriptional Base Modifications Guide
+
+                Modified Bases Guide
 
         .. grid-item-card::
             :text-align: justify
@@ -245,10 +325,30 @@ e.g. G-quadruplexes or single strand binding (SSB) proteins.
         .. grid-item-card::
             :text-align: justify
 
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Ligand Binding**
+            ^^^
+            Want to predict structures that may be bound by **single strand binding
+            proteins** or **ligands** binding aptamer pockets? Learn more about this
+            topic here.
+            +++
+            .. button-ref:: advanced/ligands
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Ligands Binding Guide
+
+                Ligand Binding Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
             :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Structure Modules and Pseudoknots**
             ^^^
             +++
-            .. button-ref:: advanced/partfunc
+            .. button-ref:: advanced/paired_modules
                 :ref-type:  doc
                 :color: primary
                 :align: center
@@ -259,67 +359,16 @@ e.g. G-quadruplexes or single strand binding (SSB) proteins.
 
                 Structure Modules and Pseudoknots Guide
 
-        .. grid-item-card::
-            :text-align: justify
-
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Experimental Structure Probing Data**
-            ^^^
-            +++
-            .. button-ref:: advanced/partfunc
-                :ref-type:  doc
-                :color: primary
-                :align: center
-                :expand:
-                :click-parent:
-                :outline:
-                :tooltip: To the Experimental Structure Probing Data Guide
-
-                Experimental Structure Probing Data Guide
-
-        .. grid-item-card::
-            :text-align: justify
-
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Post-transcriptional Base Modifications**
-            ^^^
-            +++
-            .. button-ref:: advanced/partfunc
-                :ref-type:  doc
-                :color: primary
-                :align: center
-                :expand:
-                :click-parent:
-                :outline:
-                :tooltip: To the Post-transcriptional Base Modifications Guide
-
-                Post-transcriptional Base Modifications Guide
-
-        .. grid-item-card::
-            :text-align: justify
-
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Ligands Binding to RNA Structures**
-            ^^^
-            +++
-            .. button-ref:: advanced/partfunc
-                :ref-type:  doc
-                :color: primary
-                :align: center
-                :expand:
-                :click-parent:
-                :outline:
-                :tooltip: To the Ligands Binding to RNA Structures Guide
-
-                Ligands Binding to RNA Structures Guide
-
 .. toctree::
     :maxdepth: 1
     :caption: Tweaking the Predictions:
     :hidden:
 
+    advanced/probing_data
+    advanced/modified_bases
+    advanced/ligands
+    advanced/paired_modules
     advanced/grammar
-    paired_modules
-    probing_data
-    modified_bases
-    ligand_binding
 
 
 Utilities
@@ -327,7 +376,7 @@ Utilities
 
 .. only:: html
 
-    .. grid:: 1 1 2 3
+    .. grid:: 1 1 2 2
         :gutter: 1 2 3 4
 
         .. grid-item-card::
