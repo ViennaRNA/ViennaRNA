@@ -19,8 +19,8 @@ applications.
     :ref:`advanced-linking-against-rnalib`.
 
 
-Concepts and Algorithms
-=======================
+Structure Prediction
+====================
 
 Our library is grouped into several modules, each addressing different
 aspects of RNA secondary structure related problems. Below is an overview
@@ -34,7 +34,7 @@ of the **concepts and algorithms** we've been implementing.
         .. grid-item-card::
             :text-align: justify
 
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Minimum Free Energy (MFE)**
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Minimum Free Energy**
             ^^^
             Uncertain how to predict MFE structures, e.g. for **very
             long RNA sequences** or **multiple sequence alignments (MSA)**?
@@ -89,7 +89,7 @@ of the **concepts and algorithms** we've been implementing.
                 :outline:
                 :tooltip: To the Suboptimals and Representative Structures Guide
 
-                Suboptimal Structures Guide
+                Subopt Structures Guide
 
         .. grid-item-card::
             :text-align: justify
@@ -115,27 +115,7 @@ of the **concepts and algorithms** we've been implementing.
         .. grid-item-card::
             :text-align: justify
 
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **RNA Folding Grammar**
-            ^^^
-            Require **constraints** for the prediction algorithms or
-            want to add **auxiliary RNA folding grammar rules**?
-            Find solutions how to accomplish that here!
-            +++
-            .. button-ref:: advanced/grammar
-                :ref-type:  doc
-                :color: primary
-                :align: center
-                :expand:
-                :click-parent:
-                :outline:
-                :tooltip: To the RNA Folding Grammar Guide
-
-                Folding Grammar Guide
-
-        .. grid-item-card::
-            :text-align: justify
-
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **RNA-RNA Interaction**
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Interacting RNAs**
             ^^^
             +++
             .. button-ref:: advanced/partfunc
@@ -147,7 +127,7 @@ of the **concepts and algorithms** we've been implementing.
                 :outline:
                 :tooltip: To the RNA-RNA Interaction Guide
 
-                RNA-RNA Interaction Guide
+                Interacting RNAs Guide
 
         .. grid-item-card::
             :text-align: justify
@@ -182,6 +162,102 @@ of the **concepts and algorithms** we've been implementing.
                 :tooltip: To the Inverse Folding (Design) Guide
 
                 Inverse Folding (Design) Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **The Secondary Structure Landscape**
+            ^^^
+            +++
+            .. button-ref:: advanced/partfunc
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the The RNA Secondary Structure Landscape Guide
+
+                The RNA Secondary Structure Landscape Guide
+
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Structure Prediction:
+    :hidden:
+
+    advanced/eval
+    advanced/mfe
+    advanced/partfunc
+    advanced/subopt
+    landscape
+    cofold
+    class_fold
+    inverse
+
+
+Tweaking the Predictions
+========================
+
+Sometimes, the basic prediction algorithms are not sufficient to model
+a particular use-case. For such purposes, our implementations provide
+various levels of control over the recursive decomposition steps, i.e.
+the RNA folding grammar.
+
+In particular, **constraints** can be used to change the behavior of
+the decomposition rules whenever they are evaluated by the prediction
+programs. We already provide high-level implementations based on the
+constraints framework implemented in ``RNAlib`` for a few scenarios:
+
+* Whenever external data is used that is supposed to guide the predictions
+* Post-transcriptional Base modifications.
+
+Moreover, additional grammar rules might be necessary to additionally
+address certain kinds of structural features into the prediction methods,
+e.g. G-quadruplexes or single strand binding (SSB) proteins.
+
+
+.. only:: html
+
+    .. grid:: 1 1 2 3
+        :gutter: 1 2 3 4
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **RNA Folding Grammar**
+            ^^^
+            Require **constraints** for the prediction algorithms or
+            want to add **auxiliary RNA folding grammar rules**?
+            Find solutions how to accomplish that here!
+            +++
+            .. button-ref:: advanced/grammar
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the RNA Folding Grammar Guide
+
+                Folding Grammar Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Structure Modules and Pseudoknots**
+            ^^^
+            +++
+            .. button-ref:: advanced/partfunc
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Structure Modules and Pseudoknots Guide
+
+                Structure Modules and Pseudoknots Guide
 
         .. grid-item-card::
             :text-align: justify
@@ -234,78 +310,288 @@ of the **concepts and algorithms** we've been implementing.
 
                 Ligands Binding to RNA Structures Guide
 
+.. toctree::
+    :maxdepth: 1
+    :caption: Tweaking the Predictions:
+    :hidden:
+
+    advanced/grammar
+    paired_modules
+    probing_data
+    modified_bases
+    ligand_binding
+
+
+Utilities
+=========
+
+.. only:: html
+
+    .. grid:: 1 1 2 3
+        :gutter: 1 2 3 4
+
         .. grid-item-card::
             :text-align: justify
 
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Structure Modules and Pseudoknots**
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Basic Utilities**
             ^^^
             +++
-            .. button-ref:: advanced/partfunc
+            .. button-ref:: advanced/utils/basic
                 :ref-type:  doc
                 :color: primary
                 :align: center
                 :expand:
                 :click-parent:
                 :outline:
-                :tooltip: To the Structure Modules and Pseudoknots Guide
+                :tooltip: To the Basic Utilities Guide
 
-                Structure Modules and Pseudoknots Guide
+                Basic Utils Guide
 
         .. grid-item-card::
             :text-align: justify
 
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **The Secondary Structure Landscape**
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Nucleotide Alphabet**
             ^^^
             +++
-            .. button-ref:: advanced/partfunc
+            .. button-ref:: advanced/utils/alphabet
                 :ref-type:  doc
                 :color: primary
                 :align: center
                 :expand:
                 :click-parent:
                 :outline:
-                :tooltip: To the The RNA Secondary Structure Landscape Guide
+                :tooltip: To the Nucleotide Alphabet Guide
 
-                The RNA Secondary Structure Landscape Guide
+                Nucleotide Alphabet Guide
 
         .. grid-item-card::
             :text-align: justify
 
-            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Utilities**
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Nucleotide Sequences**
             ^^^
+            Interested in how to manipulate strings such as
+            nucleic acid sequences?
             +++
-            .. button-ref:: advanced/partfunc
+            .. button-ref:: advanced/utils/strings
                 :ref-type:  doc
                 :color: primary
                 :align: center
                 :expand:
                 :click-parent:
                 :outline:
-                :tooltip: To the Utilities Guide
+                :tooltip: To the Strings and Nucleic Acid Sequences Guide
 
-                Utilities Guide
+                Nucleotide Sequence Guide
 
+        .. grid-item-card::
+            :text-align: justify
 
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **RNA Secondary Structures**
+            ^^^
+            +++
+            .. button-ref:: advanced/utils/structures
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the RNA Secondary Structures Guide
+
+                RNA Secondary Structures Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Multiple Sequence Alignments**
+            ^^^
+            +++
+            .. button-ref:: advanced/utils/msa
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Multiple Sequence Alignments Guide
+
+                Multiple Sequence Alignments Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Files and I/O**
+            ^^^
+            +++
+            .. button-ref:: advanced/utils/io
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Files and I/O Guide
+
+                Files and I/O Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Plotting**
+            ^^^
+            +++
+            .. button-ref:: advanced/utils/plots
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Plotting Guide
+
+                Plotting Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Data Manipulation**
+            ^^^
+            +++
+            .. button-ref:: advanced/utils/data
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Data Manipulation Guide
+
+                Data Manipulation Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Search Algorithms**
+            ^^^
+            +++
+            .. button-ref:: advanced/utils/search
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Search Algorithms Guide
+
+                Search Algorithms Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Mathematical Functions**
+            ^^^
+            +++
+            .. button-ref:: advanced/utils/math
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Mathematical Functions Guide
+
+                Mathematical Functions Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Combinatorics Algorithms**
+            ^^^
+            +++
+            .. button-ref:: advanced/utils/combinatorics
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Combinatorics Algorithms Guide
+
+                Combinatorics Algorithms Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Data Structures**
+            ^^^
+            +++
+            .. button-ref:: advanced/utils/data_structures
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the (Abstract) Data Structures Guide
+
+                Data Structures Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Log Messages**
+            ^^^
+            Want to change the log level or re-route log messages?
+            +++
+            .. button-ref:: advanced/utils/logs
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Log Messages Guide
+
+                Log Messages Guide
+
+        .. grid-item-card::
+            :text-align: justify
+
+            :octicon:`book;1em;sd-text-primary sd-font-weight-bold` **Unit Conversion**
+            ^^^
+            Want to convert between units of energy or temperature?
+            +++
+            .. button-ref:: advanced/utils/units
+                :ref-type:  doc
+                :color: primary
+                :align: center
+                :expand:
+                :click-parent:
+                :outline:
+                :tooltip: To the Unit Conversion Guide
+
+                Unit Conversion Guide
 
 .. toctree::
     :maxdepth: 1
-    :caption: Modules:
+    :caption: Utilities:
     :hidden:
 
-    advanced/eval
-    advanced/grammar
-    advanced/mfe
-    advanced/partfunc
-    advanced/subopt
-    landscape
-    cofold
-    class_fold
-    inverse
-    probing_data
-    ligand_binding
-    paired_modules
-    modified_bases
-    utils
+    advanced/utils/basic
+    advanced/utils/alphabet
+    advanced/utils/strings
+    advanced/utils/structures
+    advanced/utils/msa
+    advanced/utils/io
+    advanced/utils/plots
+    advanced/utils/data
+    advanced/utils/search
+    advanced/utils/math
+    advanced/utils/combinatorics
+    advanced/utils/data_structures
+    advanced/utils/messages
+    advanced/utils/logs
+    advanced/utils/units
 
 
 .. _advanced-linking-against-rnalib:
@@ -806,6 +1092,7 @@ Example Code
 
 .. toctree::
     :maxdepth: 1
+    :caption: Examples
 
     examples/c
     examples/python
