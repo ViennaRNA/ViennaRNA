@@ -207,6 +207,14 @@ html_context = {
 html_sidebars = {
   "index": [],
   "install": [],
+  "news": [],
+  "changelog": [],
+  "bibliography": [],
+  "citing": [],
+  "faq": [],
+  "contributors": [],
+  "about": [],
+  "license": [],
 }
 # Use 'part' as the top-level sectioning unit instead of 'chapter'
 #latex_toplevel_sectioning = 'part'

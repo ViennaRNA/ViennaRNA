@@ -145,27 +145,6 @@ The ViennaRNA Package
                 To the Contributors Guide
 
 
-About the ViennaRNA Package
-===========================
-
-The core of the **ViennaRNA Package** (:cite:t:`lorenz:2011,hofacker:1994`)
-is formed by a collection of algorithms for the **prediction and comparison**
-of RNA secondary structures.
-
-**Physics based RNA secondary structure prediction** is the main functionality
-in the package. We provide variants of three different kinds of dynamic
-programming algorithms for structure prediction, (i) the **minimum free energy**
-algorithm of :cite:t:`zuker:1981` which yields a single optimal structure,
-(ii) the **partition function** algorithm of :cite:t:`mccaskill:1990` that allows
-for **base pair probability** computation or stochastic backtracking of structure
-samples, and (iii) the **suboptimal folding** algorithm of :cite:t:`wuchty:1999`
-which generates all suboptimal structures within a given energy range of the
-optimal energy. For secondary structure comparison, the package contains
-several measures of distance (dissimilarities) using either **string alignment**
-or **tree-editing** :cite:t:`shapiro:1990`. Finally, we provide an algorithm to
-design sequences with a predefined structure, i.e. **inverse folding**.
-
-
 .. raw:: latex
 
     \part{Quickstart}
@@ -215,5 +194,6 @@ design sequences with a predefined structure, i.e. **inverse folding**.
     Citation <citing>
     FAQ <faq>
     Contributing <contributors>
+    About <about>
     license
 
