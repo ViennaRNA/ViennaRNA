@@ -239,18 +239,17 @@ Find out what we already implement in the following guides.
 Tweaking the Predictions
 ========================
 
-Sometimes, the basic prediction algorithms are not sufficient to model
-a particular use-case. For such purposes, our implementations provide
-various levels of control over the recursive decomposition steps, i.e.
-the RNA folding grammar.
+Sometimes, the fundamental algorithms alone are not sufficient to model
+a particular use-case. We, therefore, provide various levels of control over
+the recursive decomposition steps, i.e. the **RNA folding grammar**.
 
-In particular, **constraints** can be used to change the behavior of
-the decomposition rules whenever they are evaluated by the prediction
-programs. We already provide high-level implementations based on the
-constraints framework implemented in ``RNAlib`` for a few scenarios:
+In particular, :ref:`advanced-constraints-hard` and :ref:`advanced-constraints-soft`
+can be used to change the behavior of the decomposition rules whenever
+they are evaluated by the prediction programs. Based upon these, we
+already provide **high-level implementations** for a few scenarios:
 
-* Whenever external data is used that is supposed to guide the predictions
-* Post-transcriptional Base modifications.
+* :doc:`/advanced/probing_data` used to guide the predictions, or
+* :doc:`/advanced/modified_bases`.
 
 Moreover, additional grammar rules might be necessary to additionally
 address certain kinds of structural features into the prediction methods,

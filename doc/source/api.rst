@@ -4,26 +4,36 @@
 RNAlib API Reference
 ********************
 
-Algorithms
-==========
+Structure Prediction Algorithms
+===============================
 
 .. toctree::
     :maxdepth: 1
-    :caption: Algorithms:
+    :caption: Fundamental Algorithms:
 
-    api/eval
-    api/grammar
     api/mfe
     api/partfunc
     api/subopt
+    api/eval
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Advanced Algorithms:
+
+    api/rip
     api/inverse
     api/class_fold
-    api/rip
     api/landscape
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Tweaking the Predictions:
+
     api/probing_data
-    api/ligands
     api/modified_bases
+    api/ligands
     api/paired_modules
+    api/grammar
 
 
 Utilities
@@ -31,23 +41,38 @@ Utilities
 
 .. toctree::
    :maxdepth: 1
-   :caption: Utilities:
+   :caption: Basic Utilities:
 
    api/utils/basic
+   api/utils/data_structures
+   api/utils/io
+   api/utils/messages
+   api/utils/logs
+
+.. toctree::
+   :maxdepth: 1
+   :caption: RNA Sequences and Structures:
+
    api/utils/alphabet
    api/utils/strings
    api/utils/msa
    api/utils/structures
-   api/utils/data_structures
-   api/utils/io
-   api/utils/plots
+
+.. toctree::
+   :maxdepth: 1
+   :caption: General Purpose:
+
    api/utils/math
    api/utils/data
    api/utils/search
    api/utils/combinatorics
-   api/utils/messages
-   api/utils/logs
    api/utils/units
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Plotting:
+
+   api/utils/plots
 
 
 SWIG Wrappers

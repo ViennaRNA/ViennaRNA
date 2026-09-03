@@ -1,8 +1,8 @@
 .. _programs:
 
-===================
-Executable Programs
-===================
+==================
+Command-Line Tools
+==================
 
 The ViennaRNA Package comes with a number of executable
 programs that provide command line interfaces to the most
