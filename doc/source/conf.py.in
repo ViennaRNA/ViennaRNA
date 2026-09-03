@@ -145,9 +145,27 @@ html_favicon = 'gfx/vrna_32.png'
 #html_theme = 'sphinx_rtd_theme'
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
-    'display_version': False,
     "header_links_before_dropdown": 4,
-    'github_url' : "https://github.com/ViennaRNA/ViennaRNA"
+    "icon_links": [
+      {
+        "name": "Github",
+        "url" : "https://github.com/ViennaRNA/ViennaRNA",
+        "icon": "fa-brands fa-square-github",
+        "type": "fontawesome",
+      },
+      {
+        "name": "PyPI",
+        "url" : "https://pypi.org/project/ViennaRNA/",
+        "icon": "fa-custom fa-pypi",
+        "type": "fontawesome",
+      },
+      {
+        "name": "Bioconda",
+        "url" : "https://bioconda.github.io/recipes/viennarna/README.html#package-viennarna",
+        "icon": "fa-custom fa-bioconda",
+        "type": "fontawesome",
+      },
+    ],
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -160,6 +178,7 @@ html_css_files = [
 html_js_files = [
     'js/jquery-4.0.0.js',
     'js/viennarna.js',
+    ('js/custom-icons.js', {"defer": "defer"}),
 ]
 html_show_sourcelink = False
 html_title = "@PACKAGE_NAME@ Package"

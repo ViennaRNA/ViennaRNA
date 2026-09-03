@@ -23,7 +23,7 @@ dedicated to RNA secondary structures. **Physics based RNA secondary
 structure prediction** is at the heart of the package. It allows for
 the prediction of **stable structures** and **structural ensembles**,
 to compute **thermodynamic probabilities**, such as for base-pairs,
-**compare alternative folds**, and the **design of RNA sequences**
+to **compare alternative folds**, and to **design RNA sequences**
 that preferentially fold into a particular structure.
 
 For **individual analyses**, **automated workflows**, or the **development
