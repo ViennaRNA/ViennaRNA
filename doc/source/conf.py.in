@@ -137,7 +137,7 @@ option_emphasise_placeholders = True
 # -- Options for HTML output -------------------------------------------------
 
 #html_logo = "gfx/vrna_logo.png"
-html_favicon = 'gfx/vrna_32.png'
+html_favicon = 'gfx/vrna_logo_32.png'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -145,6 +145,11 @@ html_favicon = 'gfx/vrna_32.png'
 #html_theme = 'sphinx_rtd_theme'
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
+    "logo": {
+      "text": "@PACKAGE_NAME@",
+      "image_light": "gfx/vrna_logo_light.svg",
+      "image_dark" : "gfx/vrna_logo_dark.svg",
+    },
     "header_links_before_dropdown": 4,
     "icon_links": [
       {

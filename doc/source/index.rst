@@ -4,31 +4,39 @@
 The ViennaRNA Package
 #####################
 
-.. only:: html
+.. div:: sd-text-justify
 
-    .. image:: gfx/vrna.png
-        :height: 200px
-        :align: right
+    .. only:: html
 
-.. only:: latex
+        .. image:: gfx/vrna_logo_light.svg
+            :class: only-light
+            :height: 200px
+            :align: right
 
-    .. image:: gfx/vrna.png
-        :height: 200px
-        :align: center
+        .. image:: gfx/vrna_logo_dark.svg
+            :class: only-dark
+            :height: 200px
+            :align: right
 
-**Predict, analyze, compare and design RNA secondary structures.**
+    .. only:: latex
 
-The ViennaRNA Package offers a comprehensive collection of algorithms
-dedicated to RNA secondary structures. **Physics based RNA secondary
-structure prediction** is at the heart of the package. It allows for
-the prediction of **stable structures** and **structural ensembles**,
-to compute **thermodynamic probabilities**, such as for base-pairs,
-to **compare alternative folds**, and to **design RNA sequences**
-that preferentially fold into a particular structure.
+        .. image:: gfx/vrna_logo_light.svg
+            :height: 200px
+            :align: center
 
-For **individual analyses**, **automated workflows**, or the **development
-of new methods**, our software provides both, ready-to-use :ref:`programs`
-and an API for ``C``, ``Python`` and ``Perl`` (see :doc:`advanced_usage`).
+    **Predict, analyze, compare and design RNA secondary structures.**
+
+    The ViennaRNA Package offers a comprehensive collection of algorithms
+    dedicated to RNA secondary structures. **Physics based RNA secondary
+    structure prediction** is at the heart of the package. It allows for
+    the prediction of **stable structures** and **structural ensembles**,
+    to compute **thermodynamic probabilities**, such as for base-pairs,
+    to **compare alternative folds**, and to **design RNA sequences**
+    that preferentially fold into a particular structure.
+
+    For **individual analyses**, **automated workflows**, or the **development
+    of new methods**, our software provides both, ready-to-use :ref:`programs`
+    and an API for ``C``, ``Python`` and ``Perl`` (see :doc:`advanced_usage`).
 
 
 .. only:: html
