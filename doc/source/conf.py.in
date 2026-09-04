@@ -4,6 +4,8 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+from datetime import datetime
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -26,7 +28,7 @@ sys.path.insert(0, os.path.abspath('@top_builddir@/interfaces/Python/'))
 # -- Project information -----------------------------------------------------
 
 project = '@PACKAGE_NAME@'
-copyright = '1994 - 2026 Ronny Lorenz, Ivo L. Hofacker, et al.'
+copyright = f"1994 - {datetime.now().year}, ViennaRNA developers"
 author = 'Ronny Lorenz, Ivo L. Hofacker, et al.'
 
 # The full version, including alpha/beta/rc tags
@@ -150,6 +152,7 @@ html_theme_options = {
       "image_light": "gfx/vrna_logo_light.svg",
       "image_dark" : "gfx/vrna_logo_dark.svg",
     },
+    "navbar_align": "left",
     "header_links_before_dropdown": 4,
     "icon_links": [
       {
@@ -171,6 +174,8 @@ html_theme_options = {
         "type": "fontawesome",
       },
     ],
+    "footer_start": ["copyright"],
+    "footer_end": ["theme-version", "sphinx-version"],
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

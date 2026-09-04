@@ -1,5 +1,14 @@
 :html_theme.sidebar_secondary.remove:
 
+.. raw:: html
+
+    <style type="text/css">
+        h1 {display: none;}
+        .bd-main .bd-content .bd-article-container {max-width: 100%;}
+        .big-font {font-size: var(--pst-font-size-h4); color: var(--pst-color-primary)}
+        .bd-footer-article{display: none;}
+    </style>
+
 #####################
 The ViennaRNA Package
 #####################
@@ -24,7 +33,9 @@ The ViennaRNA Package
             :height: 200px
             :align: center
 
-    **Predict, analyze, compare and design RNA secondary structures.**
+    .. rst-class:: font-weight-bold big-font
+
+        Predict, analyze, compare and design RNA secondary structures.
 
     The ViennaRNA Package offers a comprehensive collection of algorithms
     dedicated to RNA secondary structures. **Physics based RNA secondary
@@ -41,8 +52,8 @@ The ViennaRNA Package
 
 .. only:: html
 
-    .. grid:: 1 1 2 2
-        :gutter:  1 1 2 2
+    .. grid:: 1 1 2 4
+        :gutter:  1 2 2 4
 
         .. grid-item-card::
             :img-top: _static/gfx/index_getting_started.svg
