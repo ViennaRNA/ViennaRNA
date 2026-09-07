@@ -99,6 +99,32 @@ div.rst-versions > div.rst-other-versions > div.injected > dl:nth-child(4) {
     display: none;
 }
 
+.sd-tab-set .sd-tab-content {
+  padding: 0.5rem 0 0 0 !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.sd-tab-set > label.sd-tab-label {
+  flex: 1 1 0;
+  text-align: center;
+  margin: 0 3px;
+  border-radius: 5px !important;
+}
+
+.sd-tab-set > input:checked + label.sd-tab-label {
+  transform: unset;
+  border: 2px solid var(--pst-color-primary);
+  color: var(--sd-color-primary-text) !important;
+  background-color: var(--pst-color-primary);
+}
+
+.sd-tab-set > input:not(:checked, :focus-visible) + label:hover.sd-tab-label {
+  color: var(--pst-color-primary);
+  border-color: var(--pst-color-primary) !important;
+  text-decoration: none;
+}
+
 
 .sd-card .sd-card-img-top {
   height: 80px;
