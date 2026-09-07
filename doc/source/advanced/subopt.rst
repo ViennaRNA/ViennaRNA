@@ -90,6 +90,8 @@ Callback Based Suboptimals
             fc.subopt_cb(500, print_subopt_result, counter);
 
 
+.. _advanced-boltzmann-sampling:
+
 Boltzmann Sampling
 ------------------
 
