@@ -19,7 +19,7 @@ Download
 
 .. tab-set::
 
-    .. tab-item:: :octicon:`file-code;1em;sd-text-primary` Source Code
+    .. tab-item:: :octicon:`file-code;1em` Source Code
 
         Installing from sourcecode is the recommended way to get most out of the ViennaRNA Package.
         For best portability the ViennaRNA package uses the GNU tools :code:`autoconf`, :code:`automake`,
@@ -55,7 +55,7 @@ Download
                 .. binary-packages::
                     :flavor: sourcecode
 
-    .. tab-item:: :octicon:`file-binary;1em;sd-text-primary` Binary Packages
+    .. tab-item:: :octicon:`file-binary;1em` Binary Packages
 
         For your convenience, we also provide precompiled binary packages for several Linux
         distributions and installer executables for Windows and MacOS X.
@@ -100,7 +100,7 @@ Download
 
     .. only:: html
 
-        .. tab-item:: :octicon:`file-code;1em;sd-text-primary`  Other
+        .. tab-item:: :octicon:`file-code;1em`  Other
 
             Here we list all versions of the ViennaRNA Package that contain special features which
             have not been included into the main release yet:
@@ -279,30 +279,32 @@ The instructions below are for installing the ViennaRNA package from source code
 
 
 
-    .. tab-item:: (Re-)Build the Documentation
+    .. tab-item:: Documentation
         :name:  build-documentation
 
-        Our implementations are documented with extra comments that are automatically
-        parsed by `doxygen <https://www.doxygen.nl/>`_. The extracted API documentation
-        is then processed further by `breathe <https://breathe.readthedocs.io/>`_ and finally
-        integrated into a comprehensive reference manual written in
-        `ReStructuredText <https://docutils.sourceforge.io/rst.html>`_. This manual is then
-        usually compiled into HTML and PDF format by `Sphinx <https://www.sphinx-doc.org/>`_.
+        Usually, there is no need to **(re-)build the documentation**, it is
+        already part of the source code tarball! However, if you compile from
+        a freshly cloned git repository or you've changed any of the source code,
+        building the documentation is probably required.
 
-        We provide pre-compiled versions of the reference manual in our distribution
-        tarballs and HTML versions at https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman and
-        https://viennarna.readthedocs.io. However, under certain circumstances users might
-        want to compile the reference manual themselves, e.g. when
-        :ref:`installing from a git repository <install-from-git>`.
+        .. dropdown:: Technical details
+            :animate: fade-in-slide-down
+            :color: info
+            :icon:  light-bulb
 
-        To succeed with the compilation the following tools are required:
+            Our API is documented with comments that are automatically parsed by
+            `doxygen <https://www.doxygen.nl/>`_. The extracted API documentation
+            is then processed further by `breathe <https://breathe.readthedocs.io/>`_ 
+            and finally integrated into a comprehensive reference manual written in
+            `ReStructuredText <https://docutils.sourceforge.io/rst.html>`_. This
+            manual is then compiled into HTML and/or PDF format by
+            `Sphinx <https://www.sphinx-doc.org/>`_.
+
+        To succeed with the compilation a few maintainer tools are required:
 
         - ``doxygen`` (to extract the API documentation)
         - ``sphinx-build`` (to compile the manual)
         - ``pdflatex`` (to compile a PDF version of the manual)
-
-        In addition, we use the following sphinx extensions:
-
         - ``sphinx-multiproject``
         - ``myst-parser``
         - ``sphinx-copybutton``
@@ -310,9 +312,33 @@ The instructions below are for installing the ViennaRNA package from source code
         - ``pydata-sphinx-theme``
         - ``sphinx-design``
 
-        If all the above programs and ``python`` packages are available, compilation
-        of the reference manual should succeed without any further problems.
+        If all the above tools are available, compilation of the documentation
+        should succeed without any further problems
 
+        .. dropdown:: Manual documentation re-build trigger
+            :animate: fade-in-slide-down
+            :color: success
+            :icon:  light-bulb
+
+            If you intend to rebuild the documentation although it already
+            has been build before, you can delete the file ``doc/refman-html``.
+            This file serves as a placeholder to prevent ``make`` from
+            redundantly building the documentation, e.g. after extraction
+            of the release tarball where typically none of the source code
+            has been altered.
+
+            .. code:: bash
+
+                rm doc/refman-html
+                make
+
+            To trigger parsing of the API description from source code headers,
+            you need to additionally remove the ``doxygen-xml`` placeholder file:
+
+            .. code:: bash
+
+              rm doc/doxygen/doxygen-xml doc/refman-html
+              make
 
     .. tab-item:: Python Package
         :name:  build-standalone-python
@@ -469,7 +495,7 @@ Installing Pre-compiled Packages
             conda install viennarna
 
 
-    .. tab-item:: Python Interface
+    .. tab-item:: Python
 
         The Python 3 interface for the ViennaRNA Package library is
         `available at PyPI <https://pypi.org/project/ViennaRNA/>`_ and can
@@ -580,7 +606,7 @@ RNAforester
 ^^^^^^^^^^^
 
 The ``RNAforester`` program is used for comparing secondary structures using tree
-alignment. Similar to ``kinfold`, use the ``--without-forester`` option to skip
+alignment. Similar to ``kinfold``, use the ``--without-forester`` option to skip
 compilation and installation of ``RNAforester``.
 
 Kinwalker
