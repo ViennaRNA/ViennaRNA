@@ -35,7 +35,7 @@ The ViennaRNA Package
 
     .. rst-class:: font-weight-bold big-font
 
-        Predict, analyze, compare and design RNA secondary structures.
+        Predict, analyze, compare and design RNA secondary structures
 
     The ViennaRNA Package offers a comprehensive collection of algorithms
     dedicated to RNA secondary structures. **Physics based RNA secondary
@@ -61,11 +61,10 @@ The ViennaRNA Package
 
             **Get Started**
             ^^^
-
-            New to the ViennaRNA Package? This guide describes
-            how to **download and install** our software, including
-            instructions for **customizing the build process** to
-            your requirements.
+            New to the ViennaRNA Package? Find **download
+            and install** instructions as well as steps
+            to **customize the builds** for your requirements
+            here.
             +++
 
             .. button-ref:: install
@@ -86,12 +85,10 @@ The ViennaRNA Package
 
             **User Guides and Tutorials**
             ^^^
-
             * :doc:`usage/programs`
             * :doc:`usage/tutorials`
             * :doc:`usage/io`
             * :doc:`advanced_usage`
-
             +++
 
             .. button-ref:: user_guides
@@ -111,12 +108,9 @@ The ViennaRNA Package
 
             **API Reference**
             ^^^
-
             Want to learn more about specific ``RNAlib`` functions? The
             reference guide contains a **detailed description** of the
-            ``RNAlib`` API. It also describes how the C-functions can
-            be accessed in a scripting language like Python.
-
+            ``RNAlib`` API.
             +++
 
             .. button-ref:: api
@@ -136,12 +130,9 @@ The ViennaRNA Package
 
             **Contribute**
             ^^^
-
-            Found a bug in our programs? Want to extend the
-            existing implementation? Then have a look at our
-            contributing guidelines to further **improve the
-            ViennaRNA Package**.
-
+            Found a bug in our programs? Want to extend an
+            existing implementation? Our contributors guide
+            shows how to **improve the ViennaRNA Package**.
             +++
 
             .. button-ref:: contributors
