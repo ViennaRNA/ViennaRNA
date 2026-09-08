@@ -87,6 +87,8 @@ We provide implementations of the global partition function algorithm for
 * Multiple sequence alignments (MSA), and
 * RNA-RNA hybrids
 
+
+
 .. seealso::
 
     A full list of available API symbols is available at :ref:`api-partfunc-global`.
@@ -96,9 +98,103 @@ Local Partition Function and Equilibrium Probabilities
 ------------------------------------------------------
 
 Scanning version using a sliding window approach to compute equilibrium
-probabilities are also available. The allow for effienct prediction of
+probabilities are also available. They allow for efficient prediction of
 local secondary structure features, e.g. for very long RNA sequences.
 
+The following ``Python`` example demonstrates how to use the local partition
+function API to compute **base pair probabilities**:
+
+.. tab-set::
+
+    .. tab-item:: Return value based
+
+        .. code:: python
+
+            import RNA
+
+            # a rather long RNA sequence
+            longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU"
+
+            # get a list of base pair probabilities with window
+            # size of 200nt, maximum base pair span of 150nt
+            # and a probability threshold of 0.01
+            for p in RNA.pfl_fold(longseq, 200, 150, 0.01):
+                print(p)
+
+    .. tab-item:: Callback function based
+
+        .. code:: python
+
+            import RNA
+
+            # a rather long RNA sequence
+            longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU"
+
+            # callback function to store the probabilities
+            def pf_window_callback(v, v_size, i, maxsize, what, data=None):
+                if what & RNA.PROBS_WINDOW_BPP:
+                    data.extend([{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None) and (p >= 0.01)])
+
+            # Prepare fold compound for local structure prediction
+            # with window size of 200nt, maximum base pair span of
+            # 150nt
+            fc = RNA.fold_compound(longseq,
+                                   RNA.md(max_bp_span = 150, window_size = 200),
+                                   RNA.OPTION_WINDOW)
+            # storage container for probabilities 
+            data = []
+            # run local structure prediction callback API
+            fc.probs_window(10, RNA.PROBS_WINDOW_BPP, pf_window_callback, data)
+
+            for p in data:
+                print(p)
+
+**Unpaired probabilities** can be predicted similarly:
+
+.. tab-set::
+
+    .. tab-item:: Return value based
+
+        .. code:: python
+
+            import RNA
+
+            # a rather long RNA sequence
+            longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU"
+
+            # get a list of unpaired probabilities for subsequences
+            # up to the size of 10, computed with window size of
+            # 200nt and maximum base pair span of 150nt
+            for up in RNA.pfl_fold_up(10, longseq, 200, 150):
+                print(p)
+
+    .. tab-item:: Callback function based
+
+        .. code:: python
+
+            import RNA
+
+            # a rather long RNA sequence
+            longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU"
+
+            # callback function to store the unpaired probabilities
+            def up_callback(v, v_size, i, maxsize, what, data):
+                if what & RNA.PROBS_WINDOW_UP:
+                    data.append({ 'i': i, 'up': v})
+
+            # Prepare fold compound for local structure prediction
+            # with window size of 200nt, maximum base pair span of
+            # 150nt
+            fc = RNA.fold_compound(longseq,
+                                   RNA.md(max_bp_span = 150, window_size = 200),
+                                   RNA.OPTION_WINDOW)
+            # storage container for probabilities 
+            data = []
+            # run local structure prediction callback API
+            fc.probs_window(10, RNA.PROBS_WINDOW_UP, up_callback, data)
+
+            for up in data:
+                print(up)
 
 .. seealso::
 
