@@ -77,7 +77,6 @@ typedef struct {
 
 struct vrna_crosslink_data_s {
   vrna_array(interact_region_s)   regions;  /* list of interacting regions */
-  vrna_array(interact_region_s *) overlap;  /* for each nucleotide position i we store the corresponding interval pair that overlaps with i either with I or I' */
   vrna_array(interact_region_s **) overlap5;  /* for each nucleotide position i we store the corresponding interval pair (I, I') where I overlaps with i */
   vrna_array(interact_region_s **) overlap3;  /* for each nucleotide position i we store the corresponding interval pair (I, I') where I' overlaps with i */
   int         *A;
@@ -86,6 +85,21 @@ struct vrna_crosslink_data_s {
   FLT_OR_DBL  *qB;
 };
 
+
+#if 1
+typedef struct {
+  FLT_OR_DBL  *vl;  /* V[l,j] */
+  FLT_OR_DBL  *wl;  /* W[l,v] */
+  FLT_OR_DBL  *yl;  /* Y[l,k] */
+  FLT_OR_DBL  *tl;  /* T[l,k] */
+  FLT_OR_DBL  *prm_lmm;
+  FLT_OR_DBL  *prm_lmm2;
+  FLT_OR_DBL  *prm_lmu;
+  FLT_OR_DBL  *prm_lmu2;
+  struct sc_mb_exp_dat  sc_wrapper_mb;
+} xl_ml_helper_t;
+
+#else
 
 typedef struct {
   FLT_OR_DBL  *prm_lmu;
@@ -98,11 +112,13 @@ typedef struct {
   struct sc_mb_exp_dat  sc_wrapper_mb;
 } xl_ml_helper_t;
 
+#endif
 
 PRIVATE INLINE int
 ml_pair_d2(vrna_fold_compound_t         *fc,
            unsigned int                 i,
            unsigned int                 j,
+           interact_region_s            *r,
            struct vrna_mx_mfe_aux_ml_s  *helpers,
            struct sc_mb_dat             *sc_wrapper);
 
@@ -111,6 +127,7 @@ PRIVATE INLINE int
 ml_pair_d0(vrna_fold_compound_t         *fc,
            unsigned int                 i,
            unsigned int                 j,
+           interact_region_s            *r,
            struct vrna_mx_mfe_aux_ml_s  *helpers,
            struct sc_mb_dat             *sc_wrapper);
 
@@ -119,6 +136,7 @@ PRIVATE INLINE int
 mfe_M2_xlink(vrna_fold_compound_t         *fc,
              unsigned int                 i,
              unsigned int                 j,
+             interact_region_s            *r,
              struct vrna_mx_mfe_aux_ml_s  *helpers,
              struct sc_mb_dat             *sc_wrapper);
 
@@ -210,6 +228,7 @@ PRIVATE INLINE FLT_OR_DBL
 ml_pair_exp(vrna_fold_compound_t        *fc,
             unsigned int                i,
             unsigned int                j,
+            interact_region_s           *r,
             struct vrna_mx_pf_aux_ml_s  *helpers);
 
 
@@ -217,6 +236,7 @@ PRIVATE INLINE FLT_OR_DBL
 pf_M2_xlink(vrna_fold_compound_t        *fc,
             unsigned int                i,
             unsigned int                j,
+            interact_region_s           *r,
             struct vrna_mx_pf_aux_ml_s  *helpers,
             struct sc_mb_exp_dat        *sc_wrapper);
 
@@ -267,7 +287,8 @@ vrna_sc_iip(vrna_fold_compound_t *fc)
     ret   = 1;
     data  = (struct vrna_crosslink_data_s *)vrna_alloc(sizeof(struct vrna_crosslink_data_s));
 
-    data->overlap = NULL;
+    data->overlap5 = NULL;
+    data->overlap3 = NULL;
 
     vrna_array_init_size(data->regions, 42);
 
@@ -385,8 +406,6 @@ vrna_sc_iip_prepare(vrna_fold_compound_t *fc)
     struct vrna_crosslink_data_s *dat = fc->sc->iip;
 
     /* free previously allocated overlap entries */
-    vrna_array_free(dat->overlap);
-
     if (dat->overlap5) {
       for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5); cnt++)
         vrna_array_free(dat->overlap5[cnt]);
@@ -400,11 +419,6 @@ vrna_sc_iip_prepare(vrna_fold_compound_t *fc)
     }
 
     /* initialize memory for overlap entries */
-    vrna_array_init_size(dat->overlap, fc->length + 1);
-
-    for (unsigned int i = 0; i <= fc->length; i++)
-      dat->overlap[i] = NULL;
-
     vrna_array_init_size(dat->overlap5, fc->length + 1);
     vrna_array_init_size(dat->overlap3, fc->length + 1);
 
@@ -446,8 +460,6 @@ vrna_sc_iip_prepare(vrna_fold_compound_t *fc)
                        other->a, other->b, other->c, other->d, other->score);
       } else {
         for (unsigned int i = r->a; i <= r->b; i++) {
-          dat->overlap[i] = r;
-
           if (dat->overlap5[i] == NULL)
             vrna_array_init(dat->overlap5[i])
 
@@ -455,8 +467,6 @@ vrna_sc_iip_prepare(vrna_fold_compound_t *fc)
         }
 
         for (unsigned int j = r->c; j <= r->d; j++) {
-          dat->overlap[j] = r;
-
           if (dat->overlap3[j] == NULL)
             vrna_array_init(dat->overlap3[j])
 
@@ -518,23 +528,28 @@ vrna_mfe_multibranch_loop_xlink(vrna_fold_compound_t        *fc,
                                  helpers->DMLi2);
 
     /* first, check whether (i,j) connects two intervals of a segment */
-    if (dat->overlap[i]) {
+    if (dat->overlap5[i]) {
       vrna_log_debug("pre_ml = %d", decomp);
 
-      interact_region_s *r = dat->overlap[i];
-      if ((r->a <= i) &&
-          (r->b >= i) &&
-          (r->c <= j) &&
-          (r->d >= j)) {
+      /* find supporting interval pair, if any */
+      interact_region_s *r = NULL;
+      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++)
+        if ((dat->overlap5[i][cnt]->c <= j) &&
+            (dat->overlap5[i][cnt]->d >= j)) {
+          r = dat->overlap5[i][cnt];
+          break;
+        }
+
+      if (r) {
         init_sc_mb(fc, &sc_wrapper);
 
         switch (dangle_model) {
           case 0:
-            decomp = ml_pair_d0(fc, i, j, helpers, &sc_wrapper);
+            decomp = ml_pair_d0(fc, i, j, r, helpers, &sc_wrapper);
             break;
 
           default:
-            decomp = ml_pair_d2(fc, i, j, helpers, &sc_wrapper);
+            decomp = ml_pair_d2(fc, i, j, r, helpers, &sc_wrapper);
             break;
         }
 
@@ -597,16 +612,18 @@ bt_mb_loop_xl(vrna_fold_compound_t  *fc,
   unsigned char                 use_default_bt = 1;
 
   if ((sc) &&
-      (sc->iip)) {
+      (sc->iip) &&
+      (sc->iip->overlap5[i])) {
     dat = sc->iip;
-    r   = dat->overlap[i];
-
-    if ((r) &&
-        (r->a <= i) &&
-        (r->b >= i) &&
-        (r->c <= j) &&
-        (r->d >= j))
-      use_default_bt = 0;
+    
+    /* find interval pair supported by (i, j), if any */
+    for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++)
+      if ((dat->overlap5[i][cnt]->c <= j) &&
+          (dat->overlap5[i][cnt]->d >= j)) {
+        r = dat->overlap5[i][cnt];
+        use_default_bt = 0;
+        break;
+      }
   }
 
   vrna_log_debug("bt xlink (%u, %u) (default = %u)", i, j, use_default_bt);
@@ -941,6 +958,7 @@ odd_dangles_exit:
 }
 
 
+/* find split point u for base pair (u,v) */
 PRIVATE unsigned int
 bt_A(vrna_fold_compound_t *fc,
      int                  *A,
@@ -973,47 +991,57 @@ bt_A(vrna_fold_compound_t *fc,
 
   init_sc_mb(fc, &sc_wrapper);
 
-  interact_region_s *r = dat->overlap[i];
+  /* find interval pair (I,I') where i \in I and v \in I' */
+  interact_region_s *r = NULL;
+  
+  for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++)
+    if ((dat->overlap5[i][cnt]->c <= v) &&
+        (dat->overlap5[i][cnt]->d > v)) {
+      r = dat->overlap5[i][cnt];
+      break;
+    }
 
-  score = r->score;
+  if (r) {
+    score = r->score;
 
-  for (u = i + 2; u < r->c; u++) {
-    if ((evaluate(i + 1, v, u - 1, u, VRNA_DECOMP_ML_ML_STEM, hc)) &&
-        (my_c[idx[v] + u] != INF)) {
-      strands = fc->strands;
-      sn      = fc->strand_number;
-      S       = fc->sequence_encoding;
-      S2      = fc->sequence_encoding2;
-      tt      = vrna_get_ptype_md(S2[u], S2[v], md);
+    for (u = i + 2; u < r->c; u++) {
+      if ((evaluate(i + 1, v, u - 1, u, VRNA_DECOMP_ML_ML_STEM, hc)) &&
+          (my_c[idx[v] + u] != INF)) {
+        strands = fc->strands;
+        sn      = fc->strand_number;
+        S       = fc->sequence_encoding;
+        S2      = fc->sequence_encoding2;
+        tt      = vrna_get_ptype_md(S2[u], S2[v], md);
 
-      switch (dangle_model) {
-        case 0:
-          si1 = sj1 = -1;
-          break;
+        switch (dangle_model) {
+          case 0:
+            si1 = sj1 = -1;
+            break;
 
-        default:
-          si1 = ((strands == 1) || (sn[u - 1] == sn[u])) ? S[u - 1] : -1;
-          sj1 = ((strands == 1) || (sn[v] == sn[v + 1])) ? S[v + 1] : -1;
-          break;
+          default:
+            si1 = ((strands == 1) || (sn[u - 1] == sn[u])) ? S[u - 1] : -1;
+            sj1 = ((strands == 1) || (sn[v] == sn[v + 1])) ? S[v + 1] : -1;
+            break;
+        }
+
+        stem = vrna_E_multibranch_stem(tt, si1, sj1, P) +
+               my_c[idx[v] + u] +
+               my_fML[idx[u - 1] + i + 1];
+
+        decomp = 0;
+
+        /* add score if pairing partner u doesn't connect both intervals */
+        if (u > r->b)
+          decomp += score;
+
+        decomp += stem;
+
+        if (sc_wrapper.decomp_ml)
+          decomp += sc_wrapper.decomp_ml(i + 1, v, u - 1, u, &sc_wrapper);
+
+        if (A[v] == decomp)
+          goto exit_bt_A;
       }
-
-      stem = vrna_E_multibranch_stem(tt, si1, sj1, P) +
-             my_c[idx[v] + u] +
-             my_fML[idx[u - 1] + i + 1];
-
-      decomp = 0;
-
-      /* add score if pairing partner u doesn't connect both intervals */
-      if (u > r->b)
-        decomp += score;
-
-      decomp += stem;
-
-      if (sc_wrapper.decomp_ml)
-        decomp += sc_wrapper.decomp_ml(i + 1, v, u - 1, u, &sc_wrapper);
-
-      if (A[v] == decomp)
-        goto exit_bt_A;
     }
   }
 
@@ -1024,7 +1052,8 @@ exit_bt_A:
 
   free_sc_mb(&sc_wrapper);
 
-  if (u < v) {
+  if ((r) &&
+      (u < v)) {
     vrna_bts_push(bt_stack,
                   ((vrna_sect_t){
       .i = i + 1,
@@ -1078,46 +1107,57 @@ bt_B(vrna_fold_compound_t *fc,
 
   init_sc_mb(fc, &sc_wrapper);
 
-  interact_region_s *r = dat->overlap[i];
-  score = r->score;
+  /* find interval pair (I,I') where i \in I and v \in I' */
+  interact_region_s *r = NULL;
+  
+  for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++)
+    if ((dat->overlap5[i][cnt]->c <= v) &&
+        (dat->overlap5[i][cnt]->d > v)) {
+      r = dat->overlap5[i][cnt];
+      break;
+    }
 
-  for (u = i + 1; u < r->c; u++) {
-    if ((evaluate(i + 1, v, u, v, VRNA_DECOMP_ML_ML, hc)) &&
-        (my_c[idx[v] + u] != INF)) {
-      strands = fc->strands;
-      sn      = fc->strand_number;
-      S       = fc->sequence_encoding;
-      S2      = fc->sequence_encoding2;
-      tt      = vrna_get_ptype_md(S2[u], S2[v], md);
+  if (r) {
+    score = r->score;
 
-      switch (dangle_model) {
-        case 0:
-          si1 = sj1 = -1;
-          break;
+    for (u = i + 1; u < r->c; u++) {
+      if ((evaluate(i + 1, v, u, v, VRNA_DECOMP_ML_ML, hc)) &&
+          (my_c[idx[v] + u] != INF)) {
+        strands = fc->strands;
+        sn      = fc->strand_number;
+        S       = fc->sequence_encoding;
+        S2      = fc->sequence_encoding2;
+        tt      = vrna_get_ptype_md(S2[u], S2[v], md);
 
-        default:
-          si1 = ((strands == 1) || (sn[u - 1] == sn[u])) ? S[u - 1] : -1;
-          sj1 = ((strands == 1) || (sn[v] == sn[v + 1])) ? S[v + 1] : -1;
-          break;
+        switch (dangle_model) {
+          case 0:
+            si1 = sj1 = -1;
+            break;
+
+          default:
+            si1 = ((strands == 1) || (sn[u - 1] == sn[u])) ? S[u - 1] : -1;
+            sj1 = ((strands == 1) || (sn[v] == sn[v + 1])) ? S[v + 1] : -1;
+            break;
+        }
+
+        stem = vrna_E_multibranch_stem(tt, si1, sj1, P) +
+               my_c[idx[v] + u] +
+               (u - i - 1) * P->MLbase;
+
+        decomp = 0;
+
+        /* add score if pairing partner u doesn't connect both intervals */
+        if (u > r->b)
+          decomp += score;
+
+        decomp += stem;
+
+        if (sc_wrapper.red_ml)
+          decomp += sc_wrapper.red_ml(i + 1, v, u, v, &sc_wrapper);
+
+        if (B[v] == decomp)
+          goto exit_bt_B;
       }
-
-      stem = vrna_E_multibranch_stem(tt, si1, sj1, P) +
-             my_c[idx[v] + u] +
-             (u - i - 1) * P->MLbase;
-
-      decomp = 0;
-
-      /* add score if pairing partner u doesn't connect both intervals */
-      if (u > r->b)
-        decomp += score;
-
-      decomp += stem;
-
-      if (sc_wrapper.red_ml)
-        decomp += sc_wrapper.red_ml(i + 1, v, u, v, &sc_wrapper);
-
-      if (B[v] == decomp)
-        goto exit_bt_B;
     }
   }
 
@@ -1128,7 +1168,8 @@ exit_bt_B:
 
   free_sc_mb(&sc_wrapper);
 
-  if (u < v) {
+  if ((r) &&
+      (u < v)) {
     vrna_bts_push(bt_stack,
                   ((vrna_sect_t){
       .i = u,
@@ -1213,6 +1254,7 @@ PRIVATE INLINE int
 ml_pair_d2(vrna_fold_compound_t         *fc,
            unsigned int                 i,
            unsigned int                 j,
+           interact_region_s            *r,
            struct vrna_mx_mfe_aux_ml_s  *helpers,
            struct sc_mb_dat             *sc_wrapper)
 {
@@ -1230,7 +1272,7 @@ ml_pair_d2(vrna_fold_compound_t         *fc,
 
   if (hc->eval_mb(i, j, p, q, VRNA_DECOMP_PAIR_ML, hc)) {
     /* get contribution for enclosed part */
-    e = mfe_M2_xlink(fc, i, j, helpers, sc_wrapper);
+    e = mfe_M2_xlink(fc, i, j, r, helpers, sc_wrapper);
 
     if (e != INF) {
       P   = fc->params;
@@ -1282,6 +1324,7 @@ PRIVATE INLINE int
 ml_pair_d0(vrna_fold_compound_t         *fc,
            unsigned int                 i,
            unsigned int                 j,
+           interact_region_s            *r,
            struct vrna_mx_mfe_aux_ml_s  *helpers,
            struct sc_mb_dat             *sc_wrapper)
 {
@@ -1299,7 +1342,7 @@ ml_pair_d0(vrna_fold_compound_t         *fc,
 
   if (hc->eval_mb(i, j, p, q, VRNA_DECOMP_PAIR_ML, hc)) {
     /* get contribution for enclosed part */
-    e = mfe_M2_xlink(fc, i, j, helpers, sc_wrapper);
+    e = mfe_M2_xlink(fc, i, j, r, helpers, sc_wrapper);
 
     if (e != INF) {
       P   = fc->params;
@@ -1353,6 +1396,7 @@ PRIVATE INLINE int
 mfe_M2_xlink(vrna_fold_compound_t         *fc,
              unsigned int                 i,
              unsigned int                 j,
+             interact_region_s            *r,
              struct vrna_mx_mfe_aux_ml_s  *helpers,
              struct sc_mb_dat             *sc_wrapper)
 {
@@ -1374,12 +1418,7 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
   p   = i + 1;
   q   = j - 1;
 
-  interact_region_s *r = dat->overlap[i];
-
-  if ((r->a <= i) &&
-      (r->b >= i) &&
-      (r->c <= j) &&
-      (r->d >= j)) {
+  if (r) {
     k = r->c;
 
     /* cases where with no base pair (u, v) with u < c and c <= v < d */
@@ -1485,8 +1524,8 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
 
 
 PUBLIC void
-vrna_sc_iip_update_mfe(vrna_fold_compound_t  *fc,
-                      unsigned int          i)
+vrna_sc_iip_update_mfe(vrna_fold_compound_t *fc,
+                       unsigned int         i)
 {
   short                         *S, *S2, si1, sj1;
   unsigned int                  n, *sn, strands, tt, turn;
@@ -1496,6 +1535,7 @@ vrna_sc_iip_update_mfe(vrna_fold_compound_t  *fc,
   vrna_hc_t                     *hc;
   struct vrna_crosslink_data_s  *dat;
   struct sc_mb_dat              sc_wrapper;
+  interact_region_s             *r;
 
   dat           = fc->sc->iip;
   n             = fc->length;
@@ -1509,6 +1549,7 @@ vrna_sc_iip_update_mfe(vrna_fold_compound_t  *fc,
   hc            = fc->hc;
   A             = dat->A;
   B             = dat->B;
+  r             = NULL;
 
   init_sc_mb(fc, &sc_wrapper);
 
@@ -1518,18 +1559,25 @@ vrna_sc_iip_update_mfe(vrna_fold_compound_t  *fc,
     /* reset A and B */
     A[v] = B[v] = INF;
 
-  interact_region_s *r = dat->overlap[i];
 
-  if ((r) &&
-      (i >= r->a) &&
-      (i <= r->b)) {
-    score = r->score;
-    vrna_log_debug("score = %d", score);
-    /*
-     *  collect energies of ML parts where a base pair (u, v) crosses I', i.e.
-     *  u < c && c <= v < d
-     */
-    for (unsigned int v = r->c; v < r->d; v++) {
+  for (unsigned int v = i + turn + 1; v <= n; v++) {
+    r = NULL;
+    /* check whether there is an interval pair (I,I') with i \in I and v \in I' */
+    for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++)
+      if ((dat->overlap5[i][cnt]->c <= v) &&
+          (dat->overlap5[i][cnt]->d > v)) {
+        r = dat->overlap5[i][cnt];
+        break;
+      }
+
+    if (r) {
+      score = r->score;
+      vrna_log_debug("score = %d I=([%u:%u], [%u:%u])", score, r->a, r->b, r->c, r->d);
+
+      /*
+       *  collect energies of ML parts where a base pair (u, v) crosses I', i.e.
+       *  u < c && c <= v < d
+       */
       for (unsigned int u = i + 1; u < r->c; u++) {
         if ((hc->eval_mb(u, v, u, v, VRNA_DECOMP_ML_STEM, hc)) &&
             (c[idx[v] + u] != INF)) {
@@ -1750,13 +1798,22 @@ vrna_pf_multibranch_loop_xlink(vrna_fold_compound_t       *fc,
     dat = fc->sc->iip;
 
     /* first, check whether (i,j) connects two intervals of a segment */
-    if ((r = dat->overlap[j]) &&
-        (r->a <= i) &&
-        (r->b >= i) &&
-        (r->c <= j) &&
-        (r->d >= j)) {
-      q = ml_pair_exp(fc, i, j, helpers);
-      vrna_log_debug("mb_xl => %g [%u:%u] - [%u:%u]", q, r->a, r->b, r->c, r->d);
+    if (dat->overlap3[j]) {
+      r = NULL;
+
+      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[j]); cnt++)
+        if ((dat->overlap3[j][cnt]->a <= i) &&
+            (dat->overlap3[j][cnt]->b >= i)) {
+          r = dat->overlap3[j][cnt];
+          break;
+        }
+
+      if (r) {
+        q = ml_pair_exp(fc, i, j, r, helpers);
+        vrna_log_debug("mb_xl => %g [%u:%u] - [%u:%u]", q, r->a, r->b, r->c, r->d);
+      } else {
+        vrna_log_error("no interval pair found in pf_mb_xl for base pair ($u,$u)", i, j);
+      }
     } else {
       /* get default contribution */
       q = vrna_exp_E_mb_loop_fast(fc,
@@ -1780,6 +1837,7 @@ PRIVATE INLINE FLT_OR_DBL
 ml_pair_exp(vrna_fold_compound_t        *fc,
             unsigned int                i,
             unsigned int                j,
+            interact_region_s           *r,
             struct vrna_mx_pf_aux_ml_s  *helpers)
 {
   unsigned char         sliding_window;
@@ -1847,7 +1905,7 @@ ml_pair_exp(vrna_fold_compound_t        *fc,
 
     qqqmmm = qbt1;
 
-    temp = pf_M2_xlink(fc, i, j, helpers, &sc_wrapper);
+    temp = pf_M2_xlink(fc, i, j, r, helpers, &sc_wrapper);
     /* get contribution for enclosed part */
     qbt1 *= temp;
 
@@ -1864,6 +1922,7 @@ PRIVATE INLINE FLT_OR_DBL
 pf_M2_xlink(vrna_fold_compound_t        *fc,
             unsigned int                i,
             unsigned int                j,
+            interact_region_s           *r,
             struct vrna_mx_pf_aux_ml_s  *helpers,
             struct sc_mb_exp_dat        *sc_wrapper)
 {
@@ -1885,8 +1944,6 @@ pf_M2_xlink(vrna_fold_compound_t        *fc,
   qB  = dat->qB;
   k   = i + 1;
   l   = j - 1;
-
-  interact_region_s *r = dat->overlap[i];
 
   u = r->b;
 
@@ -1998,6 +2055,7 @@ vrna_sc_iip_update_pf(vrna_fold_compound_t *fc,
   vrna_hc_t                     *hc;
   struct vrna_crosslink_data_s  *dat;
   struct sc_mb_exp_dat          sc_wrapper;
+  interact_region_s             *r;
 
   dat       = fc->sc->iip;
   n         = fc->length;
@@ -2020,18 +2078,24 @@ vrna_sc_iip_update_pf(vrna_fold_compound_t *fc,
     /* reset A and B */
     qA[v] = qB[v] = 0.;
 
-  interact_region_s *r = dat->overlap[j];
+  for (unsigned int u = 1; u < j; u++) {
+    r = NULL;
 
-  if ((r) &&
-      (j >= r->c) &&
-      (j <= r->d)) {
-    score = r->exp_score;
-    vrna_log_debug("exp_score = %g", score);
-    /*
-     *  collect energies of ML parts where a base pair (u, v) crosses I, i.e.
-     *  a < u <= b && b < v < d
-     */
-    for (unsigned int u = r->a + 1; u <= r->b; u++) {
+    for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[j]); cnt++)
+      if ((dat->overlap3[j][cnt]->a < u) &&
+          (dat->overlap3[j][cnt]->b >= u)) {
+        r = dat->overlap3[j][cnt];
+        break;
+      }
+
+    if (r) {
+      score = r->exp_score;
+      vrna_log_debug("exp_score = %g I=([%u:%u], [%u:%u])", score, r->a, r->b, r->c, r->d);
+
+      /*
+       *  collect energies of ML parts where a base pair (u, v) crosses I, i.e.
+       *  a < u <= b && b < v < d
+       */
       for (unsigned int v = r->b + 1; v < j; v++) {
         if (hc->eval_mb(u, v, u, v, VRNA_DECOMP_ML_STEM, hc)) {
           vrna_log_debug("qb[%u,%u] = %g", u, v, qb[idx[u] - v]);
@@ -2152,6 +2216,574 @@ contrib_enclosed_pair(unsigned int     i,
   return q;
 }
 
+
+#if 1
+
+PRIVATE xl_ml_helper_t *
+get_xl_ml_outside_helpers(vrna_fold_compound_t *fc)
+{
+  unsigned int    n;
+  xl_ml_helper_t  *helpers;
+
+  n       = fc->length;
+  helpers = (xl_ml_helper_t *)vrna_alloc(sizeof(xl_ml_helper_t));
+
+  helpers->vl       = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+  helpers->wl       = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+  helpers->yl       = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+  helpers->tl       = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+  helpers->prm_lmm  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+  helpers->prm_lmm2 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+  helpers->prm_lmu  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+  helpers->prm_lmu2 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+
+  init_sc_mb_exp(fc, &(helpers->sc_wrapper_mb));
+
+  return helpers;
+}
+
+
+PRIVATE void
+free_xl_ml_outside_helpers(void *helpers)
+{
+  if (helpers) {
+    xl_ml_helper_t *h = (xl_ml_helper_t *)helpers;
+    free_sc_mb_exp(&(h->sc_wrapper_mb));
+
+    free(h->vl);
+    free(h->wl);
+    free(h->yl);
+    free(h->tl);
+    free(h->prm_lmm);
+    free(h->prm_lmm2);
+    free(h->prm_lmu);
+    free(h->prm_lmu2);
+
+    free(helpers);
+  }
+}
+
+
+PRIVATE void
+xl_fill_prms(vrna_fold_compound_t *fc,
+             unsigned int         l,
+             xl_ml_helper_t       *helpers)
+{
+  short         *S, *S1, s3;
+  unsigned int  i, j, n, u, v, tt, overlap, turn;
+  int           *my_iindx, ij, lj1;
+  FLT_OR_DBL        qbt1, qbt2, temp, temp2, *probs, *qb, *qm, *scale, *expMLbase, expMLclosing, prm_lmm, prm_lmu;
+  vrna_exp_param_t  *pf_params;
+  vrna_md_t         *md;
+  vrna_hc_t         *hc;
+  struct vrna_crosslink_data_s  *dat;
+  interact_region_s             *r;
+
+
+  n             = fc->length;
+  S             = fc->sequence_encoding2;
+  S1            = fc->sequence_encoding;
+  my_iindx      = fc->iindx;
+  pf_params     = fc->exp_params;
+  md            = &(pf_params->model_details);
+  turn          = md->min_loop_size;
+  qb            = fc->exp_matrices->qb;
+  qm            = fc->exp_matrices->qm;
+  probs         = fc->exp_matrices->probs;
+  scale         = fc->exp_matrices->scale;
+  expMLbase     = fc->exp_matrices->expMLbase;
+  expMLclosing  = pf_params->expMLclosing;
+  hc            = fc->hc;
+  dat           = fc->sc->iip;
+
+  /* reset prms */
+  for (i = i; i < l; i++) {
+    helpers->prm_lmm[i]   = 0.;
+    helpers->prm_lmm2[i]  = 0.;
+    helpers->prm_lmu[i]   = 0.;
+    helpers->prm_lmu2[i]  = 0.;
+    helpers->vl[i]        = 0.;
+  }
+
+  /* precompute W[l,v] for V[l,j] */
+  for (v = l + turn + 2; v < n; v++) {
+    helpers->wl[v] = 0.;
+
+    if (dat->overlap5[l]) {
+      r = NULL;
+
+      /* find out interval pair (I,I') where l \in I and v \in I' */
+      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[l]); cnt++)
+        if ((dat->overlap5[l][cnt]->c <= v) &&
+            (dat->overlap5[l][cnt]->d > v)) {
+          r = dat->overlap5[l][cnt];
+          break;
+        }
+
+      if (r) {
+        u = l + 1;
+
+        if (hc->eval_mb(u, v, u, v, VRNA_DECOMP_ML_STEM, hc)) {
+          qbt1 = qb[my_iindx[u] - v] *
+                 contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers);
+
+          if (helpers->sc_wrapper_mb.red_stem)
+            qbt1 *= helpers->sc_wrapper_mb.red_stem(u, v, u, v, &(helpers->sc_wrapper_mb));
+
+          if (u < r->c) {
+            if (u > r->b)
+              qbt1 *= r->exp_score;
+
+            helpers->wl[v] += qbt1;
+          }
+        }
+
+        for (u = l + 2; u <= r->b; u++) {
+          temp = qb[my_iindx[u] - v] *
+                 contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers);
+
+          if (hc->eval_mb(l + 1, v, u - 1, u, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[l + 1] - u + 1];
+
+            if (helpers->sc_wrapper_mb.decomp_ml)
+              qbt1 *= helpers->sc_wrapper_mb.decomp_ml(l + 1, v, u - 1, u, &(helpers->sc_wrapper_mb));
+
+            helpers->wl[v] += temp *
+                              qbt1;
+          }
+
+          if (hc->eval_mb(l + 1, v, u, v, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[u - l - 1];
+
+            if (helpers->sc_wrapper_mb.red_stem)
+              qbt1 *= helpers->sc_wrapper_mb.red_stem(l + 1, v, u, v, &(helpers->sc_wrapper_mb));
+
+            helpers->wl[v] += temp *
+                              qbt1;
+          }
+        }
+
+        for (; u < r->c; u++) {
+          temp = qb[my_iindx[u] - v] *
+                 contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers) *
+                 r->exp_score;
+
+          if (hc->eval_mb(l + 1, v, u - 1, u, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[l + 1] - u + 1];
+
+            if (helpers->sc_wrapper_mb.decomp_ml)
+              qbt1 *= helpers->sc_wrapper_mb.decomp_ml(l + 1, v, u - 1, u, &(helpers->sc_wrapper_mb));
+
+            helpers->wl[v] += temp *
+                              qbt1;
+          }
+
+          if (hc->eval_mb(l + 1, v, u, v, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[u - l - 1];
+
+            if (helpers->sc_wrapper_mb.red_stem)
+              qbt1 *= helpers->sc_wrapper_mb.red_stem(l + 1, v, u, v, &(helpers->sc_wrapper_mb));
+
+            helpers->wl[v] += temp *
+                              qbt1;
+          }
+        }
+      }
+    }
+  }
+
+  /* pre-compute V[l,j] for prm_lmm and prm_lmm2 */
+  for (j = l + 1; j <= n; j++) {
+    helpers->vl[j] = 0.;
+
+    if ((dat->overlap5[l]) &&
+        (dat->overlap3[j])) {
+      /* find out interval pair (I,I') with l \in I and j \in I' if any */
+      r = NULL;
+
+      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[l]); cnt++)
+        if ((dat->overlap5[l][cnt]->c < j) &&
+            (dat->overlap5[l][cnt]->d >= j)) {
+          r = dat->overlap5[l][cnt];
+          break;
+        }
+
+      if (r) {
+        for (v = r->c; v < j; v++) {
+          temp = helpers->wl[v];
+
+          if (hc->eval_mb(l + 1, j - 1, v, v + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[v + 1] - j + 1];
+
+            if (helpers->sc_wrapper_mb.decomp_ml)
+              qbt1 *= helpers->sc_wrapper_mb.decomp_ml(l + 1, j - 1, v, v + 1, &(helpers->sc_wrapper_mb));
+
+            helpers->vl[j] += qbt1 *
+                              temp;
+          }
+
+          if (hc->eval_mb(l + 1, j - 1, l + 1, v, VRNA_DECOMP_ML_ML, hc)) {
+            qbt1 = expMLbase[j - v - 1];
+
+            if (helpers->sc_wrapper_mb.red_ml)
+              qbt1 *= helpers->sc_wrapper_mb.red_ml(l + 1, j - 1, l + 1, v, &(helpers->sc_wrapper_mb));
+
+            helpers->vl[j] += qbt1 *
+                              temp;
+          }
+        }
+      }
+    }
+  }
+
+  /* finally, compute prm_lmm and prm_lmm2 */
+  for (i = 1; i + turn + 1 < l; i++) {
+    s3                    = S1[i + 1];
+    helpers->prm_lmm[i]   = 0.;
+    helpers->prm_lmm2[i]  = 0.;
+
+    for (j = l + 1; j <= n; j++) {
+      if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
+        /* compute closing pair contribution */
+        temp = probs[ij] *
+               contrib_enclosing_pair(i, j, md, pf_params, S, S1, helpers) *
+               expMLclosing;
+
+        r = NULL;
+
+        /* check whether there is any interval pair (I,I') supported by (i,j) */
+        if ((dat->overlap5[i]) &&
+            (dat->overlap3[j])) {
+          for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++)
+            if ((dat->overlap5[i][cnt]->c <= j) &&
+                (dat->overlap3[i][cnt]->d >= j)) {
+              r = dat->overlap5[i][cnt];
+              break;
+            }
+        }
+
+        qbt1 = qbt2 = 0.;
+
+        if (r == NULL) {
+          if (hc->eval_mb(i + 1, j - 1, l, l + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[l + 1] - j + 1];
+
+            if (helpers->sc_wrapper_mb.decomp_ml)
+              qbt1 *= helpers->sc_wrapper_mb.decomp_ml(i + 1, j - 1, l, l + 1, &(helpers->sc_wrapper_mb));
+
+            qbt2 = qbt1; /* for prm_lmm2 */
+          }
+        } else if (r->b <= l) {
+          if (hc->eval_mb(i + 1, j - 1, l, l + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = qm[my_iindx[l + 1] - j + 1];
+
+            if (helpers->sc_wrapper_mb.decomp_ml)
+              qbt1 *= helpers->sc_wrapper_mb.decomp_ml(i + 1, j - 1, l, l + 1, &(helpers->sc_wrapper_mb));
+
+            qbt2 = qbt1; /* for prm_lmm2 */
+
+            qbt1 *= r->exp_score;
+          }
+        } else {
+          if (hc->eval_mb(i + 1, j - 1, l, l + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+            qbt1 = helpers->vl[j];
+
+            FLT_OR_DBL ulj = 0.;
+
+            if (hc->eval_mb(l + 1, j - 1, l + 1, r->c - 1, VRNA_DECOMP_ML_ML, hc)) {
+              temp2 = qm[my_iindx[l + 1] - r->c + 1] *
+                      expMLbase[j - r->c] *
+                      r->exp_score;
+
+              if (helpers->sc_wrapper_mb.red_ml)
+                temp2 *= helpers->sc_wrapper_mb.red_ml(l + 1, j - 1, l + 1, r->c - 1, &(helpers->sc_wrapper_mb));
+
+              ulj += temp2;
+            }
+
+            if (hc->eval_mb(l + 1, j - 1, r->c, j - 1, VRNA_DECOMP_ML_ML, hc)) {
+              temp2 = qm[my_iindx[r->c] - j + 1] *
+                      expMLbase[r->c - l - 1] *
+                      r->exp_score;
+
+              if (helpers->sc_wrapper_mb.red_ml)
+                temp2 *= helpers->sc_wrapper_mb.red_ml(l + 1, j - 1, r->c, j - 1, &(helpers->sc_wrapper_mb));
+
+              ulj += temp2;
+            }
+
+            if (hc->eval_mb(l + 1, j - 1, r->c - 1, r->c, VRNA_DECOMP_ML_ML_ML, hc)) {
+              temp2 = qm[my_iindx[l + 1] - r->c + 1] *
+                      qm[my_iindx[r->c] - j + 1] *
+                      r->exp_score;
+
+              if (helpers->sc_wrapper_mb.decomp_ml)
+                temp2 *= helpers->sc_wrapper_mb.decomp_ml(l + 1, j - 1, r->c - 1, r->c, &(helpers->sc_wrapper_mb));
+
+              ulj += temp2;
+            }
+
+            qbt1 += ulj *
+                    r->exp_score;
+
+            qbt2 = qbt1; /* for prm_lmm2 */
+          }
+        }
+
+        helpers->prm_lmm[i]   += qbt1 *
+                                 temp;
+        helpers->prm_lmm2[i]  += qbt2 *
+                                 temp;
+      }
+    }
+  }
+
+  /* and the simpler cases, prm_lmu and prm_lmu2 */
+  for (i = 1; i + turn + 1 < l; i++) {
+    s3                    = S1[i + 1];
+    helpers->prm_lmu[i]   = 0.;
+    helpers->prm_lmu2[i]  = 0.;
+
+    for (j = l + 1; j <= n; j++) {
+      if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
+        /* compute closing pair contribution */
+        temp = probs[ij] *
+               contrib_enclosing_pair(i, j, md, pf_params, S, S1, helpers) *
+               expMLclosing;
+
+        r = NULL;
+
+        /* check whether there is any interval pair (I,I') supported by (i,j) */
+        if ((dat->overlap5[i]) &&
+            (dat->overlap3[j])) {
+          for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++)
+            if ((dat->overlap5[i][cnt]->c <= j) &&
+                (dat->overlap3[i][cnt]->d >= j)) {
+              r = dat->overlap5[i][cnt];
+              break;
+            }
+        }
+
+        if (hc->eval_mb(i + 1, j - 1, i + 1, l, VRNA_DECOMP_ML_ML, hc)) {
+          qbt1 = expMLbase[j - l - 1];
+
+          if (helpers->sc_wrapper_mb.red_ml)
+            qbt1 *= helpers->sc_wrapper_mb.red_ml(i + 1, j - 1, i + 1, l, &(helpers->sc_wrapper_mb));
+
+          if (r) {
+            helpers->prm_lmu[i] += qbt1 *
+                                   temp *
+                                   r->exp_score;
+            if (r->c > l) {
+              helpers->prm_lmu2[i] += qbt1 *
+                                      temp *
+                                      r->exp_score;
+            } else {
+              helpers->prm_lmu2[i] += qbt1 *
+                                      temp;
+            }
+          } else {
+            helpers->prm_lmu[i] += qbt1 *
+                                   temp;
+            helpers->prm_lmu2[i] += qbt1 *
+                                   temp;
+          }
+        }
+      }
+    }
+
+    //vrna_log_error("prm_lmu[%u] = %g", i, helpers->prm_lmu[i]);
+    //vrna_log_error("prm_lmm[%u] = %g", i, helpers->prm_lmm[i]);
+    //vrna_log_error("prm_lm[%u] = %g", i, helpers->prm_lmu[i] + helpers->prm_lmm[i]);
+    //vrna_log_error("prm_lmu2[%u] = %g", i, helpers->prm_lmu2[i]);
+    //vrna_log_error("prm_lmm2[%u] = %g", i, helpers->prm_lmm2[i]);
+    //vrna_log_error("prm_lm2[%u] = %g", i, helpers->prm_lmu2[i] + helpers->prm_lmm2[i]);
+  }
+}
+
+
+PRIVATE void
+xl_fill_y(vrna_fold_compound_t *fc,
+          unsigned int         l,
+          xl_ml_helper_t       *helpers)
+{
+  short                         *S, *S1;
+  unsigned int                  i, k, u, v, turn, n;
+  int                           *my_iindx;
+  FLT_OR_DBL                    *ol, *ol2, *rl, temp, qbt1, qbt2, *qm, *qb, *expMLbase;
+  vrna_exp_param_t              *pf_params;
+  vrna_md_t                     *md;
+  vrna_hc_t                     *hc;
+  struct vrna_crosslink_data_s  *dat;
+  interact_region_s             *r;
+
+
+
+  n         = fc->length;
+  S             = fc->sequence_encoding2;
+  S1            = fc->sequence_encoding;
+  my_iindx  = fc->iindx;
+  pf_params = fc->exp_params;
+  md        = &(pf_params->model_details);
+  turn      = md->min_loop_size;
+  qm        = fc->exp_matrices->qm;
+  expMLbase = fc->exp_matrices->expMLbase;
+  hc        = fc->hc;
+  dat       = fc->sc->iip;
+
+  ol  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+  ol2 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+  rl  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+
+  /* reset Y[lk] */
+  for (k = 1; k < l; k++)
+    helpers->yl[k] = 0.;
+
+  if (dat->overlap3[l]) {
+    /* fill O[l,u] and O2[l,u] */
+    for (u = 2; u + turn + 1 < l; u++) {
+      /* find interval pair (I,I') with u \in I and l \in I', if any */
+      r = NULL;
+
+      for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l]); cnt++)
+        if ((dat->overlap3[l][cnt]->a < u) &&
+            (dat->overlap3[l][cnt]->b >= u)) {
+          r = dat->overlap3[l][cnt];
+          break;
+        }
+
+      if (r) {
+        for (i = r->a; i < u; i++) {
+          qbt1 = helpers->prm_lmu[i];
+          qbt2 = helpers->prm_lmu2[i];
+
+          if (hc->eval_mb(i + 1, l, u - 1, u, VRNA_DECOMP_ML_ML_ML, hc)) {
+            temp = qm[my_iindx[i + 1] - u + 1];
+
+            if (helpers->sc_wrapper_mb.decomp_ml)
+              temp *= helpers->sc_wrapper_mb.decomp_ml(i + 1, l, u - 1, u, &(helpers->sc_wrapper_mb));
+
+            ol[u] += qbt1 *
+                     temp;
+            ol2[u] += qbt2 *
+                     temp;
+          }
+
+          if (hc->eval_mb(i + 1, l, u, l, VRNA_DECOMP_ML_ML, hc)) {
+            temp = expMLbase[u - i - 1];
+
+            if (helpers->sc_wrapper_mb.red_ml)
+              temp *= helpers->sc_wrapper_mb.red_ml(i + 1, l, u, l, &(helpers->sc_wrapper_mb));
+
+            ol[u] += qbt1 *
+                     temp;
+            ol2[u] += qbt2 *
+                     temp;
+          }
+        }
+      }
+    }
+
+    /*
+     *  fill R[l,v]
+     */
+    for (v = turn + 2; v < l; v++) {
+      for (u = 2; u + turn < v; u++) {
+        if (hc->eval_mb(u, v, u, v, VRNA_DECOMP_ML_STEM, hc)) {
+          /* find out, whether there is any interval pair (I,I') with u \in I and l \in I' */
+          r = NULL;
+
+          for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l]); cnt++)
+            if ((dat->overlap3[l][cnt]->a < u) &&
+                (dat->overlap3[l][cnt]->b >= u)) {
+              r = dat->overlap3[l][cnt];
+              break;
+            }
+
+          if (r) {
+            temp = contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers);
+
+            if ((r->c <= v) &&
+                (r->d > v))
+              temp *= ol[u];
+            else
+              temp *= ol2[u];
+
+            if (helpers->sc_wrapper_mb.red_stem)
+              temp *= helpers->sc_wrapper_mb.red_stem(u, v, u, v, &(helpers->sc_wrapper_mb));
+
+            rl[v] += temp;
+          }
+        }
+      }
+    }
+
+    /* Finally, compute Y[l,k] */
+    for (k = turn + 2; k + turn < l; k++) {
+      for (v = turn + 1; v < k; v++) {
+        temp = rl[v];
+
+        if (temp != 0.) {
+          if (v + 1 < k) {
+            if (hc->eval_mb(v + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+              qbt1 = qm[my_iindx[v + 1] - k + 1];
+
+              if (helpers->sc_wrapper_mb.decomp_ml)
+                qbt1 *= helpers->sc_wrapper_mb.decomp_ml(v + 1, l, k - 1, k, &(helpers->sc_wrapper_mb));
+
+              helpers->yl[k] += qbt1 *
+                                temp;
+            }
+
+            if (hc->eval_mb(v + 1, l, k, l, VRNA_DECOMP_ML_ML, hc)) {
+              qbt1 = expMLbase[k - v - 1];
+
+              if (helpers->sc_wrapper_mb.red_ml)
+                qbt1 *= helpers->sc_wrapper_mb.red_ml(v + 1, l, k, l, &(helpers->sc_wrapper_mb));
+
+              helpers->yl[k] += qbt1 *
+                                temp;
+            }
+          } else {
+            helpers->yl[k] += temp;
+          }
+        }
+      }
+    }
+
+  }
+
+  free(ol);
+  free(ol2);
+  free(rl);
+}
+
+
+PRIVATE void
+xl_fill_t(vrna_fold_compound_t *fc,
+          unsigned int         l,
+          xl_ml_helper_t       *helpers)
+{
+
+}
+
+
+PRIVATE void
+compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
+                              unsigned int          l,
+                              FLT_OR_DBL            *Qmax,
+                              size_t                *ov,
+                              void                  *helpers)
+{
+
+  xl_ml_helper_t *h = (xl_ml_helper_t *)helpers;
+
+  xl_fill_prms(fc, l, h);
+  xl_fill_y(fc, l, h);
+  xl_fill_t(fc, l, h);
+}
+
+#else
 
 PRIVATE void
 compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
@@ -3361,3 +3993,4 @@ xl_fill_s(vrna_fold_compound_t *fc,
     free(M2);
   }
 }
+#endif
