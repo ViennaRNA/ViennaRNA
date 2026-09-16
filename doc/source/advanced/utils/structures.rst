@@ -20,6 +20,23 @@ Pair Tables
 
 Pair Table Representation of Secondary Structures
 
+.. code:: python-console
+
+    >>> import RNA
+    ... # create a pair table from dot-bracket structure
+    ... pt = RNA.ptable("(((.(((...))))))")
+    ... # print each base pair
+    ... for i, v in enumerate(pt[1:], start = 1):
+    ...     if pt[i] > i:
+    ...         print(f"base pair ({i},{pt[i]})")
+    ...         
+    base pair (1,16)
+    base pair (2,15)
+    base pair (3,14)
+    base pair (5,13)
+    base pair (6,12)
+    base pair (7,11)
+
 
 Pair Lists
 ----------
