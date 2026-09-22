@@ -315,7 +315,7 @@ int sel_nb(void) {
       if (!GTV.lmin || (lmin==1 && strcmp(GAV.prevform, GAV.currform) != 0)) {
 	char format[64];
 	flag = 1;
-	sprintf(format, "%%-%ds %%6.2f %%10.3f", strlen(GAV.farbe_full)+1);
+	sprintf(format, "%%-%lds %%6.2f %%10.3f", strlen(GAV.farbe_full)+1);
 	printf(format, costring(GAV.currform), GSV.currE, Zeit);
       }
 
