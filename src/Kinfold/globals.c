@@ -355,7 +355,7 @@ static void process_options_gg (int argc, char *argv[]) {
     }
   }
   if (args_info.pbounds_given) {
-    if (sscanf(args_info.pbounds_arg, "%g=%g=%g",
+    if (sscanf(args_info.pbounds_arg, "%lg=%lg=%lg",
 	       &GAV.phi_bounds[0],
 	       &GAV.phi_bounds[1],
 	       &GAV.phi_bounds[2]) == 0)
@@ -445,7 +445,7 @@ static int process_options (int argc, char *argv[]) {
 
 	/* laplace stuff */
 	if (strcmp(long_options[option_index].name,"pbounds")==0) {
-	  if (sscanf(optarg, "%g=%g=%g",
+	  if (sscanf(optarg, "%lg=%lg=%lg",
 		     &GAV.phi_bounds[0],
 		     &GAV.phi_bounds[1],
 		     &GAV.phi_bounds[2]) == 0)
