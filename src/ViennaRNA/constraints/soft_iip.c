@@ -2605,7 +2605,6 @@ xl_fill_prms(vrna_fold_compound_t *fc,
     helpers->prm_lmu2[i] *= expMLclosing;
 
     vrna_log_debug("%u: prml[%u] = %g", l, i, helpers->prm_lmu[i] + helpers->prm_lmm[i]);
-
   }
 }
 
@@ -2657,13 +2656,13 @@ xl_fill_y(vrna_fold_compound_t *fc,
 
       for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l]); cnt++)
         if ((dat->overlap3[l][cnt]->a < u) &&
-            (dat->overlap3[l][cnt]->b >= u)) {
+            (dat->overlap3[l][cnt]->b >= u) &&
+            (dat->overlap3[l][cnt]->d > l)) {
           r = dat->overlap3[l][cnt];
           break;
         }
 
-      if ((r) &&
-          (r->d > l)) {
+      if (r) {
         for (i = r->a; i < u; i++) {
           qbt1 = helpers->prm_lmu[i];
           qbt2 = helpers->prm_lmu2[i];
@@ -2707,14 +2706,14 @@ xl_fill_y(vrna_fold_compound_t *fc,
 
           for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l]); cnt++)
             if ((dat->overlap3[l][cnt]->a < u) &&
-                (dat->overlap3[l][cnt]->b >= u)) {
+                (dat->overlap3[l][cnt]->b >= u) &&
+                (dat->overlap3[l][cnt]->d > l) &&
+                (dat->overlap3[l][cnt]->b < v)) {
               r = dat->overlap3[l][cnt];
               break;
             }
 
-          if ((r) &&
-              (r->d > l) &&
-              (r->b < v)) {
+          if (r) {
             temp = qb[my_iindx[u] - v] *
                    contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers);
 
@@ -2736,11 +2735,14 @@ xl_fill_y(vrna_fold_compound_t *fc,
     if ((l < n) &&
         (dat->overlap3[l + 1])) {
       for (k = turn + 4; k + turn < l; k++) {
+        if (!(hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc)))
+          continue;
+
         /* find out whether there is any interval I' with k \in I' and l \in I' */
         r = NULL;
 
         for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l + 1]); cnt++)
-          if ((dat->overlap3[l + 1][cnt]->c < k) &&
+          if ((dat->overlap3[l + 1][cnt]->b + 1 < k) &&
               (dat->overlap3[l + 1][cnt]->d > k)) {
             r = dat->overlap3[l + 1][cnt];
             break;
@@ -2832,13 +2834,13 @@ xl_fill_t(vrna_fold_compound_t *fc,
 
       for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l]); cnt++)
         if ((dat->overlap3[l][cnt]->a < u) &&
-            (dat->overlap3[l][cnt]->b >= u)) {
+            (dat->overlap3[l][cnt]->b >= u) &&
+            (dat->overlap3[l][cnt]->d > l)) {
           r = dat->overlap3[l][cnt];
           break;
         }
 
-      if ((r) &&
-          (r->d > l)) {
+      if (r) {
         for (i = r->a; i < u; i++) {
           qbt1 = helpers->prm_lmm[i];
           qbt2 = helpers->prm_lmm2[i];
@@ -2881,15 +2883,15 @@ xl_fill_t(vrna_fold_compound_t *fc,
           r = NULL;
 
           for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l]); cnt++)
-            if ((dat->overlap3[l][cnt]->a < u) &&
-                (dat->overlap3[l][cnt]->b >= u)) {
+            if ((dat->overlap3[l][cnt]->d > l) &&
+                (dat->overlap3[l][cnt]->a < u) &&
+                (dat->overlap3[l][cnt]->b >= u) &&
+                (dat->overlap3[l][cnt]->b < v)) {
               r = dat->overlap3[l][cnt];
               break;
             }
 
-          if ((r) &&
-              (r->d > l) &&
-              (r->b < v)) {
+          if (r) {
             temp = qb[my_iindx[u] - v] *
                    contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers);
 
@@ -2911,11 +2913,14 @@ xl_fill_t(vrna_fold_compound_t *fc,
     if ((l < n) &&
         (dat->overlap3[l + 1])) {
       for (k = turn + 4; k + turn < l; k++) {
+        if (!(hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc)))
+          continue;
+
         /* find out whether there is any interval I' with k \in I' and l \in I' */
         r = NULL;
 
         for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l + 1]); cnt++)
-          if ((dat->overlap3[l + 1][cnt]->c < k) &&
+          if ((dat->overlap3[l + 1][cnt]->b + 1 < k) &&
               (dat->overlap3[l + 1][cnt]->d > k)) {
             r = dat->overlap3[l + 1][cnt];
             break;
@@ -3026,21 +3031,21 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
     pklm += h->tl[k];
 
     for (i = 1; i + turn + 2 < k; i++) {
-      if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
+      if (hc->eval_mb(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_STEM, hc)) {
         /* find out whether exists an interval pair (I,I') with i \in I and l \in I' */
         if (dat->overlap3[l]) {
           r = NULL;
           for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l]); cnt++)
             if ((dat->overlap3[l][cnt]->a <= i) &&
-                (dat->overlap3[l][cnt]->b >= i)) {
+                (dat->overlap3[l][cnt]->b >= i) &&
+                (dat->overlap3[l][cnt]->d > l) &&
+                (dat->overlap3[l][cnt]->b < k)) {
               r = dat->overlap3[l][cnt];
               break;
             }
 
           if (r) {
-            if ((i < r->b) &&
-                (l + 1 <= r->d) &&
-                (r->c + 1 <= k)) {
+            if (i < r->b) {
               temp = 0.;
               
               if (hc->eval_mb(i + 1, k - 1, i + 1, r->b, VRNA_DECOMP_ML_ML, hc)) {
@@ -3053,7 +3058,7 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
                 temp += qbt1;
               }
 
-              if (r->b < k) {
+              if (r->b + 1 < k) {
                 if (hc->eval_mb(i + 1, k - 1, r->b + 1, k - 1, VRNA_DECOMP_ML_ML, hc)) {
                   qbt1 = qm[my_iindx[r->b + 1] - k + 1] *
                          expMLbase[r->b - i];
@@ -3079,8 +3084,7 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
                       (h->prm_lmu[i] + h->prm_lmm[i]);
 
               continue;
-            } else if ((i == r->b) ||
-                       (r->c >= k)) {
+            } else if (i == r->b) {
               temp = (h->prm_lmu[i] + h->prm_lmm[i]) *
                      qm[my_iindx[i + 1] - k + 1];
 
