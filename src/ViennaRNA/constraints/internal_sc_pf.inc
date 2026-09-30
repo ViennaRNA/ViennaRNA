@@ -1,5 +1,6 @@
 #include <ViennaRNA/utils/basic.h>
 
+#include "sc_iip_shared.h"
 
 struct sc_int_exp_dat;
 
@@ -32,6 +33,9 @@ struct sc_int_exp_dat {
 
   sc_int_exp_cb               pair;
   sc_int_exp_cb               pair_ext;
+
+  sc_int_exp_cb               iip;
+  vrna_sc_iip_t               iip_data;
 };
 
 
@@ -232,6 +236,17 @@ sc_int_exp_cb_user_comparative(int                    i,
     }
 
   return sc;
+}
+
+
+PRIVATE INLINE FLT_OR_DBL
+sc_int_exp_cb_iip(int                   i,
+                  int                   j,
+                  int                   k,
+                  int                   l,
+                  struct sc_int_exp_dat  *data)
+{
+  return data->iip(i, j, k, l, data);
 }
 
 
@@ -933,12 +948,40 @@ sc_int_exp_cb_ext_up_stack_user_comparative(int                   i,
 }
 
 
+INLINE PRIVATE FLT_OR_DBL
+xlink_il_exp_en(int                   i,
+                int                   j,
+                int                   k,
+                int                   l,
+                struct sc_int_exp_dat *data)
+{
+  vrna_sc_iip_t     iip_data = data->iip_data;
+
+  interact_region_s *r;
+
+  /*  go through each interval that overlaps with position i to check whether
+   *  k does not overlap with the 5' interval and j connects both segments */
+  if (iip_data->overlap5[i])
+    for (size_t cnt = 0; cnt < vrna_array_size(iip_data->overlap5[i]); cnt++) {
+      r = iip_data->overlap5[i][cnt];
+
+      if ((j >= r->c) &&
+          (j <= r->d) && /* done checking whether (i,j) connects interval pair */
+          ((l < r->c) || (k > r->b))) {
+        return r->exp_score;
+      }
+    }
+
+  return 1.0;
+}
+
+
 PRIVATE INLINE void
 init_sc_int_exp(vrna_fold_compound_t  *fc,
                 struct sc_int_exp_dat *sc_wrapper)
 {
   unsigned char sliding_window;
-  unsigned int  s, provides_sc_up, provides_sc_bp, provides_sc_stack, provides_sc_user;
+  unsigned int  s, provides_sc_up, provides_sc_bp, provides_sc_stack, provides_sc_user, uses_iip;
   vrna_sc_t     *sc, **scs;
 
   if (fc->exp_matrices)
@@ -954,6 +997,7 @@ init_sc_int_exp(vrna_fold_compound_t  *fc,
   provides_sc_bp    = 0;
   provides_sc_stack = 0;
   provides_sc_user  = 0;
+  uses_iip          = 0;
 
   sc_wrapper->n                     = fc->length;
   sc_wrapper->n_seq                 = 1;
@@ -974,6 +1018,8 @@ init_sc_int_exp(vrna_fold_compound_t  *fc,
 
   sc_wrapper->pair      = NULL;
   sc_wrapper->pair_ext  = NULL;
+  sc_wrapper->iip       = NULL;
+  sc_wrapper->iip_data  = NULL;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -1002,6 +1048,12 @@ init_sc_int_exp(vrna_fold_compound_t  *fc,
 
         if (sc->exp_f)
           provides_sc_user = 1;
+
+        if (sc->iip) {
+          uses_iip = 1;
+          sc_wrapper->iip_data  = sc->iip;
+          sc_wrapper->iip       = xlink_il_exp_en;
+        }
 
         if (provides_sc_user) {
           if (provides_sc_up) {
@@ -1077,6 +1129,8 @@ init_sc_int_exp(vrna_fold_compound_t  *fc,
         } else if (provides_sc_stack) {
           sc_wrapper->pair      = &sc_int_exp_cb_stack;
           sc_wrapper->pair_ext  = &sc_int_exp_cb_ext_stack;
+        } else if (uses_iip) {
+          sc_wrapper->pair      = sc_int_exp_cb_iip;
         }
       }
 

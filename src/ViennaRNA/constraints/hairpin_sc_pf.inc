@@ -1,3 +1,5 @@
+#include "sc_iip_shared.h"
+
 struct sc_hp_exp_dat;
 
 typedef FLT_OR_DBL (*sc_hp_exp_cb)(int                   i,
@@ -26,6 +28,9 @@ struct sc_hp_exp_dat {
 
   sc_hp_exp_cb                pair;
   sc_hp_exp_cb                pair_ext;
+
+  sc_hp_exp_cb                iip;
+  vrna_sc_iip_t               iip_data;
 };
 
 
@@ -141,6 +146,15 @@ sc_hp_exp_cb_user_comparative(int                   i,
                                          data->user_data_comparative[s]);
 
   return sc;
+}
+
+
+PRIVATE INLINE FLT_OR_DBL
+sc_hp_exp_cb_iip(int              i,
+                 int              j,
+                 struct sc_hp_exp_dat *data)
+{
+  return data->iip(i, j, data);
 }
 
 
@@ -388,6 +402,28 @@ sc_hp_exp_cb_ext_up_user_comparative(int                  i,
 }
 
 
+INLINE PRIVATE FLT_OR_DBL
+xlink_hp_exp_en(int                   i,
+                int                   j,
+                struct sc_hp_exp_dat  *data)
+{
+  vrna_sc_iip_t     iip_data = data->iip_data;
+  interact_region_s *r;
+
+  /* go through each interval that overlaps with position i to check whether j connects both segments */
+  if (iip_data->overlap5[i]) {
+    for (size_t cnt = 0; cnt < vrna_array_size(iip_data->overlap5[i]); cnt++) {
+      r = iip_data->overlap5[i][cnt];
+      if ((r->c <= j) &&
+          (r->d >= j))
+        return r->exp_score;
+    }
+  }
+
+  return 1.0;
+}
+
+
 PRIVATE INLINE void
 init_sc_hp_exp(vrna_fold_compound_t *fc,
                struct sc_hp_exp_dat *sc_wrapper)
@@ -425,16 +461,20 @@ init_sc_hp_exp(vrna_fold_compound_t *fc,
   sc_wrapper->pair      = NULL;
   sc_wrapper->pair_ext  = NULL;
 
+  sc_wrapper->iip      = NULL;
+  sc_wrapper->iip_data = NULL;
+
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
       sc = fc->sc;
 
       if (sc) {
-        unsigned int provides_sc_up, provides_sc_bp, provides_sc_user;
+        unsigned int provides_sc_up, provides_sc_bp, provides_sc_user, uses_iip;
 
         provides_sc_up    = 0;
         provides_sc_bp    = 0;
         provides_sc_user  = 0;
+        uses_iip          = 0;
 
         sc_wrapper->up        = sc->exp_energy_up;
         sc_wrapper->bp        = (sliding_window) ? NULL : sc->exp_energy_bp;
@@ -454,6 +494,12 @@ init_sc_hp_exp(vrna_fold_compound_t *fc,
 
         if (sc->exp_f)
           provides_sc_user = 1;
+
+        if (sc->iip) {
+          uses_iip = 1;
+          sc_wrapper->iip_data  = sc->iip;
+          sc_wrapper->iip       = xlink_hp_exp_en;
+        }
 
         if (provides_sc_user) {
           sc_wrapper->pair_ext = &sc_hp_exp_cb_ext_user;
@@ -487,6 +533,8 @@ init_sc_hp_exp(vrna_fold_compound_t *fc,
             sc_wrapper->pair = (sliding_window) ?
                                &sc_hp_exp_cb_bp_local :
                                &sc_hp_exp_cb_bp;
+          } else if (uses_iip) {
+            sc_wrapper->pair = sc_hp_exp_cb_iip;
           }
         }
       }

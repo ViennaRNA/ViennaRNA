@@ -1,5 +1,6 @@
 #include <ViennaRNA/utils/basic.h>
 
+#include "sc_iip_shared.h"
 
 struct sc_int_dat;
 
@@ -32,6 +33,9 @@ struct sc_int_dat {
 
   sc_int_cb               pair;
   sc_int_cb               pair_ext;
+
+  sc_int_cb               iip;
+  vrna_sc_iip_t           iip_data;
 };
 
 
@@ -232,6 +236,17 @@ sc_int_cb_user_comparative(int                i,
     }
 
   return sc;
+}
+
+
+PRIVATE INLINE int
+sc_int_cb_iip(int                i,
+              int                j,
+              int                k,
+              int                l,
+              struct sc_int_dat  *data)
+{
+  return data->iip(i, j, k, l, data);
 }
 
 
@@ -931,12 +946,40 @@ sc_int_cb_ext_up_stack_user_comparative(int               i,
 }
 
 
+INLINE PRIVATE int
+xlink_il_en(int                   i,
+            int                   j,
+            int                   k,
+            int                   l,
+            struct sc_int_dat     *data)
+{
+  vrna_sc_iip_t         iip_data = data->iip_data;
+
+  interact_region_s *r;
+
+  /*  go through each interval that overlaps with position i to check whether
+   *  k does not overlap with the 5' interval and j connects both segments */
+  if (iip_data->overlap5[i])
+    for (size_t cnt = 0; cnt < vrna_array_size(iip_data->overlap5[i]); cnt++) {
+      r = iip_data->overlap5[i][cnt];
+
+      if ((j >= r->c) &&
+          (j <= r->d) && /* done checking whether (i,j) connects interval pair */
+          ((l < r->c) || (k > r->b))) {
+        return r->score;
+      }
+    }
+
+  return 0;
+}
+
+
 PRIVATE INLINE void
 init_sc_int(vrna_fold_compound_t  *fc,
             struct sc_int_dat     *sc_wrapper)
 {
   unsigned char sliding_window;
-  unsigned int  s, provides_sc_up, provides_sc_bp, provides_sc_stack, provides_sc_user;
+  unsigned int  s, provides_sc_up, provides_sc_bp, provides_sc_stack, provides_sc_user, uses_iip;
   vrna_sc_t     *sc, **scs;
 
   if (fc->matrices)
@@ -952,6 +995,7 @@ init_sc_int(vrna_fold_compound_t  *fc,
   provides_sc_bp    = 0;
   provides_sc_stack = 0;
   provides_sc_user  = 0;
+  uses_iip          = 0;
 
   sc_wrapper->n                     = fc->length;
   sc_wrapper->n_seq                 = 1;
@@ -972,6 +1016,8 @@ init_sc_int(vrna_fold_compound_t  *fc,
 
   sc_wrapper->pair      = NULL;
   sc_wrapper->pair_ext  = NULL;
+  sc_wrapper->iip       = NULL;
+  sc_wrapper->iip_data  = NULL;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -1001,81 +1047,90 @@ init_sc_int(vrna_fold_compound_t  *fc,
         if (sc->f)
           provides_sc_user = 1;
 
+        if (sc->iip) {
+          uses_iip = 1;
+          sc_wrapper->iip_data  = sc->iip;
+          sc_wrapper->iip       = xlink_il_en;
+        }
+
         if (provides_sc_user) {
           if (provides_sc_up) {
             if (provides_sc_bp) {
               if (provides_sc_stack) {
                 sc_wrapper->pair = (sliding_window) ?
-                                   &sc_int_cb_up_bp_local_stack_user :
-                                   &sc_int_cb_up_bp_stack_user;
-                sc_wrapper->pair_ext = &sc_int_cb_ext_up_stack_user;
+                                   sc_int_cb_up_bp_local_stack_user :
+                                   sc_int_cb_up_bp_stack_user;
+                sc_wrapper->pair_ext = sc_int_cb_ext_up_stack_user;
               } else {
                 sc_wrapper->pair = (sliding_window) ?
-                                   &sc_int_cb_up_bp_local_user :
-                                   &sc_int_cb_up_bp_user;
-                sc_wrapper->pair_ext = &sc_int_cb_ext_up_user;
+                                   sc_int_cb_up_bp_local_user :
+                                   sc_int_cb_up_bp_user;
+                sc_wrapper->pair_ext = sc_int_cb_ext_up_user;
               }
             } else if (provides_sc_stack) {
-              sc_wrapper->pair      = &sc_int_cb_up_stack_user;
-              sc_wrapper->pair_ext  = &sc_int_cb_ext_up_stack_user;
+              sc_wrapper->pair      = sc_int_cb_up_stack_user;
+              sc_wrapper->pair_ext  = sc_int_cb_ext_up_stack_user;
             } else {
-              sc_wrapper->pair      = &sc_int_cb_up_user;
-              sc_wrapper->pair_ext  = &sc_int_cb_ext_up_user;
+              sc_wrapper->pair      = sc_int_cb_up_user;
+              sc_wrapper->pair_ext  = sc_int_cb_ext_up_user;
             }
           } else if (provides_sc_bp) {
             if (provides_sc_stack) {
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_int_cb_bp_local_stack_user :
-                                 &sc_int_cb_bp_stack_user;
-              sc_wrapper->pair_ext = &sc_int_cb_ext_stack_user;
+                                 sc_int_cb_bp_local_stack_user :
+                                 sc_int_cb_bp_stack_user;
+              sc_wrapper->pair_ext = sc_int_cb_ext_stack_user;
             } else {
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_int_cb_bp_local_user :
-                                 &sc_int_cb_bp_user;
-              sc_wrapper->pair_ext = &sc_int_cb_ext_user;
+                                 sc_int_cb_bp_local_user :
+                                 sc_int_cb_bp_user;
+              sc_wrapper->pair_ext = sc_int_cb_ext_user;
             }
           } else if (provides_sc_stack) {
-            sc_wrapper->pair      = &sc_int_cb_stack_user;
-            sc_wrapper->pair_ext  = &sc_int_cb_ext_stack_user;
+            sc_wrapper->pair      = sc_int_cb_stack_user;
+            sc_wrapper->pair_ext  = sc_int_cb_ext_stack_user;
           } else {
-            sc_wrapper->pair      = &sc_int_cb_user;
-            sc_wrapper->pair_ext  = &sc_int_cb_ext_user;
+            sc_wrapper->pair      = sc_int_cb_user;
+            sc_wrapper->pair_ext  = sc_int_cb_ext_user;
           }
         } else if (provides_sc_bp) {
           if (provides_sc_up) {
             if (provides_sc_stack) {
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_int_cb_up_bp_local_stack :
-                                 &sc_int_cb_up_bp_stack;
-              sc_wrapper->pair_ext = &sc_int_cb_ext_up_stack;
+                                 sc_int_cb_up_bp_local_stack :
+                                 sc_int_cb_up_bp_stack;
+              sc_wrapper->pair_ext = sc_int_cb_ext_up_stack;
             } else {
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_int_cb_up_bp_local :
-                                 &sc_int_cb_up_bp;
-              sc_wrapper->pair_ext = &sc_int_cb_ext_up;
+                                 sc_int_cb_up_bp_local :
+                                 sc_int_cb_up_bp;
+              sc_wrapper->pair_ext = sc_int_cb_ext_up;
             }
           } else if (provides_sc_stack) {
             sc_wrapper->pair = (sliding_window) ?
-                               &sc_int_cb_bp_local_stack :
-                               &sc_int_cb_bp_stack;
-            sc_wrapper->pair_ext = &sc_int_cb_ext_stack;
+                               sc_int_cb_bp_local_stack :
+                               sc_int_cb_bp_stack;
+            sc_wrapper->pair_ext = sc_int_cb_ext_stack;
           } else {
             sc_wrapper->pair = (sliding_window) ?
-                               &sc_int_cb_bp_local :
-                               &sc_int_cb_bp;
+                               sc_int_cb_bp_local :
+                               sc_int_cb_bp;
           }
         } else if (provides_sc_up) {
           if (provides_sc_stack) {
-            sc_wrapper->pair      = &sc_int_cb_up_stack;
-            sc_wrapper->pair_ext  = &sc_int_cb_ext_up_stack;
+            sc_wrapper->pair      = sc_int_cb_up_stack;
+            sc_wrapper->pair_ext  = sc_int_cb_ext_up_stack;
           } else {
-            sc_wrapper->pair      = &sc_int_cb_up;
-            sc_wrapper->pair_ext  = &sc_int_cb_ext_up;
+            sc_wrapper->pair      = sc_int_cb_up;
+            sc_wrapper->pair_ext  = sc_int_cb_ext_up;
           }
         } else if (provides_sc_stack) {
-          sc_wrapper->pair      = &sc_int_cb_stack;
-          sc_wrapper->pair_ext  = &sc_int_cb_ext_stack;
+          sc_wrapper->pair      = sc_int_cb_stack;
+          sc_wrapper->pair_ext  = sc_int_cb_ext_stack;
+        } else if (uses_iip) {
+          sc_wrapper->pair      = sc_int_cb_iip;
         }
+
       }
 
       break;
@@ -1149,75 +1204,75 @@ init_sc_int(vrna_fold_compound_t  *fc,
             if (provides_sc_bp) {
               if (provides_sc_stack) {
                 sc_wrapper->pair = (sliding_window) ?
-                                   &sc_int_cb_up_bp_local_stack_user_comparative :
-                                   &sc_int_cb_up_bp_stack_user_comparative;
-                sc_wrapper->pair_ext = &sc_int_cb_ext_up_stack_user_comparative;
+                                   sc_int_cb_up_bp_local_stack_user_comparative :
+                                   sc_int_cb_up_bp_stack_user_comparative;
+                sc_wrapper->pair_ext = sc_int_cb_ext_up_stack_user_comparative;
               } else {
                 sc_wrapper->pair = (sliding_window) ?
-                                   &sc_int_cb_up_bp_local_user_comparative :
-                                   &sc_int_cb_up_bp_user_comparative;
-                sc_wrapper->pair_ext = &sc_int_cb_ext_up_user_comparative;
+                                   sc_int_cb_up_bp_local_user_comparative :
+                                   sc_int_cb_up_bp_user_comparative;
+                sc_wrapper->pair_ext = sc_int_cb_ext_up_user_comparative;
               }
             } else if (provides_sc_stack) {
-              sc_wrapper->pair      = &sc_int_cb_up_stack_user_comparative;
-              sc_wrapper->pair_ext  = &sc_int_cb_ext_up_stack_user_comparative;
+              sc_wrapper->pair      = sc_int_cb_up_stack_user_comparative;
+              sc_wrapper->pair_ext  = sc_int_cb_ext_up_stack_user_comparative;
             } else {
-              sc_wrapper->pair      = &sc_int_cb_up_user_comparative;
-              sc_wrapper->pair_ext  = &sc_int_cb_ext_up_user_comparative;
+              sc_wrapper->pair      = sc_int_cb_up_user_comparative;
+              sc_wrapper->pair_ext  = sc_int_cb_ext_up_user_comparative;
             }
           } else if (provides_sc_bp) {
             if (provides_sc_stack) {
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_int_cb_bp_local_stack_user_comparative :
-                                 &sc_int_cb_bp_stack_user_comparative;
-              sc_wrapper->pair_ext = &sc_int_cb_ext_stack_user_comparative;
+                                 sc_int_cb_bp_local_stack_user_comparative :
+                                 sc_int_cb_bp_stack_user_comparative;
+              sc_wrapper->pair_ext = sc_int_cb_ext_stack_user_comparative;
             } else {
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_int_cb_bp_local_user_comparative :
-                                 &sc_int_cb_bp_user_comparative;
-              sc_wrapper->pair_ext = &sc_int_cb_ext_user_comparative;
+                                 sc_int_cb_bp_local_user_comparative :
+                                 sc_int_cb_bp_user_comparative;
+              sc_wrapper->pair_ext = sc_int_cb_ext_user_comparative;
             }
           } else if (provides_sc_stack) {
-            sc_wrapper->pair      = &sc_int_cb_stack_user_comparative;
-            sc_wrapper->pair_ext  = &sc_int_cb_ext_stack_user_comparative;
+            sc_wrapper->pair      = sc_int_cb_stack_user_comparative;
+            sc_wrapper->pair_ext  = sc_int_cb_ext_stack_user_comparative;
           } else {
-            sc_wrapper->pair      = &sc_int_cb_user_comparative;
-            sc_wrapper->pair_ext  = &sc_int_cb_ext_user_comparative;
+            sc_wrapper->pair      = sc_int_cb_user_comparative;
+            sc_wrapper->pair_ext  = sc_int_cb_ext_user_comparative;
           }
         } else if (provides_sc_bp) {
           if (provides_sc_up) {
             if (provides_sc_stack) {
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_int_cb_up_bp_local_stack_comparative :
-                                 &sc_int_cb_up_bp_stack_comparative;
-              sc_wrapper->pair_ext = &sc_int_cb_ext_up_stack_comparative;
+                                 sc_int_cb_up_bp_local_stack_comparative :
+                                 sc_int_cb_up_bp_stack_comparative;
+              sc_wrapper->pair_ext = sc_int_cb_ext_up_stack_comparative;
             } else {
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_int_cb_up_bp_local_comparative :
-                                 &sc_int_cb_up_bp_comparative;
-              sc_wrapper->pair_ext = &sc_int_cb_ext_up_comparative;
+                                 sc_int_cb_up_bp_local_comparative :
+                                 sc_int_cb_up_bp_comparative;
+              sc_wrapper->pair_ext = sc_int_cb_ext_up_comparative;
             }
           } else if (provides_sc_stack) {
             sc_wrapper->pair = (sliding_window) ?
-                               &sc_int_cb_bp_local_stack_comparative :
-                               &sc_int_cb_bp_stack_comparative;
-            sc_wrapper->pair_ext = &sc_int_cb_ext_stack_comparative;
+                               sc_int_cb_bp_local_stack_comparative :
+                               sc_int_cb_bp_stack_comparative;
+            sc_wrapper->pair_ext = sc_int_cb_ext_stack_comparative;
           } else {
             sc_wrapper->pair = (sliding_window) ?
-                               &sc_int_cb_bp_local_comparative :
-                               &sc_int_cb_bp_comparative;
+                               sc_int_cb_bp_local_comparative :
+                               sc_int_cb_bp_comparative;
           }
         } else if (provides_sc_up) {
           if (provides_sc_stack) {
-            sc_wrapper->pair      = &sc_int_cb_up_stack_comparative;
-            sc_wrapper->pair_ext  = &sc_int_cb_ext_up_stack_comparative;
+            sc_wrapper->pair      = sc_int_cb_up_stack_comparative;
+            sc_wrapper->pair_ext  = sc_int_cb_ext_up_stack_comparative;
           } else {
-            sc_wrapper->pair      = &sc_int_cb_up_comparative;
-            sc_wrapper->pair_ext  = &sc_int_cb_ext_up_comparative;
+            sc_wrapper->pair      = sc_int_cb_up_comparative;
+            sc_wrapper->pair_ext  = sc_int_cb_ext_up_comparative;
           }
         } else if (provides_sc_stack) {
-          sc_wrapper->pair      = &sc_int_cb_stack_comparative;
-          sc_wrapper->pair_ext  = &sc_int_cb_ext_stack_comparative;
+          sc_wrapper->pair      = sc_int_cb_stack_comparative;
+          sc_wrapper->pair_ext  = sc_int_cb_ext_stack_comparative;
         }
       }
 

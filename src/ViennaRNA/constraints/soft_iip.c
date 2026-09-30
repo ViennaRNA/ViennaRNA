@@ -41,6 +41,7 @@
 #include "ViennaRNA/constraints/multibranch_sc.inc"
 #include "ViennaRNA/constraints/multibranch_sc_pf.inc"
 
+#include "sc_iip_shared.h"
 
 #include "ViennaRNA/constraints/soft_iip.h"
 
@@ -65,25 +66,6 @@ struct vrna_mx_pf_aux_ml_s {
 };
 
 
-typedef struct {
-  unsigned int  a;          /* start of 5' interval */
-  unsigned int  b;          /* end of 5' interval */
-  unsigned int  c;          /* start of 3' interval */
-  unsigned int  d;          /* end of 3' interval */
-  int           score;      /* interval score */
-  FLT_OR_DBL    exp_score;  /* interval score as Boltzmann factor */
-} interact_region_s;
-
-
-struct vrna_crosslink_data_s {
-  vrna_array(interact_region_s)   regions;  /* list of interacting regions */
-  vrna_array(interact_region_s **) overlap5;  /* for each nucleotide position i we store the corresponding interval pair (I, I') where I overlaps with i */
-  vrna_array(interact_region_s **) overlap3;  /* for each nucleotide position i we store the corresponding interval pair (I, I') where I' overlaps with i */
-  int         *A;
-  int         *B;
-  FLT_OR_DBL  *qA;
-  FLT_OR_DBL  *qB;
-};
 
 
 #if 1
@@ -298,6 +280,7 @@ vrna_sc_iip(vrna_fold_compound_t *fc)
     fc->sc->iip = data;
     fc->params->model_details.uniq_ML = 1;
 
+#if 0
     ret &= vrna_sc_multi_cb_add(fc,
                                 xlink_hp_en,
                                 xlink_hp_exp_en,
@@ -312,6 +295,7 @@ vrna_sc_iip(vrna_fold_compound_t *fc)
                                 NULL,
                                 NULL,
                                 VRNA_DECOMP_PAIR_IL);
+#endif
   }
 
   return ret;
