@@ -81,6 +81,8 @@ typedef struct {
   FLT_OR_DBL  *prm_lmm2;
   FLT_OR_DBL  *prm_lmu;
   FLT_OR_DBL  *prm_lmu2;
+  FLT_OR_DBL  *prm_l1mu;
+  FLT_OR_DBL  *prm_l1mu2;
   struct sc_mb_exp_dat  sc_wrapper_mb;
 } xl_ml_helper_t;
 
@@ -2097,6 +2099,8 @@ get_xl_ml_outside_helpers(vrna_fold_compound_t *fc)
   helpers->prm_lmm2 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
   helpers->prm_lmu  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
   helpers->prm_lmu2 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+  helpers->prm_l1mu  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+  helpers->prm_l1mu2 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
 
   init_sc_mb_exp(fc, &(helpers->sc_wrapper_mb));
 
@@ -2125,6 +2129,8 @@ free_xl_ml_outside_helpers(void *helpers)
     free(h->prm_lmm2);
     free(h->prm_lmu);
     free(h->prm_lmu2);
+    free(h->prm_l1mu);
+    free(h->prm_l1mu2);
 
     free(helpers);
   }
@@ -2141,7 +2147,8 @@ xl_fill_prms(vrna_fold_compound_t *fc,
   int                           *my_iindx, ij, lj1;
   FLT_OR_DBL                    qbt1, qbt2, temp, temp2, *probs, *qb, *qm, *scale,
                                 *expMLbase, expMLclosing, *prm_lmm, *prm_lmm2,
-                                *prm_lmu, *prm_lmu2, *vl, *wl;
+                                *prm_lmu, *prm_lmu2, *prm_l1mu, *prm_l1mu2, 
+                                *vl, *wl, *swp;
   vrna_exp_param_t              *pf_params;
   vrna_md_t                     *md;
   vrna_hc_t                     *hc;
@@ -2167,12 +2174,22 @@ xl_fill_prms(vrna_fold_compound_t *fc,
   dat           = fc->sc->iip;
   sc_wrap       = &(helpers->sc_wrapper_mb);
 
+  /* swap prm_lmu's from previous l */
+  swp                 = helpers->prm_lmu;
+  helpers->prm_lmu    = helpers->prm_l1mu;
+  helpers->prm_l1mu   = swp;
+  swp                 = helpers->prm_lmu2;
+  helpers->prm_lmu2   = helpers->prm_l1mu2;
+  helpers->prm_l1mu2  = swp;
+
   vl        = helpers->vl;
   wl        = helpers->wl;
   prm_lmm   = helpers->prm_lmm;
   prm_lmm2  = helpers->prm_lmm2;
   prm_lmu   = helpers->prm_lmu;
   prm_lmu2  = helpers->prm_lmu2;
+  prm_l1mu  = helpers->prm_l1mu;
+  prm_l1mu2 = helpers->prm_l1mu2;
 
   /* reset (helper) arrays */
   vl        = memset(vl, 0, sizeof(FLT_OR_DBL) * (n + 2));
@@ -2408,23 +2425,41 @@ xl_fill_prms(vrna_fold_compound_t *fc,
                        temp;
       }
     }
+
+    prm_lmm[i] *= expMLclosing;
+    prm_lmm2[i] *= expMLclosing;
   }
 
   /* and the simpler cases, prm_lmu and prm_lmu2 */
-  for (i = 1; i + turn + 1 < l; i++) {
-    for (j = l + 1; j <= n; j++) {
+  if (l < n) {
+    for (i = 1; i + turn + 1 < l; i++) {
+      /* all cases with l + 1 < j <= n */
+      if (hc->eval_mb(i + 1, l + 1, i + 1, l, VRNA_DECOMP_ML_ML, hc)) {
+        qbt1 = prm_l1mu[i] *
+               expMLbase[1];
+        qbt2 = prm_l1mu2[i] *
+               expMLbase[1];
+
+        if (sc_wrap->red_ml) {
+          temp = sc_wrap->red_ml(i + 1, l + 1, i + 1, l, sc_wrap);
+          qbt1 *= temp;
+          qbt2 *= temp;
+        }
+
+        prm_lmu[i] += qbt1;
+        prm_lmu2[i] += qbt2;
+      }
+
+      j = l + 1;
       ij = my_iindx[i] - j;
 
       if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
-        /* compute closing pair contribution */
-        qbt1 = 0.;
-        
         temp = probs[ij] *
-               contrib_enclosing_pair(i, j, md, pf_params, S, S1, helpers);
+               contrib_enclosing_pair(i, j, md, pf_params, S, S1, helpers) *
+               expMLclosing;
 
         r = NULL;
 
-        /* check whether there is any interval pair (I,I') supported by (i,j) */
         if ((dat->overlap5[i]) &&
             (dat->overlap3[j])) {
           for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++)
@@ -2436,39 +2471,22 @@ xl_fill_prms(vrna_fold_compound_t *fc,
         }
 
         if (hc->eval_mb(i + 1, j - 1, i + 1, l, VRNA_DECOMP_ML_ML, hc)) {
-          qbt1 = expMLbase[j - l - 1];
-
-          if (sc_wrap->red_ml)
-            qbt1 *= sc_wrap->red_ml(i + 1, j - 1, i + 1, l, sc_wrap);
-
           if (r) {
-            prm_lmu[i] += qbt1 *
-                          temp *
+            prm_lmu[i] += temp *
                           r->exp_score;
             if (r->c > l) {
-              prm_lmu2[i] += qbt1 *
-                             temp *
+              prm_lmu2[i] += temp *
                              r->exp_score;
             } else {
-              prm_lmu2[i] += qbt1 *
-                             temp;
+              prm_lmu2[i] += temp;
             }
           } else {
-            prm_lmu[i] += qbt1 *
-                          temp;
-            prm_lmu2[i] += qbt1 *
-                          temp;
+            prm_lmu[i] += temp;
+            prm_lmu2[i] += temp;
           }
         }
       }
     }
-
-    prm_lmm[i] *= expMLclosing;
-    prm_lmm2[i] *= expMLclosing;
-    prm_lmu[i] *= expMLclosing;
-    prm_lmu2[i] *= expMLclosing;
-
-    vrna_log_debug("%u: prml[%u] = %g", l, i, prm_lmu[i] + prm_lmm[i]);
   }
 }
 
