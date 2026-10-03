@@ -31,32 +31,53 @@ Package. Since then, he (re-)implemented a large portion of the currently existi
 library features, such as the new, generalized constraints framework, RNA folding
 grammar domain extensions, and the major part of the scripting language interface.
 
-.. grid:: 1 1 2 2
+Contributors
+------------
 
-    .. grid-item-card:: Code contributors
+This is an open source project that has only been made possible with the help of
+many researchers and users that contributed code and documentation.
 
-        * Daniel Wiegreffe (RNAturtle and RNApuzzler secondary structure layouts)
-        * Andreas Gruber (first approach on RNALfold Z-score filtering)
-        * Juraj Michalik (non-redundant Boltzmann sampling)
-        * Gregor Entzian (neighbor, walk)
-        * Mario Koestl (worked on SWIG interface and related unit testing)
-        * Dominik Luntzer (pertubation fold)
-        * Stefan Badelt (cofold evaluation, RNAdesign.pl, cofold findpath extensions)
-        * Stefan Hammer (parts of SWIG interface and corresponding unit tests)
-        * Ronny Lorenz (circfold, version 2.0, generic constraints, grammar extensions, and much more)
-        * Hakim Tafer (RNAplex, RNAsnoop)
-        * Ulrike Mueckstein (RNAup)
-        * Stephan Bernhart (RNAcofold, RNAplfold, unpaired probabilities, alifold, and so many more)
-        * Stefan Wuchty (RNAsubopt)
-        * Ivo Hofacker, Peter Stadler, and Christoph Flamm (almost every implementation up to version 1.8.5)
+.. only:: html
 
-    .. grid-item-card:: Additional thanks to
+    ..  contributors:: ../../
+        :provider: local
+        :avatars:
+        :names:
+        :contributions:
 
-        * Sebastian Bonhoeffer's implementation of partition function folding served as a precursor to our part_func.c
-        * Manfred Tacker hacked constrained folding into fold.c for the first time
-        * Martin Fekete made the first attempts at "alignment folding"
-        * Andrea Tanzer and Martin Raden (Mann) for not stopping to report bugs found through comprehensive usage of our applications and RNAlib
+.. only:: latex
 
-        Thanks also to everyone else who helped testing and finding bugs, especially
-        Christoph Flamm, Martijn Huynen, Baerbel Krakhofer, and many more.
+    ..  contributors:: ../../
+        :provider: local
+        :avatars:
+        :names:
+        :contributions:
+
+* Daniel Wiegreffe (RNAturtle and RNApuzzler secondary structure layouts)
+* Andreas Gruber (first approach on RNALfold Z-score filtering)
+* Juraj Michalik (non-redundant Boltzmann sampling)
+* Gregor Entzian (neighbor, walk)
+* Mario Koestl (worked on SWIG interface and related unit testing)
+* Dominik Luntzer (pertubation fold)
+* Stefan Badelt (cofold evaluation, RNAdesign.pl, cofold findpath extensions)
+* Stefan Hammer (parts of SWIG interface and corresponding unit tests)
+* Ronny Lorenz (circfold, version 2.0, generic constraints, grammar extensions, and much more)
+* Hakim Tafer (RNAplex, RNAsnoop)
+* Ulrike Mueckstein (RNAup)
+* Stephan Bernhart (RNAcofold, RNAplfold, unpaired probabilities, alifold, and so many more)
+* Stefan Wuchty (RNAsubopt)
+* Ivo Hofacker, Peter Stadler, and Christoph Flamm (almost every implementation up to version 1.8.5)
+
+
+Thanks to
+---------
+
+We also want to thank everyone else who helped testing and finding bugs, especially
+Christoph Flamm, Martijn Huynen, Baerbel Krakhofer, and many more.
+
+* Sebastian Bonhoeffer's implementation of partition function folding served as a precursor to our part_func.c
+* Manfred Tacker hacked constrained folding into fold.c for the first time
+* Martin Fekete made the first attempts at "alignment folding"
+* Andrea Tanzer and Martin Raden (Mann) for not stopping to report bugs found through comprehensive usage of our applications and RNAlib
+
 

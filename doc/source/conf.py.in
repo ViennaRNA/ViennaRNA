@@ -21,6 +21,8 @@ sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath("./_ext"))
 sys.path.insert(0, os.path.abspath('@top_srcdir@/doc/sphinx-extensions/breathe'))
 sys.path.insert(0, os.path.abspath('@top_builddir@/doc/sphinx-extensions/breathe'))
+sys.path.insert(0, os.path.abspath('@top_srcdir@/doc/sphinx-contributors/src'))
+sys.path.insert(0, os.path.abspath('@top_builddir@/doc/sphinx-contributors/src'))
 sys.path.insert(0, os.path.abspath('@top_srcdir@/interfaces/Python/'))
 sys.path.insert(0, os.path.abspath('@top_builddir@/interfaces/Python/'))
 
@@ -53,7 +55,8 @@ extensions = [
     'pydata_sphinx_theme',
     'sphinx_design',
     'myst_parser',
-    'json_binaries'
+    'json_binaries',
+    'sphinx_contributors'
 ]
 
 mathjax_path = "js/mathjax/tex-chtml.js"
@@ -262,6 +265,14 @@ breathe_show_include = True
 breathe_show_decl_file_include = True
 breathe_default_members = ('members', 'undoc-members')
 
+# sphinx-contributors settings
+sphinx_contributors_conf = {
+    "avatar_image_default" : "sc_user_avartar_default.svg",
+    "all_contributors" : True,
+    "all_contributors_file" : "../.all-contributorsrc",
+}
+
+# json binary packages settings
 jb_json_dir = "../packaging/json"
 
 package_descriptions =  {
