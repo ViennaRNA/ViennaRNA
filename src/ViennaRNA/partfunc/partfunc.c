@@ -378,7 +378,8 @@ fill_arrays(vrna_fold_compound_t *fc)
   }
 
   for (j = 2; j <= n; j++) {
-    if ((fc->sc) &&
+    if ((fc->type == VRNA_FC_TYPE_SINGLE) &&
+        (fc->sc) &&
         (fc->sc->iip))
       vrna_sc_iip_update_pf(fc, j);
 
@@ -480,7 +481,8 @@ decompose_pair(vrna_fold_compound_t *fc,
     /* process internal loop(s) */
     contribution += vrna_exp_E_int_loop(fc, i, j);
     /* process multibranch loop(s) */
-    if ((fc->sc) &&
+    if ((fc->type == VRNA_FC_TYPE_SINGLE) &&
+        (fc->sc) &&
         (fc->sc->iip)) {
       contribution += vrna_pf_multibranch_loop_xlink(fc, i, j, aux_mx_ml);
     } else {

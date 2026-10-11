@@ -478,7 +478,8 @@ fill_arrays(vrna_fold_compound_t  *fc,
         (sn[i] != sn[i + 1]))
       update_fms3_arrays(fc, sn[i + 1], ms_dat);
 
-    if ((fc->sc) &&
+    if ((fc->type == VRNA_FC_TYPE_SINGLE) &&
+        (fc->sc) &&
         (fc->sc->iip))
       vrna_sc_iip_update_mfe(fc, i);
 

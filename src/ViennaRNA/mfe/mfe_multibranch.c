@@ -162,7 +162,8 @@ vrna_mfe_multibranch_loop_fast(vrna_fold_compound_t         *fc,
 {
   if ((fc) &&
       (helpers)) {
-    if ((fc->sc) &&
+    if ((fc->type == VRNA_FC_TYPE_SINGLE) &&
+        (fc->sc) &&
         (fc->sc->iip)) {
       return vrna_mfe_multibranch_loop_xlink(fc, i, j, helpers);
     }
