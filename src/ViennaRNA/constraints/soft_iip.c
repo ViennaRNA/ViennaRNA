@@ -2371,6 +2371,9 @@ xl_fill_prms(vrna_fold_compound_t *fc,
 
             qbt2 = qbt1; /* for prm_lmm2 */
 
+            if (r->c > l)
+              qbt2 *- r->exp_score;
+
             qbt1 *= r->exp_score;
           }
         } else {
