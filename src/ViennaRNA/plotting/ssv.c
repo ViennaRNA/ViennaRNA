@@ -122,12 +122,14 @@ rnaplot_ssv(const char          *filename,
   if (n != strlen(structure)) {
     vrna_log_warning("Sequence and Structure have different lengths (%u vs. %u)",
                      n, strlen(structure));
+    fclose(ssvfile);
     return 0;
   }
 
   if (n != layout->length) {
     vrna_log_warning("Structure and Layout have different lengths (%u vs. %u)",
                      n, layout->length);
+    fclose(ssvfile);
     return 0;
   }
 
