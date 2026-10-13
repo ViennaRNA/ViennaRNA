@@ -1,11 +1,24 @@
 #ifndef VIENNA_RNA_PACKAGE_PLEX_H
 #define VIENNA_RNA_PACKAGE_PLEX_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 #include <ViennaRNA/datastructures/basic.h>
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-extern int subopt_sorted;
+DEPRECATED(extern int subopt_sorted,
+           "This global variable is obsolete");
 
 /**
 *** Lduplexfold Computes duplexes between two single sequences

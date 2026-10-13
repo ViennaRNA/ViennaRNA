@@ -122,7 +122,8 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
  *  @ingroup subopt_wuchty
  *
  */
-extern double print_energy;
+DEPRECATED(extern double print_energy,
+           "This global variable is obsolete");
 
 /**
  *  @brief Sort output by energy
@@ -130,7 +131,8 @@ extern double print_energy;
  *  @ingroup subopt_wuchty
  *
  */
-extern int subopt_sorted;
+DEPRECATED(extern int subopt_sorted,
+           "This global variable is obsolete");
 
 /**
  *  @addtogroup dos
@@ -149,7 +151,8 @@ extern int subopt_sorted;
  *  @see  subopt_par(), subopt(), subopt_circ()
  *
  */
-extern int density_of_states[MAXDOS + 1];
+DEPRECATED(extern int density_of_states[MAXDOS + 1],
+           "This global variable is obsolete");
 
 /** @} */ /* End of group dos */
 

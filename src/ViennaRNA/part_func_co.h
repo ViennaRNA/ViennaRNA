@@ -35,12 +35,14 @@
 /**
  *  @brief Toggles no intrabp in 2nd mol
  */
-extern int    mirnatog;
+DEPRECATED(extern int    mirnatog,
+           "This global variable is obsolete");
 
 /**
  *  @brief Free energies of the two monomers
  */
-extern double F_monomer[2];
+DEPRECATED(extern double F_monomer[2],
+           "This global variable is obsolete");;
 
 /**
  *  @}

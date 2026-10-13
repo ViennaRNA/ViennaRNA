@@ -344,7 +344,8 @@ vrna_pf_float_precision(void);
  *
  *  @see pbacktrack(), pbacktrack_circ
  */
-extern int st_back;
+DEPRECATED(extern int st_back,
+           "This global variable is obsolete! Use vrna_md_t.uniq_ML flag instead.");
 
 /**
  *  @brief Compute the partition function @f$Q@f$ for a given RNA sequence

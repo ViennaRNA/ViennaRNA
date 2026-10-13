@@ -226,8 +226,6 @@ PRIVATE short         *S1 = NULL, *SS1 = NULL, *S2 = NULL, *SS2 = NULL;
 PRIVATE short         *S1_fill = NULL, *SS1_fill = NULL, *S2_fill = NULL, *SS2_fill = NULL;
 PRIVATE int           n1, n2; /* sequence lengths */
 
-extern int            cut_point;
-
 PRIVATE int           delay_free = 0;
 /*--------------------------------------------------------------------------*/
 
@@ -3840,7 +3838,6 @@ encode_seq(const char *sequence)
   short         *S;
 
   l = strlen(sequence);
-  extern double nc_fact;
 
   S     = (short *)vrna_alloc(sizeof(short) * (l + 2));
   S[0]  = (short)l;

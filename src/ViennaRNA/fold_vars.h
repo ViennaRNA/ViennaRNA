@@ -1,6 +1,19 @@
 #ifndef VIENNA_RNA_PACKAGE_FOLD_VARS_H
 #define VIENNA_RNA_PACKAGE_FOLD_VARS_H
 
+
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 #include <ViennaRNA/datastructures/basic.h>
 /*  For now, we include model.h by default to provide backwards compatibility
     However, this will most likely change, since fold_vars.h is scheduled to
@@ -19,29 +32,34 @@
 /**
  *  \brief Global switch to activate/deactivate folding with structure constraints
  */
-extern int    fold_constrained;
+DEPRECATED(extern int    fold_constrained,
+           "Use constraints framework instead!");
 
 /**
  *  \brief generate comma seperated output
  */
-extern int  csv;
+DEPRECATED(extern int  csv,
+           "This flag is obsolete!");
 
 /**
  *  warning this variable will vanish in the future
  *  ribosums will be compiled in instead
  */
-extern char *RibosumFile;   
+DEPRECATED(extern char *RibosumFile,
+           "Use ribosum score API directly!");
 
 /**
  *  internal loops of size 2 get energy 0.8Kcal and
  *  no mismatches, default 1
  */
-extern int  james_rule;
+DEPRECATED(extern int  james_rule,
+           "This flag is obsolete!");
 
 /**
  *  use logarithmic multiloop energy function
  */
-extern int  logML;
+DEPRECATED(extern int  logML,
+           "Use logML flag in vrna_md_t instead!");
 
 /**
  *  \brief Marks the position (starting from 1) of the first
@@ -54,7 +72,8 @@ extern int  logML;
  *  cut_point variable is also used by vrna_file_PS_rnaplot() and
  *  PS_dot_plot() to mark the chain break in postscript plots.
  */
-extern int  cut_point;
+DEPRECATED(extern int  cut_point,
+           "Use strand identifiers in vrna_fold_compound_t instead!");
 
 /**
  *  \brief Contains a list of base pairs after a call to fold().
@@ -62,14 +81,16 @@ extern int  cut_point;
  *  base_pair[0].i contains the total number of pairs.
  *  \deprecated Do not use this variable anymore!
  */
-extern bondT  *base_pair;
+DEPRECATED(extern bondT  *base_pair,
+           "Use backtracking API directly!");
 
 /**
  *  \brief A pointer to the base pair probability matrix
  * 
  *  \deprecated Do not use this variable anymore!
  */
-extern FLT_OR_DBL *pr;
+DEPRECATED(extern FLT_OR_DBL *pr,
+           "Access base pair probabilities from vrna_fold_compound_t!");
 
 /**
  *  \brief index array to move through pr.
@@ -77,7 +98,8 @@ extern FLT_OR_DBL *pr;
  *  The probability for base i and j to form a pair is in pr[iindx[i]-j].
  *  \deprecated Do not use this variable anymore!
  */
-extern int   *iindx;
+DEPRECATED(extern int   *iindx,
+           "Use iindx field from vrna_fold_compound_t or vrna_idx_row_wise()!");
 
 
 #endif

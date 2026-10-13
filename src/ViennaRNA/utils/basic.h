@@ -198,7 +198,8 @@ vrna_init_rand_seed(unsigned int seed);
  *
  *  @see vrna_urn()
  */
-extern unsigned short xsubi[3];
+DEPRECATED(extern unsigned short xsubi[3],
+           "This global variable is obsolete! Use vrna_init_rand_seed() instead.");
 
 /**
  *  @brief get a random number from [0..1]

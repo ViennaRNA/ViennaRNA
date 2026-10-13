@@ -2,6 +2,18 @@
 #define VIENNA_RNA_PACKAGE_EVAL_BASIC_H
 
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file     ViennaRNA/eval/basic.h
  *  @ingroup  eval
@@ -64,12 +76,14 @@
 /**
  *  @brief first pos of second seq for cofolding
  */
-extern int  cut_point;
+DEPRECATED(extern int  cut_point,
+           "Use strand information from vrna_fold_compound_t instead!");
 
 /**
  *  @brief verbose info from energy_of_struct
  */
-extern int  eos_debug;
+DEPRECATED(extern int  eos_debug,
+           "This variable is obsolete!");
 
 #endif
 

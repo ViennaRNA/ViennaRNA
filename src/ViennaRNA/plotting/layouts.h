@@ -477,7 +477,8 @@ typedef struct {
  *  @see #VRNA_PLOT_TYPE_SIMPLE, #VRNA_PLOT_TYPE_NAVIEW, #VRNA_PLOT_TYPE_CIRCULAR
  *
  */
-extern int rna_plot_type;
+DEPRECATED(extern int rna_plot_type,
+           "This global variable is obsolete. Use plot_type argument in vrna_plot_layout() or similar");
 
 
 /**

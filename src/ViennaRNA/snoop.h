@@ -1,6 +1,18 @@
 #ifndef VIENNA_RNA_PACKAGE_SNOOP_H
 #define VIENNA_RNA_PACKAGE_SNOOP_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 #include <ViennaRNA/datastructures/basic.h>
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
@@ -288,7 +300,8 @@ snoopT snoopfold_XS(const char  *s1,
                     const int   fullStemEnergy);
 
 
-extern int snoop_subopt_sorted;
+DEPRECATED(extern int snoop_subopt_sorted,
+           "This global variable is obsolete");
 #endif
 
 #endif

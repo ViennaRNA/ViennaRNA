@@ -1,6 +1,18 @@
 #ifndef VIENNA_RNA_PACKAGE_INVERSE_H
 #define VIENNA_RNA_PACKAGE_INVERSE_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file     ViennaRNA/inverse/basic.h
  *  @ingroup  inverse_fold
@@ -18,13 +30,18 @@
  *  \brief This global variable points to the allowed bases, initially "AUGC".
  *  It can be used to design sequences from reduced alphabets.
  */
-extern char *symbolset;
+DEPRECATED(extern char *symbolset,
+           "This variable is obsolete");
+
 /** when to stop inverse_pf_fold() */
-extern  float final_cost;
+DEPRECATED(extern  float final_cost,
+           "This variable is obsolete");
 /** default 0: try to minimize structure distance even if no exact solution can be found */
-extern  int   give_up;
+DEPRECATED(extern  int   give_up,
+           "This variable is obsolete");
 /** print out substructure on which inverse_fold() fails */
-extern  int   inv_verbose;
+DEPRECATED(extern  int   inv_verbose,
+           "This variable is obsolete");
 
 /**
  *  \brief Find sequences with predefined structure
