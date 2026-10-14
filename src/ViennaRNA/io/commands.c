@@ -453,10 +453,11 @@ PRIVATE int
 apply_soft_constraint(vrna_fold_compound_t  *vc,
                       void                  *data)
 {
-  int               i, j, k, l, h, cnt1, cnt2, cnt3;
+  int               ret, i, j, k, l, h, cnt1, cnt2, cnt3;
   float             e;
   constraint_struct *constraint = (constraint_struct *)data;
 
+  ret = 0;
   i = constraint->i;
   j = constraint->j;
   k = constraint->k;
@@ -464,16 +465,22 @@ apply_soft_constraint(vrna_fold_compound_t  *vc,
   h = constraint->size;
   e = constraint->e;
 
-  for (cnt1 = i; cnt1 <= j; cnt1++)
-    for (cnt2 = k; cnt2 <= l; cnt2++)
-      for (cnt3 = h; cnt3 != 0; cnt3--) {
-        if ((cnt2 == 0) || ((i == j) && (j == k) && (k == l)))  /* enforce nucleotide constraint */
-          vrna_sc_add_up(vc, cnt1 + (cnt3 - 1), e, VRNA_OPTION_DEFAULT);
-        else                                                    /* enforce base pair constraint */
-          vrna_sc_add_bp(vc, cnt1 + (cnt3 - 1), cnt2 - (cnt3 - 1), e, VRNA_OPTION_DEFAULT);
-      }
+  if (h == 0) {
+    /* interacting interval pair constraint */
+    ret = vrna_sc_add_iip(vc, i, j, k, l, e, 0);
+  } else {
+    ret = 1;
+    for (cnt1 = i; cnt1 <= j; cnt1++)
+      for (cnt2 = k; cnt2 <= l; cnt2++)
+        for (cnt3 = h; cnt3 != 0; cnt3--) {
+          if ((cnt2 == 0) || ((i == j) && (j == k) && (k == l)))  /* enforce nucleotide constraint */
+            ret &= vrna_sc_add_up(vc, cnt1 + (cnt3 - 1), e, VRNA_OPTION_DEFAULT);
+          else                                                    /* enforce base pair constraint */
+            ret &= vrna_sc_add_bp(vc, cnt1 + (cnt3 - 1), cnt2 - (cnt3 - 1), e, VRNA_OPTION_DEFAULT);
+        }
+  }
 
-  return 1;
+  return ret;
 }
 
 
@@ -698,8 +705,9 @@ parse_constraint(const char *line,
         }
       } else if ((i < j) && (k < l) && (i <= k) && (j <= l) && (orientation == '\0')) {
         /* range [i:j] and [k:l] */
-        if (command == 'P') {
-          /* we only allow this for 'prohibit pairing between two ranges' */
+        if ((command == 'P') ||
+            (command == 'E')) {
+          /* we only allow this for 'prohibit pairing between two ranges' or to apply interval pair soft constraints */
           h     = 0;
           valid = 1;
         }

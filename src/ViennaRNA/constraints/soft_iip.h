@@ -22,10 +22,6 @@ typedef struct vrna_crosslink_data_s  *vrna_sc_iip_t;
  *  @ingroup probing_data
  */
 int
-vrna_sc_iip(vrna_fold_compound_t *fc);
-
-
-int
 vrna_sc_add_iip(vrna_fold_compound_t  *fc,
                 unsigned int          i,
                 unsigned int          j,

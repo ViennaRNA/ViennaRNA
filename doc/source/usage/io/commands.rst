@@ -25,7 +25,7 @@ The following set of commands is recognized:
 * ``P`` ... Prohibit
 * ``C`` ... Conflicts/Context dependency
 * ``A`` ... Allow (for non-canonical pairs)
-* ``E`` ... Soft constraints for unpaired position(s), or base pair(s)
+* ``E`` ... Soft constraints for unpaired position(s), base pair(s), or interacting interval pairs
 
 RNA folding grammar exensions
 -----------------------------
@@ -125,8 +125,8 @@ Below are resulting general cases that are considered *valid* constraints:
 
   Description:
 
-  Prohibit any nucleotide :math:`p \in [i:j]` to pair with any other nucleotide
-  :math:`q \in [k:l]`. The optional loop type specifier ``[WHERE]`` allows to
+  Prohibit any nucleotide :math:`p \in [i,j]` to pair with any other nucleotide
+  :math:`q \in [k,l]`. The optional loop type specifier ``[WHERE]`` allows to
   specify the type of loop they are disallowed to be the closing or an enclosed pair of.
 
 * **"Enforce a loop context for a range of nucleotide positions"**::
@@ -193,6 +193,18 @@ Below are resulting general cases that are considered *valid* constraints:
   Use this command to apply a pseudo free energy of :math:`e` to the set of base pairs
   :math:`(i,j), \ldots, (i+(k-1), j-(k-1))`. Energies are expected to be given in
   units of :math:`\text{kcal} \cdot \text{mol}^{-1}`.
+
+
+* **"Apply pseudo free energy to base pairs supporting an interacting interval pair"**::
+
+    E i-j k-l e
+
+  Description:
+
+  Use this command to apply a pseudo free energy of :math:`e` to a structure :math:`s`
+  if :math:`\exists (p, q) \in s : p \in [i,j] \wedge q \in [k,l]`, i.e. :math:`s`
+  contains at least one base pair supporting the interval pair :math:`([i,j], [[k,l])`.
+  Energies are expected to be given in units of :math:`\text{kcal} \cdot \text{mol}^{-1}`.
 
 
 Valid domain extensions commands

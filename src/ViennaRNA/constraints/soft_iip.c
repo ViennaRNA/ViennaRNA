@@ -219,35 +219,6 @@ free_xl_ml_outside_helpers(void *helpers);
 
 
 PUBLIC int
-vrna_sc_iip(vrna_fold_compound_t *fc)
-{
-  int                           ret;
-  FILE                          *fp;
-  struct vrna_crosslink_data_s  *data;
-
-  ret = 0;
-
-  if (fc) {
-    ret   = 1;
-    data  = (struct vrna_crosslink_data_s *)vrna_alloc(sizeof(struct vrna_crosslink_data_s));
-
-    data->overlap5 = NULL;
-    data->overlap3 = NULL;
-
-    vrna_array_init_size(data->regions, 42);
-
-    if (fc->sc == NULL)
-      vrna_sc_init(fc);
-
-    fc->sc->iip = data;
-    fc->params->model_details.uniq_ML = 1;
-  }
-
-  return ret;
-}
-
-
-PUBLIC int
 vrna_sc_add_iip(vrna_fold_compound_t  *fc,
                 unsigned int          i,
                 unsigned int          j,
@@ -263,8 +234,25 @@ vrna_sc_add_iip(vrna_fold_compound_t  *fc,
   ret = 0;
 
   if ((fc) &&
-      (fc->sc) &&
-      (fc->sc->iip)) {
+      (fc->type == VRNA_FC_TYPE_SINGLE)) {
+
+    if (fc->sc == NULL)
+      vrna_sc_init(fc);
+
+    if (fc->sc->iip == NULL) {
+      data  = (struct vrna_crosslink_data_s *)vrna_alloc(sizeof(struct vrna_crosslink_data_s));
+      data->overlap5 = NULL;
+      data->overlap3 = NULL;
+      vrna_array_init_size(data->regions, 42);
+
+      fc->sc->iip = data;
+
+      fc->params->model_details.uniq_ML = 1;
+
+      if (fc->exp_params)
+        fc->exp_params->model_details.uniq_ML = 1;
+    }
+
     ret   = 1;
     data  = fc->sc->iip;
 
@@ -301,11 +289,7 @@ vrna_sc_add_iip_file(vrna_fold_compound_t  *fc,
     fclose(fp);
 
     if (regions) {
-      if ((fc->sc == NULL) ||
-          (fc->sc->iip == NULL))
-        ret = vrna_sc_iip(fc);
-      else
-        ret = 1;
+      ret = 1;
 
       for (size_t i = 0; i < vrna_array_size(regions); i++)
         ret &= vrna_sc_add_iip(fc,
