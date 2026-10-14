@@ -59,7 +59,7 @@ class bpp_functionTest(unittest.TestCase):
         fc.exp_params_rescale(mfe)
         fc.pf()
         bpp_dp  = sorted(sorted(fc.plist_from_probs(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
-        bpp_cb  = sorted(sorted(fc.eqm_probs_bpp(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
+        bpp_cb  = sorted(sorted(fc.eqm_probs_bp(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
 
         self.assertTrue(len(bpp_dp) == len(bpp_cb))
 
@@ -78,7 +78,7 @@ class bpp_functionTest(unittest.TestCase):
         fc.exp_params_rescale(mfe)
         fc.pf()
         bpp_dp  = sorted(sorted(fc.plist_from_probs(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
-        bpp_cb  = sorted(sorted(fc.eqm_probs_bpp(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
+        bpp_cb  = sorted(sorted(fc.eqm_probs_bp(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
 
         self.assertTrue(len(bpp_dp) == len(bpp_cb))
 
@@ -95,7 +95,7 @@ class bpp_functionTest(unittest.TestCase):
         fc.exp_params_rescale(mfe)
         fc.pf()
         bpp_dp  = sorted(sorted(fc.plist_from_probs(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
-        bpp_cb  = sorted(sorted(fc.eqm_probs_bpp(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
+        bpp_cb  = sorted(sorted(fc.eqm_probs_bp(cutoff = cutoff), key = lambda ep: ep.j ), key=lambda ep: ep.i)
 
         self.assertTrue(len(bpp_dp) == len(bpp_cb))
 

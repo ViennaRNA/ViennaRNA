@@ -72,7 +72,7 @@ outside_bp_circ(vrna_fold_compound_t  *fc,
   sc_ext_wrapper  = &(dp_helpers->sc_wrapper_ext);
   sc_int_wrapper  = &(dp_helpers->sc_wrapper_int);
 
-  report_bpp  = ((dp_helpers->options.mode & VRNA_EQM_PROBS_BPP) && (dp_helpers->probs_hp)) ? 1 : 0;
+  report_bpp  = ((dp_helpers->options.mode & VRNA_EQM_PROBS_BP) && (dp_helpers->probs_hp)) ? 1 : 0;
   probs_hp    = dp_helpers->probs_hp;
   probs_int   = dp_helpers->probs_int;
   probs_mb    = dp_helpers->probs_mb;

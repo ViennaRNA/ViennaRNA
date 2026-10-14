@@ -23,8 +23,8 @@
     std::ostringstream out;
 
     out << "{ mode: " ;
-    if ($self->mode & VRNA_EQM_PROBS_BPP)
-      out << "EQM_PROBS_BPP";
+    if ($self->mode & VRNA_EQM_PROBS_BP)
+      out << "EQM_PROBS_BP";
     out << ", up_length: " << $self->up_length;
     out << ", hx_length: " << $self->hx_length;
     out << " }";
@@ -43,19 +43,19 @@ def __repr__(self):
 #endif
 
 
-%rename (eqm_probs_bpp) my_eqm_probs_bpp;
+%rename (eqm_probs_bp)  my_eqm_probs_bp;
 %rename (eqm_probs_up)  my_eqm_probs_up;
 %rename (eqm_probs_hx)  my_eqm_probs_hx;
 
 %{
     std::vector<vrna_ep_t>
-    my_eqm_probs_bpp(vrna_fold_compound_t *fc,
-                     double               cutoff = 1e-5)
+    my_eqm_probs_bp(vrna_fold_compound_t *fc,
+                    double               cutoff = 1e-5)
     {
       std::vector<vrna_ep_t> result;
       vrna_array(vrna_ep_t) c_result;
 
-      c_result  = vrna_eqm_probs_bpp(fc, cutoff);
+      c_result  = vrna_eqm_probs_bp(fc, cutoff);
       result    = { &(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
 
       vrna_array_free(c_result);
@@ -99,8 +99,8 @@ def __repr__(self):
 %}
 
 #ifdef SWIGPYTHON
-%feature("autodoc") my_eqm_probs_bpp;
-%feature("kwargs")  my_eqm_probs_bpp;
+%feature("autodoc") my_eqm_probs_bp;
+%feature("kwargs")  my_eqm_probs_bp;
 %feature("autodoc") my_eqm_probs_up;
 %feature("kwargs")  my_eqm_probs_up;
 %feature("autodoc") my_eqm_probs_hx;
@@ -108,8 +108,8 @@ def __repr__(self):
 #endif
 
 std::vector<vrna_ep_t>
-my_eqm_probs_bpp(vrna_fold_compound_t *fc,
-                 double               cutoff = 1e-5);
+my_eqm_probs_bp(vrna_fold_compound_t *fc,
+                double               cutoff = 1e-5);
 
 
 std::vector<vrna_ep_t>
@@ -127,8 +127,8 @@ my_eqm_probs_hx(vrna_fold_compound_t *fc,
 
 
 #ifdef SWIGPYTHON
-%feature("autodoc") vrna_fold_compound_t::eqm_probs_bpp;
-%feature("kwargs")  vrna_fold_compound_t::eqm_probs_bpp;
+%feature("autodoc") vrna_fold_compound_t::eqm_probs_bp;
+%feature("kwargs")  vrna_fold_compound_t::eqm_probs_bp;
 %feature("autodoc") vrna_fold_compound_t::eqm_probs_up;
 %feature("kwargs")  vrna_fold_compound_t::eqm_probs_up;
 %feature("autodoc") vrna_fold_compound_t::eqm_probs_hx;
@@ -138,9 +138,9 @@ my_eqm_probs_hx(vrna_fold_compound_t *fc,
 %extend vrna_fold_compound_t {
 
     std::vector<vrna_ep_t>
-    eqm_probs_bpp(double cutoff = 1e-5)
+    eqm_probs_bp(double cutoff = 1e-5)
     {
-      return my_eqm_probs_bpp($self, cutoff);
+      return my_eqm_probs_bp($self, cutoff);
     }
 
     std::vector<vrna_ep_t>
@@ -167,7 +167,7 @@ my_eqm_probs_hx(vrna_fold_compound_t *fc,
 %constant unsigned int LOOP_TYPE_MB   = VRNA_LOOP_TYPE_MB;
 %constant unsigned int LOOP_TYPE_ANY  = VRNA_LOOP_TYPE_ANY;
 
-%constant unsigned int EQM_PROBS_BPP            = VRNA_EQM_PROBS_BPP;
+%constant unsigned int EQM_PROBS_BP             = VRNA_EQM_PROBS_BP;
 %constant unsigned int EQM_PROBS_UP             = VRNA_EQM_PROBS_UP;
 %constant unsigned int EQM_PROBS_HX             = VRNA_EQM_PROBS_HX;
 %constant unsigned int EQM_PROBS_SPLIT          = VRNA_EQM_PROBS_SPLIT;
@@ -281,6 +281,8 @@ my_eqm_probs_hx(vrna_fold_compound_t *fc,
 
 %include  <ViennaRNA/probabilities/basic.h>
 %include  <ViennaRNA/probabilities/basepairs.h>
+%include  <ViennaRNA/probabilities/accessibility.h>
+%include  <ViennaRNA/probabilities/helices.h>
 %include  <ViennaRNA/probabilities/structures.h>
 
 %{

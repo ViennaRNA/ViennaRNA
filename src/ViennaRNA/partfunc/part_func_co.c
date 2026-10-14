@@ -30,6 +30,7 @@
 #include "ViennaRNA/eval/multibranch.h"
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/partfunc/global.h"
+#include "ViennaRNA/probabilities/basic.h"
 #include "ViennaRNA/part_func_co.h"
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY

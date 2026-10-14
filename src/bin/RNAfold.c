@@ -52,6 +52,7 @@
 #include "ViennaRNA/io/commands.h"
 #include "ViennaRNA/probabilities/basepairs.h"
 #include "ViennaRNA/probabilities/structures.h"
+#include "ViennaRNA/probabilities/helices.h"
 #include "ViennaRNA/sampling/basic.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"

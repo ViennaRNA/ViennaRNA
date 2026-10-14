@@ -121,6 +121,8 @@ extern "C" {
 
 #include  <ViennaRNA/probabilities/basic.h>
 #include  <ViennaRNA/probabilities/basepairs.h>
+#include  <ViennaRNA/probabilities/helices.h>
+#include  <ViennaRNA/probabilities/accessibility.h>
 #include  <ViennaRNA/probabilities/structures.h>
 
 #include  <ViennaRNA/fold.h>

@@ -339,8 +339,10 @@ vrna_partfunc_HEADERS =   \
     partfunc/gquad.h
 
 
-vrna_probabilities_HEADERS =   \
-    probabilities/basepairs.h     \
+vrna_probabilities_HEADERS =  \
+    probabilities/basepairs.h \
+    probabilities/accessibility.h \
+    probabilities/helices.h \
     probabilities/structures.h
 
 
@@ -758,6 +760,13 @@ RNAPUZZLER_INC = \
     plotting/RNApuzzler/includes/rotationAngle.inc \
     plotting/RNApuzzler/includes/svgArcs.inc
 
+EQM_PROBS_INC = \
+    probabilities/accessibility.inc \
+    probabilities/helices.inc \
+    probabilities/multistrand.inc \
+    probabilities/outside_circ.inc \
+    probabilities/unstructured_domains.inc
+
 # static library for subpackages
 all-local:      libRNA.a
 
@@ -810,6 +819,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               sampling/data_structures_nonred.inc \
               plotting/ps_helpers.inc \
               ${RNAPUZZLER_INC} \
+              ${EQM_PROBS_INC} \
               landscape/local_neighbors.inc \
               ${SVM_H} \
               ${JSON_H} \

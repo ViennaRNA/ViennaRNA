@@ -12,6 +12,8 @@
 #include "ViennaRNA/eval/internal.h"
 #include "ViennaRNA/probabilities/basic.h"
 #include "ViennaRNA/probabilities/basepairs.h"
+#include "ViennaRNA/probabilities/helices.h"
+#include "ViennaRNA/probabilities/accessibility.h"
 
 /*
  #################################
@@ -73,14 +75,14 @@ hx_prob_cb_default(vrna_fold_compound_t   *fc,
  #################################
  */
 PUBLIC vrna_array(vrna_ep_t)
-vrna_eqm_probs_bpp(vrna_fold_compound_t *fc,
-                   double               cutoff)
+vrna_eqm_probs_bp(vrna_fold_compound_t *fc,
+                  double               cutoff)
 {
   vrna_ep_t *result = NULL;
 
   if (fc) {
     vrna_eqm_probs_opt_t o = {
-      .mode = VRNA_EQM_PROBS_BPP
+      .mode = VRNA_EQM_PROBS_BP
     };
 
     storage_default payload = {
@@ -270,7 +272,7 @@ bpp_cb_default(vrna_fold_compound_t   *fc,
                unsigned int           type,
                vrna_eqm_probs_data_t  data)
 {
-  if ((type & VRNA_EQM_PROBS_BPP) &&
+  if ((type & VRNA_EQM_PROBS_BP) &&
       (type & VRNA_LOOP_TYPE_ANY)) {
     storage_default *d = (storage_default *)data;
 

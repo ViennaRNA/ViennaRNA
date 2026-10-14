@@ -57,7 +57,7 @@
  *
  *  @see  vrna_eqm_probabilities(), vrna_probs_window()
  */
-#define VRNA_EQM_PROBS_BPP    (unsigned int)(1 << 12)
+#define VRNA_EQM_PROBS_BP     (unsigned int)(1 << 12)
 
 /**
  *  @brief  Unpaired probability (accessibility) flag
@@ -132,6 +132,43 @@ vrna_eqm_probabilities(vrna_fold_compound_t   *fc,
                        vrna_eqm_probs_f       cb,
                        vrna_eqm_probs_data_t  cb_data,
                        vrna_eqm_probs_opt_t   options);
+
+/**
+ *  @name Multimer probabilities computations
+ *  @{
+ */
+
+/**
+ *  @brief Compute Boltzmann probabilities of dimerization without homodimers
+ *
+ *  Given the pair probabilities and free energies (in the null model) for a
+ *  dimer AB and the two constituent monomers A and B, compute the conditional pair
+ *  probabilities given that a dimer AB actually forms.
+ *  Null model pair probabilities are given as a list as produced by
+ *  vrna_plist_from_probs(), the dimer probabilities 'prAB' are modified in place.
+ *
+ *  @param FAB        free energy of dimer AB
+ *  @param FA         free energy of monomer A
+ *  @param FB         free energy of monomer B
+ *  @param prAB       pair probabilities for dimer
+ *  @param prA        pair probabilities monomer
+ *  @param prB        pair probabilities monomer
+ *  @param Alength    Length of molecule A
+ *  @param exp_params The precomputed Boltzmann factors
+ */
+void
+vrna_pf_dimer_probs(double                  FAB,
+                    double                  FA,
+                    double                  FB,
+                    vrna_ep_t               *prAB,
+                    const vrna_ep_t         *prA,
+                    const vrna_ep_t         *prB,
+                    int                     Alength,
+                    const vrna_exp_param_t  *exp_params);
+
+
+/* End multimer probability related functions */
+/**@}*/
 
 /* End thermodynamics */
 /**@}*/
