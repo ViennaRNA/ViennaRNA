@@ -27,6 +27,7 @@
 #include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/constraints/soft_iip.h"
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/sequences/alphabet.h"
@@ -56,65 +57,7 @@
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-typedef struct helper_arrays *helper_arrays_t;
-
-typedef void  (*component_f)(vrna_fold_compound_t *fc,
-                             unsigned int         l,
-                             helper_arrays_t      eqm_prob_helpers,
-                             void                 *data);
-
-typedef void (*post_f)(vrna_fold_compound_t *fc,
-                       unsigned int         l,
-                       helper_arrays_t      eqm_prob_helpers,
-                       void                 *data);
-
-typedef void (*pre_f)(vrna_fold_compound_t  *fc,
-                      helper_arrays_t       eqm_prob_helpers,
-                      void                  *data);
-
-
-struct helper_arrays {
-  unsigned int  n;
-  unsigned int  strands;
-
-  /* overflow counter */
-  FLT_OR_DBL    Qmax;
-  int           ov;
-
-  /* soft constraints wrappers */
-  struct sc_ext_exp_dat     sc_wrapper_ext;
-  struct sc_hp_exp_dat      sc_wrapper_hp;
-  struct sc_int_exp_dat     sc_wrapper_int;
-  struct sc_mb_exp_dat      sc_wrapper_mb;
-
-  FLT_OR_DBL    *probs_ext;
-  FLT_OR_DBL    *probs_hp;
-  FLT_OR_DBL    *probs_int;
-  FLT_OR_DBL    *probs_mb;
-
-  FLT_OR_DBL    *qbh;
-  FLT_OR_DBL    *access_ext;
-  FLT_OR_DBL    *access_hp;
-  FLT_OR_DBL    *access_int;
-  FLT_OR_DBL    *access_mb;
-
-  FLT_OR_DBL    *hxp;
-
-  FLT_OR_DBL    *qm2_aux;
-
-  vrna_eqm_probs_f       cb;
-  vrna_eqm_probs_data_t  cb_data;
-  vrna_eqm_probs_opt_t   options;
-
-  vrna_array(vrna_ep_t)  bp_correction;
-
-  vrna_array(component_f)         component_cbs;
-  vrna_array(void *)              component_cbs_data;
-  vrna_array(vrna_auxdata_free_f) component_cbs_data_free;
-  vrna_array(pre_f)               component_cbs_init;
-  vrna_array(post_f)              component_cbs_post;
-};
-
+#include "eqm_probs_shared.h"
 
 typedef struct {
   unsigned int  n;
@@ -879,12 +822,36 @@ get_dp_helper_arrays(vrna_fold_compound_t   *fc,
                      NULL,
                      NULL);
 
-  register_component(dp_helpers,
-                     (fc->type == VRNA_FC_TYPE_SINGLE) ? compute_bpp_multibranch : compute_bpp_multibranch_comparative,
-                     (void *)get_mb_helpers(n),
-                     free_mb_helpers,
-                     init_mb,
-                     rotate_mb_helpers);
+  if (fc->type == VRNA_FC_TYPE_SINGLE) {
+    vrna_eqm_probs_component_t comp = NULL;
+
+    if ((fc->sc) &&
+        (fc->sc->iip) &&
+        ((comp = vrna_sc_iip_get_outside_cb(fc)) != NULL)) {
+      vrna_log_debug("Registering interacting interval pairs base pair probabilty recursions for multibranch loops");
+      register_component(dp_helpers,
+                         comp->cb,
+                         comp->cb_data,
+                         comp->cb_data_free,
+                         comp->cb_init,
+                         comp->cb_post);
+      free(comp);
+    } else {
+      register_component(dp_helpers,
+                         compute_bpp_multibranch,
+                         (void *)get_mb_helpers(n),
+                         free_mb_helpers,
+                         init_mb,
+                         rotate_mb_helpers);
+    }
+  } else {
+    register_component(dp_helpers,
+                       compute_bpp_multibranch_comparative,
+                       (void *)get_mb_helpers(n),
+                       free_mb_helpers,
+                       init_mb,
+                       rotate_mb_helpers);
+  }
 
   /* 3. register multistrand extension if necessary */
   if (fc->strands > 1) {

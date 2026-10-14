@@ -792,6 +792,7 @@ noinst_HEADERS  = params/intl11.h \
                   params/1.8.4_epars.h \
                   params/1.8.4_intloops.h \
                   constraints/sc_cb_intern.h \
+                  probabilities/eqm_probs_shared.h \
                   ${RNAPUZZLER_H} \
                   list.h \
                   ${SVM_H} \

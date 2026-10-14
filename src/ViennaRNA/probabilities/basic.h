@@ -2,6 +2,7 @@
 #define VIENNA_RNA_PACKAGE_EQUILIBRIUM_PROBS_BASIC_H
 
 #include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/structures/problist.h>
 
 /**
  *  @file     ViennaRNA/probabilities/basic.h
@@ -126,6 +127,10 @@ typedef void (*vrna_eqm_probs_f)(vrna_fold_compound_t   *fc,
                                  unsigned int           b,
                                  unsigned int           type,
                                  vrna_eqm_probs_data_t  data);
+
+
+typedef struct vrna_eqm_probs_component_s *vrna_eqm_probs_component_t;
+
 
 int
 vrna_eqm_probabilities(vrna_fold_compound_t   *fc,

@@ -38,8 +38,13 @@
 # define INLINE
 #endif
 
+#include "ViennaRNA/constraints/exterior_sc_pf.inc"
+#include "ViennaRNA/constraints/hairpin_sc_pf.inc"
+#include "ViennaRNA/constraints/internal_sc_pf.inc"
 #include "ViennaRNA/constraints/multibranch_sc.inc"
 #include "ViennaRNA/constraints/multibranch_sc_pf.inc"
+
+#include "ViennaRNA/probabilities/eqm_probs_shared.h"
 
 #include "sc_iip_shared.h"
 
@@ -83,7 +88,6 @@ typedef struct {
   FLT_OR_DBL  *prm_lmu2;
   FLT_OR_DBL  *prm_l1mu;
   FLT_OR_DBL  *prm_l1mu2;
-  struct sc_mb_exp_dat  sc_wrapper_mb;
 } xl_ml_helper_t;
 
 
@@ -161,42 +165,6 @@ PRIVATE interact_region_s *
 parse_crosslink_data(FILE *fp);
 
 
-INLINE PRIVATE int
-xlink_hp_en(vrna_fold_compound_t  *fc,
-            int                   i,
-            int                   j,
-            int                   k,
-            int                   l,
-            void                  *data);
-
-
-INLINE PRIVATE int
-xlink_il_en(vrna_fold_compound_t  *fc,
-            int                   i,
-            int                   j,
-            int                   k,
-            int                   l,
-            void                  *data);
-
-
-INLINE PRIVATE FLT_OR_DBL
-xlink_hp_exp_en(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   k,
-                int                   l,
-                void                  *data);
-
-
-INLINE PRIVATE FLT_OR_DBL
-xlink_il_exp_en(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   k,
-                int                   l,
-                void                  *data);
-
-
 PRIVATE INLINE FLT_OR_DBL
 ml_pair_exp(vrna_fold_compound_t        *fc,
             unsigned int                i,
@@ -217,27 +185,30 @@ pf_M2_xlink(vrna_fold_compound_t        *fc,
 PRIVATE void
 xl_fill_prms(vrna_fold_compound_t *fc,
              unsigned int         l,
+             helper_arrays_t      eqm_prob_helpers,
              xl_ml_helper_t       *helpers);
 
 
 PRIVATE void
-xl_fill_rs(vrna_fold_compound_t  *fc,
-           unsigned int          l,
-           xl_ml_helper_t        *helpers);
+xl_fill_rs(vrna_fold_compound_t *fc,
+           unsigned int         l,
+           helper_arrays_t      eqm_prob_helpers,
+           xl_ml_helper_t       *helpers);
 
 
 PRIVATE void
 xl_fill_s(vrna_fold_compound_t *fc,
           unsigned int         l,
+          helper_arrays_t      eqm_prob_helpers,
           xl_ml_helper_t       *helpers);
 
 
 PRIVATE void
-compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
-                              unsigned int          l,
-                              FLT_OR_DBL            *Qmax,
-                              size_t                *ov,
-                              void                  *helpers);
+compute_bpp_multibranch_xlink(vrna_fold_compound_t *fc,
+                              unsigned int         l,
+                              helper_arrays_t      eqm_prob_helpers,
+                              void                 *data);
+
 
 PRIVATE xl_ml_helper_t *
 get_xl_ml_outside_helpers(vrna_fold_compound_t *fc);
@@ -2011,17 +1982,18 @@ vrna_sc_iip_update_pf(vrna_fold_compound_t *fc,
 }
 
 
-PUBLIC vrna_bp_probs_f
-vrna_sc_iip_get_outside_cb(vrna_fold_compound_t  *fc,
-                          void                  **cb_data,
-                          vrna_auxdata_free_f   *cb_data_free)
+PUBLIC vrna_eqm_probs_component_t
+vrna_sc_iip_get_outside_cb(vrna_fold_compound_t  *fc)
 {
-  if ((fc) &&
-      (cb_data) &&
-      (cb_data_free)) {
-    *cb_data      = (void *)get_xl_ml_outside_helpers(fc);
-    *cb_data_free = free_xl_ml_outside_helpers;
-    return compute_bpp_multibranch_xlink;
+  if (fc) {
+    vrna_eqm_probs_component_t c = (vrna_eqm_probs_component_t)vrna_alloc(sizeof(struct vrna_eqm_probs_component_s));
+    c->cb           = compute_bpp_multibranch_xlink;
+    c->cb_data      = (void *)get_xl_ml_outside_helpers(fc);
+    c->cb_data_free = free_xl_ml_outside_helpers;
+    c->cb_init      = NULL;
+    c->cb_post      = NULL;
+
+    return c;
   }
 
   return NULL;
@@ -2037,6 +2009,7 @@ contrib_enclosing_pair(unsigned int     i,
                        vrna_exp_param_t *pf_params,
                        short            *S,
                        short            *S1,
+                       helper_arrays_t  eqm_probs_helpers,
                        xl_ml_helper_t   *helpers)
 {
   FLT_OR_DBL    q;
@@ -2046,8 +2019,8 @@ contrib_enclosing_pair(unsigned int     i,
 
   q = vrna_exp_E_multibranch_stem(tt, S1[j - 1], S1[i + 1], pf_params);
 
-  if (helpers->sc_wrapper_mb.pair)
-    q *= helpers->sc_wrapper_mb.pair(i, j, &(helpers->sc_wrapper_mb));
+  if (eqm_probs_helpers->sc_wrapper_mb.pair)
+    q *= eqm_probs_helpers->sc_wrapper_mb.pair(i, j, &(eqm_probs_helpers->sc_wrapper_mb));
 
   return q;
 }
@@ -2060,6 +2033,7 @@ contrib_enclosed_pair(unsigned int     i,
                       vrna_exp_param_t *pf_params,
                       short            *S,
                       short            *S1,
+                      helper_arrays_t  eqm_probs_helpers,
                       xl_ml_helper_t   *helpers)
 {
   FLT_OR_DBL    q;
@@ -2069,8 +2043,8 @@ contrib_enclosed_pair(unsigned int     i,
 
   q = vrna_exp_E_multibranch_stem(tt, S1[i - 1], S1[j + 1], pf_params);
 
-  if (helpers->sc_wrapper_mb.red_stem)
-    q *= helpers->sc_wrapper_mb.red_stem(i, j, i, j, &(helpers->sc_wrapper_mb));
+  if (eqm_probs_helpers->sc_wrapper_mb.red_stem)
+    q *= eqm_probs_helpers->sc_wrapper_mb.red_stem(i, j, i, j, &(eqm_probs_helpers->sc_wrapper_mb));
 
   return q;
 }
@@ -2102,8 +2076,6 @@ get_xl_ml_outside_helpers(vrna_fold_compound_t *fc)
   helpers->prm_l1mu  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
   helpers->prm_l1mu2 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
 
-  init_sc_mb_exp(fc, &(helpers->sc_wrapper_mb));
-
   return helpers;
 }
 
@@ -2113,7 +2085,6 @@ free_xl_ml_outside_helpers(void *helpers)
 {
   if (helpers) {
     xl_ml_helper_t *h = (xl_ml_helper_t *)helpers;
-    free_sc_mb_exp(&(h->sc_wrapper_mb));
 
     free(h->vl);
     free(h->wl);
@@ -2140,6 +2111,7 @@ free_xl_ml_outside_helpers(void *helpers)
 PRIVATE void
 xl_fill_prms(vrna_fold_compound_t *fc,
              unsigned int         l,
+             helper_arrays_t      eqm_probs_helpers,
              xl_ml_helper_t       *helpers)
 {
   short                         *S, *S1;
@@ -2172,7 +2144,7 @@ xl_fill_prms(vrna_fold_compound_t *fc,
   expMLclosing  = pf_params->expMLclosing;
   hc            = fc->hc;
   dat           = fc->sc->iip;
-  sc_wrap       = &(helpers->sc_wrapper_mb);
+  sc_wrap       = &(eqm_probs_helpers->sc_wrapper_mb);
 
   /* swap prm_lmu's from previous l */
   swp                 = helpers->prm_lmu;
@@ -2221,7 +2193,7 @@ xl_fill_prms(vrna_fold_compound_t *fc,
 
         if (hc->eval_mb(u, v, u, v, VRNA_DECOMP_ML_STEM, hc)) {
           qbt1 = qb[my_iindx[u] - v] *
-                 contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers);
+                 contrib_enclosed_pair(u, v, md, pf_params, S, S1, eqm_probs_helpers, helpers);
 
           if (sc_wrap->red_stem)
             qbt1 *= sc_wrap->red_stem(u, v, u, v, sc_wrap);
@@ -2232,7 +2204,7 @@ xl_fill_prms(vrna_fold_compound_t *fc,
 
         for (u = l + 2; (u <= r->b) && (u + turn < v); u++) {
           temp = qb[my_iindx[u] - v] *
-                 contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers);
+                 contrib_enclosed_pair(u, v, md, pf_params, S, S1, eqm_probs_helpers, helpers);
 
           if (hc->eval_mb(l + 1, v, u - 1, u, VRNA_DECOMP_ML_ML_STEM, hc)) {
             qbt1 = qm[my_iindx[l + 1] - u + 1];
@@ -2257,7 +2229,7 @@ xl_fill_prms(vrna_fold_compound_t *fc,
 
         for (; (u < r->c) && (u + turn < v); u++) {
           temp = qb[my_iindx[u] - v] *
-                 contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers) *
+                 contrib_enclosed_pair(u, v, md, pf_params, S, S1, eqm_probs_helpers, helpers) *
                  r->exp_score;
 
           if (hc->eval_mb(l + 1, v, u - 1, u, VRNA_DECOMP_ML_ML_STEM, hc)) {
@@ -2336,7 +2308,7 @@ xl_fill_prms(vrna_fold_compound_t *fc,
       if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
         /* compute closing pair contribution */
         temp = probs[ij] *
-               contrib_enclosing_pair(i, j, md, pf_params, S, S1, helpers);
+               contrib_enclosing_pair(i, j, md, pf_params, S, S1, eqm_probs_helpers, helpers);
 
         r = NULL;
 
@@ -2458,7 +2430,7 @@ xl_fill_prms(vrna_fold_compound_t *fc,
 
       if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
         temp = probs[ij] *
-               contrib_enclosing_pair(i, j, md, pf_params, S, S1, helpers) *
+               contrib_enclosing_pair(i, j, md, pf_params, S, S1, eqm_probs_helpers, helpers) *
                expMLclosing;
 
         r = NULL;
@@ -2497,6 +2469,7 @@ xl_fill_prms(vrna_fold_compound_t *fc,
 PRIVATE void
 xl_fill_y(vrna_fold_compound_t *fc,
           unsigned int         l,
+          helper_arrays_t      eqm_probs_helpers,
           xl_ml_helper_t       *helpers)
 {
   short                         *S, *S1;
@@ -2534,7 +2507,7 @@ xl_fill_y(vrna_fold_compound_t *fc,
   yl        = helpers->yl;
   prm_lmu   = helpers->prm_lmu;
   prm_lmu2  = helpers->prm_lmu2;
-  sc_wrap   = &(helpers->sc_wrapper_mb);
+  sc_wrap   = &(eqm_probs_helpers->sc_wrapper_mb);
 
   yl = memset(yl, 0, sizeof(FLT_OR_DBL) * (n + 2));
 
@@ -2618,7 +2591,7 @@ xl_fill_y(vrna_fold_compound_t *fc,
           if ((r->b < v) &&
               (hc->eval_mb(u, v, u, v, VRNA_DECOMP_ML_STEM, hc))) {
             temp = qb[my_iindx[u] - v] *
-                   contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers);
+                   contrib_enclosed_pair(u, v, md, pf_params, S, S1, eqm_probs_helpers, helpers);
 
             if (r->c <= v)
               temp *= ol2u;
@@ -2693,6 +2666,7 @@ xl_fill_y(vrna_fold_compound_t *fc,
 PRIVATE void
 xl_fill_t(vrna_fold_compound_t *fc,
           unsigned int         l,
+          helper_arrays_t      eqm_probs_helpers,
           xl_ml_helper_t       *helpers)
 {
   short                         *S, *S1;
@@ -2730,7 +2704,7 @@ xl_fill_t(vrna_fold_compound_t *fc,
   tl        = helpers->tl;
   prm_lmm   = helpers->prm_lmm;
   prm_lmm2  = helpers->prm_lmm2;
-  sc_wrap   = &(helpers->sc_wrapper_mb);
+  sc_wrap   = &(eqm_probs_helpers->sc_wrapper_mb);
 
   tl  = memset(tl, 0, sizeof(FLT_OR_DBL) * (n + 2));
 
@@ -2814,7 +2788,7 @@ xl_fill_t(vrna_fold_compound_t *fc,
           if ((r->b < v) &&
               (hc->eval_mb(u, v, u, v, VRNA_DECOMP_ML_STEM, hc))) {
             temp = qb[my_iindx[u] - v] *
-                   contrib_enclosed_pair(u, v, md, pf_params, S, S1, helpers);
+                   contrib_enclosed_pair(u, v, md, pf_params, S, S1, eqm_probs_helpers, helpers);
 
             if (r->c <= v)
               temp *= pl2u;
@@ -2887,11 +2861,10 @@ xl_fill_t(vrna_fold_compound_t *fc,
 
 
 PRIVATE void
-compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
-                              unsigned int          l,
-                              FLT_OR_DBL            *Qmax,
-                              size_t                *ov,
-                              void                  *helpers)
+compute_bpp_multibranch_xlink(vrna_fold_compound_t *fc,
+                              unsigned int         l,
+                              helper_arrays_t      eqm_probs_helpers,
+                              void                 *data)
 {
   short                         *S, *S1;
   unsigned int                  i, k, n, turn;
@@ -2918,13 +2891,13 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
   expMLbase = fc->exp_matrices->expMLbase;
   scale     = fc->exp_matrices->scale;
   hc        = fc->hc;
-  h         = (xl_ml_helper_t *)helpers;
+  h         = (xl_ml_helper_t *)data;
   dat       = fc->sc->iip;
-  sc_wrap   = &(h->sc_wrapper_mb);
+  sc_wrap   = &(eqm_probs_helpers->sc_wrapper_mb);
 
-  xl_fill_prms(fc, l, h);
-  xl_fill_y(fc, l, h);
-  xl_fill_t(fc, l, h);
+  xl_fill_prms(fc, l, eqm_probs_helpers, h);
+  xl_fill_y(fc, l, eqm_probs_helpers, h);
+  xl_fill_t(fc, l, eqm_probs_helpers, h);
 
   prm_lmm   = h->prm_lmm;
   prm_lmm2  = h->prm_lmm2;
@@ -3039,7 +3012,7 @@ compute_bpp_multibranch_xlink(vrna_fold_compound_t  *fc,
       }
     }
 
-    pklm *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, helpers) *
+    pklm *= contrib_enclosed_pair(k, l, md, pf_params, S, S1, eqm_probs_helpers, h) *
             scale[2];
 
     probs[my_iindx[k] - l] += pklm;
