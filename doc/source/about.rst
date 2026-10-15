@@ -37,47 +37,13 @@ Contributors
 This is an open source project that has only been made possible with the help of
 many researchers and users that contributed code and documentation.
 
-.. only:: html
+Here we want to thank everyone who spend time and effort to help thrive of the
+ViennaRNA Package through discussions, code contributions, testing or bug finding,
+in particular:
 
-    ..  contributors:: ../../
-        :provider: local
-        :avatars:
-        :names:
-        :contributions:
-
-.. only:: latex
-
-    ..  contributors:: ../../
-        :provider: local
-        :avatars:
-        :names:
-        :contributions:
-
-* Daniel Wiegreffe (RNAturtle and RNApuzzler secondary structure layouts)
-* Andreas Gruber (first approach on RNALfold Z-score filtering)
-* Juraj Michalik (non-redundant Boltzmann sampling)
-* Gregor Entzian (neighbor, walk)
-* Mario Koestl (worked on SWIG interface and related unit testing)
-* Dominik Luntzer (pertubation fold)
-* Stefan Badelt (cofold evaluation, RNAdesign.pl, cofold findpath extensions)
-* Stefan Hammer (parts of SWIG interface and corresponding unit tests)
-* Ronny Lorenz (circfold, version 2.0, generic constraints, grammar extensions, and much more)
-* Hakim Tafer (RNAplex, RNAsnoop)
-* Ulrike Mueckstein (RNAup)
-* Stephan Bernhart (RNAcofold, RNAplfold, unpaired probabilities, alifold, and so many more)
-* Stefan Wuchty (RNAsubopt)
-* Ivo Hofacker, Peter Stadler, and Christoph Flamm (almost every implementation up to version 1.8.5)
-
-
-Thanks to
----------
-
-We also want to thank everyone else who helped testing and finding bugs, especially
-Christoph Flamm, Martijn Huynen, Baerbel Krakhofer, and many more.
-
-* Sebastian Bonhoeffer's implementation of partition function folding served as a precursor to our part_func.c
-* Manfred Tacker hacked constrained folding into fold.c for the first time
-* Martin Fekete made the first attempts at "alignment folding"
-* Andrea Tanzer and Martin Raden (Mann) for not stopping to report bugs found through comprehensive usage of our applications and RNAlib
-
-
+..  contributors:: ../../
+    :provider: local
+    :avatars:
+    :names:
+    :contributions:
+    :order: byCommit

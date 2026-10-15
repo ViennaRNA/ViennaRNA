@@ -30,7 +30,8 @@ EXTRA_DIST =  packaging/debian \
               README.md \
               CHANGELOG.md \
               MANIFEST.in \
-              silent_rules.mk
+              silent_rules.mk \
+              .all-contributorsrc
 
 
 ############################################
