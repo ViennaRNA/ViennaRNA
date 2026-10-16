@@ -1,0 +1,53 @@
+[build-system]
+requires = ["flit_core >=4"]
+build-backend = "flit_core.buildapi"
+
+
+[project]
+name = "sphinx_contributors"
+description = "A Sphinx extension that automatically lists the people who have contributed to your GitHub repositories"
+authors = [
+  { name = "David Garcia", email = "hi@davidgarcia.dev" }
+]
+readme = "README.rst"
+license = "MIT"
+requires-python = ">=3.10"
+dynamic = ["version"]
+
+dependencies = [
+  "sphinx >= 7",
+  "requests",
+]
+
+classifiers=[
+  "Framework :: Sphinx :: Extension",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+
+
+[project.urls]
+Homepage = "https://github.com/dgarcia360/sphinx-contributors"
+Issues = "https://github.com/dgarcia360/sphinx-contributors/issues"
+
+
+[project.optional-dependencies]
+test = [
+  "pre-commit",
+  "pytest",
+]
+doc = [
+  "sphinx",
+  "furo"
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.flit.sdist]
+include = ["docs/"]
+exclude = ["docs/build/"]
