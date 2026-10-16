@@ -597,6 +597,9 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
   push(env->Stack, state);
   env->nopush = false;
 
+  /* reset density of states global variable */
+  memset(&(density_of_states[0]), 0, sizeof(int) * (MAXDOS + 1));
+
   /* end initialize ------------------------------------------------------- */
 
 
@@ -650,6 +653,12 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
       e = (int)((structure_energy - min_en) * 10. - correction); /* avoid rounding errors */
       if (e > MAXDOS)
         e = MAXDOS;
+
+      if (e < 0)
+        /* hack to prevent out-of-bounds access possible with different dangle models
+         * between mfe() call and evaluation of the suboptimals
+         */
+        e = 0;
 
       density_of_states[e]++;
 
