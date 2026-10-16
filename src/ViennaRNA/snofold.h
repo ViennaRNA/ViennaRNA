@@ -15,6 +15,7 @@
 #endif
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/model.h>
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
@@ -82,11 +83,6 @@ char *alisnobacktrack_fold_from_pair(const char **sequence,
                                      int        j,
                                      int        *cov);
 
-
-DEPRECATED(extern double cv_fact,
-           "This global variable is obsolete! Use vrna_md_t.cv_fact instead."); /* =1 */
-DEPRECATED(extern double nc_fact,
-           "This global variable is obsolete! Use vrna_md_t.nc_fact instead."); /* =1 */
 
 /* max number of mismatch >>>>>..((   )).>>>> */
 #define MISMATCH 3

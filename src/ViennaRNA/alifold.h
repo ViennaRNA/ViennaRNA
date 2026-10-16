@@ -2,6 +2,7 @@
 #define VIENNA_RNA_PACKAGE_ALIFOLD_H
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/model.h>
 #include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/params/ribosum.h>
 #include <ViennaRNA/mfe/global.h>
@@ -117,31 +118,6 @@ DEPRECATED(float energy_of_alistruct(const char **sequences, const char *structu
 
 DEPRECATED(float energy_of_ali_gquad_structure(const char **sequences, const char *structure, int n_seq, float *energy),
           "Use vrna_eval_structure() and vrna_eval_covar_structure() instead");
-
-/**
- *  @brief This variable controls the weight of the covariance term in the
- *  energy function of alignment folding algorithms
- * 
- *  @ingroup model_details
- *
- *  @deprecated See #vrna_md_t.cv_fact, and vrna_mfe() to avoid using global variables
- *
- *  Default is 1.
- */
-DEPRECATED(extern  double  cv_fact,
-          "Use the cv_fact attribute of the vrna_md_t datastructure instead");
-/**
- *  @brief This variable controls the magnitude of the penalty for non-compatible sequences in
- *  the covariance term of alignment folding algorithms.
- * 
- *  @ingroup model_details
- * 
- *  @deprecated See #vrna_md_t.nc_fact, and vrna_mfe() to avoid using global variables
- *
- *  Default is 1.
- */
-DEPRECATED(extern  double  nc_fact,
-          "Use the nc_fact attribute of the vrna_md_t datastructure instead");
 
 /**
  * @ingroup part_func_global_deprecated

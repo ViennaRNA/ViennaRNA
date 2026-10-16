@@ -1223,9 +1223,29 @@ DEPRECATED(extern int oldAliEn,
 DEPRECATED(extern int ribo,
            "Use ribo field in model_details data structure as well as vrna_md_defaults_ribo() and vrna_md_defaults_ribo_get() instead!");
 
+/**
+ *  @brief This variable controls the weight of the covariance term in the
+ *  energy function of alignment folding algorithms
+ * 
+ *  @ingroup model_details
+ *
+ *  @deprecated See #vrna_md_t.cv_fact, and vrna_mfe() to avoid using global variables
+ *
+ *  Default is 1.
+ */
 DEPRECATED(extern double cv_fact,
            "Use cv_fact field in model_details data structure as well as vrna_md_defaults_cv_fact() and vrna_md_defaults_cv_fact_get() instead!");
 
+/**
+ *  @brief This variable controls the magnitude of the penalty for non-compatible sequences in
+ *  the covariance term of alignment folding algorithms.
+ * 
+ *  @ingroup model_details
+ * 
+ *  @deprecated See #vrna_md_t.nc_fact, and vrna_mfe() to avoid using global variables
+ *
+ *  Default is 1.
+ */
 DEPRECATED(extern double nc_fact,
            "Use nc_fact field in model_details data structure as well as vrna_md_defaults_nc_fact() and vrna_md_defaults_nc_fact_get() instead!");
 
