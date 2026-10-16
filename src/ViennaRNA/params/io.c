@@ -15,6 +15,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/model.h"
@@ -114,7 +115,7 @@ update_nst(int array[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5]);
 *** \param dim    the size of the array
 *** \param shift  the first position the new values will be written in
 **/
-PRIVATE void
+PRIVATE bool
 rd_1dim(char    **content,
         size_t  *line_no,
         int     *array,
@@ -122,7 +123,7 @@ rd_1dim(char    **content,
         int     shift);
 
 
-PRIVATE void
+PRIVATE bool
 rd_1dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -131,7 +132,7 @@ rd_1dim_slice(char    **content,
               int     post);
 
 
-PRIVATE void
+PRIVATE bool
 rd_2dim(char    **content,
         size_t  *line_no,
         int     *array,
@@ -139,7 +140,7 @@ rd_2dim(char    **content,
         int     shift[2]);
 
 
-PRIVATE void
+PRIVATE bool
 rd_2dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -148,7 +149,7 @@ rd_2dim_slice(char    **content,
               int     post[2]);
 
 
-PRIVATE void
+PRIVATE bool
 rd_3dim(char    **content,
         size_t  *line_no,
         int     *array,
@@ -156,7 +157,7 @@ rd_3dim(char    **content,
         int     shift[3]);
 
 
-PRIVATE void
+PRIVATE bool
 rd_3dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -165,7 +166,7 @@ rd_3dim_slice(char    **content,
               int     post[3]);
 
 
-PRIVATE void
+PRIVATE bool
 rd_4dim(char    **content,
         size_t  *line_no,
         int     *array,
@@ -173,7 +174,7 @@ rd_4dim(char    **content,
         int     shift[4]);
 
 
-PRIVATE void
+PRIVATE bool
 rd_4dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -182,7 +183,7 @@ rd_4dim_slice(char    **content,
               int     post[4]);
 
 
-PRIVATE void
+PRIVATE bool
 rd_5dim(char    **content,
         size_t  *line_no,
         int     *array,
@@ -190,7 +191,7 @@ rd_5dim(char    **content,
         int     shift[5]);
 
 
-PRIVATE void
+PRIVATE bool
 rd_5dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -199,7 +200,7 @@ rd_5dim_slice(char    **content,
               int     post[5]);
 
 
-PRIVATE void
+PRIVATE bool
 rd_6dim(char    **content,
         size_t  *line_no,
         int     *array,
@@ -207,7 +208,7 @@ rd_6dim(char    **content,
         int     shift[6]) VRNA_UNUSED;
 
 
-PRIVATE void
+PRIVATE bool
 rd_6dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -504,7 +505,7 @@ set_parameters_from_string(char       **file_content,
                          "May be this file has not v2.0 format.\n"
                          "Use INTERRUPT-key to stop.");
   }
-
+  bool success = true;
   while ((line = file_content[line_no++])) {
     r = sscanf(line, "# %255s", ident);
     if (r == 1) {
@@ -513,147 +514,155 @@ set_parameters_from_string(char       **file_content,
         case QUIT:
           break;
         case S:
-          rd_2dim(file_content, &line_no, &(stack37[0][0]), stack_dim, stack_shift);
+          success &= rd_2dim(file_content, &line_no, &(stack37[0][0]), stack_dim, stack_shift);
           break;
         case S_H:
-          rd_2dim(file_content, &line_no, &(stackdH[0][0]), stack_dim, stack_shift);
+          success &= rd_2dim(file_content, &line_no, &(stackdH[0][0]), stack_dim, stack_shift);
           break;
         case HP:
-          rd_1dim(file_content, &line_no, &(hairpin37[0]), 31, 0);
+          success &= rd_1dim(file_content, &line_no, &(hairpin37[0]), 31, 0);
           break;
         case HP_H:
-          rd_1dim(file_content, &line_no, &(hairpindH[0]), 31, 0);
+          success &= rd_1dim(file_content, &line_no, &(hairpindH[0]), 31, 0);
           break;
         case B:
-          rd_1dim(file_content, &line_no, &(bulge37[0]), 31, 0);
+          success &= rd_1dim(file_content, &line_no, &(bulge37[0]), 31, 0);
           break;
         case B_H:
-          rd_1dim(file_content, &line_no, &(bulgedH[0]), 31, 0);
+          success &= rd_1dim(file_content, &line_no, &(bulgedH[0]), 31, 0);
           break;
         case IL:
-          rd_1dim(file_content, &line_no, &(internal_loop37[0]), 31, 0);
+          success &= rd_1dim(file_content, &line_no, &(internal_loop37[0]), 31, 0);
           break;
         case IL_H:
-          rd_1dim(file_content, &line_no, &(internal_loopdH[0]), 31, 0);
+          success &= rd_1dim(file_content, &line_no, &(internal_loopdH[0]), 31, 0);
           break;
         case MME:
-          rd_3dim(file_content, &line_no, &(mismatchExt37[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatchExt37[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case MME_H:
-          rd_3dim(file_content, &line_no, &(mismatchExtdH[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatchExtdH[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case MMH:
-          rd_3dim(file_content, &line_no, &(mismatchH37[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatchH37[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case MMH_H:
-          rd_3dim(file_content, &line_no, &(mismatchHdH[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatchHdH[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case MMI:
-          rd_3dim(file_content, &line_no, &(mismatchI37[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatchI37[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case MMI_H:
-          rd_3dim(file_content, &line_no, &(mismatchIdH[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatchIdH[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case MMI1N:
-          rd_3dim(file_content, &line_no, &(mismatch1nI37[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatch1nI37[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case MMI1N_H:
-          rd_3dim(file_content, &line_no, &(mismatch1nIdH[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatch1nIdH[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case MMI23:
-          rd_3dim(file_content, &line_no, &(mismatch23I37[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatch23I37[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case MMI23_H:
-          rd_3dim(file_content, &line_no, &(mismatch23IdH[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatch23IdH[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case MMM:
-          rd_3dim(file_content, &line_no, &(mismatchM37[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatchM37[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case MMM_H:
-          rd_3dim(file_content, &line_no, &(mismatchMdH[0][0][0]),
+          success &= rd_3dim(file_content, &line_no, &(mismatchMdH[0][0][0]),
                   mismatch_dim,
                   mismatch_shift);
           break;
         case INT11:
-          rd_4dim(file_content, &line_no, &(int11_37[0][0][0][0]),
+          success &= rd_4dim(file_content, &line_no, &(int11_37[0][0][0][0]),
                   int11_dim,
                   int11_shift);
           break;
         case INT11_H:
-          rd_4dim(file_content, &line_no, &(int11_dH[0][0][0][0]),
+          success &= rd_4dim(file_content, &line_no, &(int11_dH[0][0][0][0]),
                   int11_dim,
                   int11_shift);
           break;
         case INT21:
-          rd_5dim(file_content, &line_no, &(int21_37[0][0][0][0][0]),
+          success &= rd_5dim(file_content, &line_no, &(int21_37[0][0][0][0][0]),
                   int21_dim,
                   int21_shift);
           break;
         case INT21_H:
-          rd_5dim(file_content, &line_no, &(int21_dH[0][0][0][0][0]),
+          success &= rd_5dim(file_content, &line_no, &(int21_dH[0][0][0][0][0]),
                   int21_dim,
                   int21_shift);
           break;
         case INT22:
-          rd_6dim_slice(file_content, &line_no, &(int22_37[0][0][0][0][0][0]),
+        {
+          bool ok = rd_6dim_slice(file_content, &line_no, &(int22_37[0][0][0][0][0][0]),
                         int22_dim,
                         int22_shift,
                         int22_post);
-          update_nst(int22_37);
+          success &= ok;
+          if (ok) update_nst(int22_37);
+        }
           break;
         case INT22_H:
-          rd_6dim_slice(file_content, &line_no, &(int22_dH[0][0][0][0][0][0]),
+        {
+          bool ok = rd_6dim_slice(file_content, &line_no, &(int22_dH[0][0][0][0][0][0]),
                         int22_dim,
                         int22_shift,
                         int22_post);
-          update_nst(int22_dH);
+          success &= ok;
+          if (ok) update_nst(int22_dH);
+        }
           break;
         case D5:
-          rd_2dim(file_content, &line_no, &(dangle5_37[0][0]),
+          success &= rd_2dim(file_content, &line_no, &(dangle5_37[0][0]),
                   dangle_dim,
                   dangle_shift);
           break;
         case D5_H:
-          rd_2dim(file_content, &line_no, &(dangle5_dH[0][0]),
+          success &= rd_2dim(file_content, &line_no, &(dangle5_dH[0][0]),
                   dangle_dim,
                   dangle_shift);
           break;
         case D3:
-          rd_2dim(file_content, &line_no, &(dangle3_37[0][0]),
+          success &= rd_2dim(file_content, &line_no, &(dangle3_37[0][0]),
                   dangle_dim,
                   dangle_shift);
           break;
         case D3_H:
-          rd_2dim(file_content, &line_no, &(dangle3_dH[0][0]),
+          success &= rd_2dim(file_content, &line_no, &(dangle3_dH[0][0]),
                   dangle_dim,
                   dangle_shift);
           break;
         case ML:
         {
           int values[6];
-          rd_1dim(file_content, &line_no, &values[0], 6, 0);
+          bool ok = rd_1dim(file_content, &line_no, &values[0], 6, 0);
+          success &= ok;
+          if (!ok) break;
           ML_BASE37     = values[0];
           ML_BASEdH     = values[1];
           ML_closing37  = values[2];
@@ -665,7 +674,9 @@ set_parameters_from_string(char       **file_content,
         case NIN:
         {
           int values[3];
-          rd_1dim(file_content, &line_no, &values[0], 3, 0);
+          bool ok = rd_1dim(file_content, &line_no, &values[0], 3, 0);
+          success &= ok;
+          if (!ok) break;
           ninio37   = values[0];
           niniodH   = values[1];
           MAX_NINIO = values[2];
@@ -674,7 +685,9 @@ set_parameters_from_string(char       **file_content,
         case MISC:
         {
           int values[4];
-          rd_1dim(file_content, &line_no, &values[0], 4, 0);
+          bool ok = rd_1dim(file_content, &line_no, &values[0], 4, 0);
+          success &= ok;
+          if (!ok) break;
           DuplexInit37  = values[0];
           DuplexInitdH  = values[1];
           TerminalAU37  = values[2];
@@ -697,7 +710,7 @@ set_parameters_from_string(char       **file_content,
   }
 
   check_symmetry();
-  return 1;
+  return success ? 1 : 0;
 }
 
 
@@ -753,7 +766,7 @@ get_array1(char   **content,
     line = content[(*line_no)++];
     if (!line) {
       vrna_log_error("unexpected end of file in get_array1");
-      return NULL;
+      return (char *)"unexpected end of file in get_array1";
     }
 
     ignore_comment(line);
@@ -767,7 +780,7 @@ get_array1(char   **content,
         /* should only be used for loop parameters */
         if (i == 0) {
           vrna_log_error("can't extrapolate first value");
-          return NULL;
+          return line + pos;
         }
         p = arr[last] + (int)(0.5 + lxc37 * log(((double)i) / (double)(last)));
       } else if (strcmp(buf, "DEF") == 0) {
@@ -794,18 +807,18 @@ get_array1(char   **content,
 }
 
 
-PRIVATE void
+PRIVATE bool
 rd_1dim(char    **content,
         size_t  *line_no,
         int     *array,
         int     dim,
         int     shift)
 {
-  rd_1dim_slice(content, line_no, array, dim, shift, 0);
+  return rd_1dim_slice(content, line_no, array, dim, shift, 0);
 }
 
 
-PRIVATE void
+PRIVATE bool
 rd_1dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -820,11 +833,11 @@ rd_1dim_slice(char    **content,
   if (cp)
     vrna_log_error("\nrd_1dim: %s", cp);
 
-  return;
+  return cp == NULL;
 }
 
 
-PRIVATE void
+PRIVATE bool
 rd_2dim(char    **content,
         size_t  *line_no,
         int     *array,
@@ -835,11 +848,11 @@ rd_2dim(char    **content,
     0, 0
   };
 
-  rd_2dim_slice(content, line_no, array, dim, shift, post);
+  return rd_2dim_slice(content, line_no, array, dim, shift, post);
 }
 
 
-PRIVATE void
+PRIVATE bool
 rd_2dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -852,17 +865,18 @@ rd_2dim_slice(char    **content,
   int delta_post  = post[0] + post[1];
 
   if (delta_pre + delta_post == 0) {
-    rd_1dim(content, line_no, array, dim[0] * dim[1], 0);
-    return;
+    return rd_1dim(content, line_no, array, dim[0] * dim[1], 0);
   }
-
-  for (i = shift[0]; i < dim[0] - post[0]; i++)
-    rd_1dim_slice(content, line_no, array + (i * dim[1]), dim[1], shift[1], post[1]);
-  return;
+  
+  for (i = shift[0]; i < dim[0] - post[0]; i++){
+    if (!rd_1dim_slice(content, line_no, array + (i * dim[1]), dim[1], shift[1], post[1]))
+      return false;
+  }
+return true;
 }
 
 
-PRIVATE void
+PRIVATE bool
 rd_3dim(char    **content,
         size_t  *line_no,
         int     *array,
@@ -873,14 +887,14 @@ rd_3dim(char    **content,
     0, 0, 0
   };
 
-  rd_3dim_slice(content, line_no, array,
+  return rd_3dim_slice(content, line_no, array,
                 dim,
                 shift,
                 post);
 }
 
 
-PRIVATE void
+PRIVATE bool
 rd_3dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -893,21 +907,22 @@ rd_3dim_slice(char    **content,
   int delta_post  = post[0] + post[1] + post[2];
 
   if (delta_pre + delta_post == 0) {
-    rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2], 0);
-    return;
+    return rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2], 0);
   }
 
   for (i = shift[0]; i < dim[0] - post[0]; i++) {
-    rd_2dim_slice(content, line_no, array + (i * dim[1] * dim[2]),
+    if (!rd_2dim_slice(content, line_no, array + (i * dim[1] * dim[2]),
                   dim + 1,
                   shift + 1,
-                  post + 1);
+                  post + 1)) {
+      return false;
+    }
   }
-  return;
+  return true;
 }
 
 
-PRIVATE void
+PRIVATE bool
 rd_4dim(char    **content,
         size_t  *line_no,
         int     *array,
@@ -918,14 +933,14 @@ rd_4dim(char    **content,
     0, 0, 0, 0
   };
 
-  rd_4dim_slice(content, line_no, array,
+  return rd_4dim_slice(content, line_no, array,
                 dim,
                 shift,
                 post);
 }
 
 
-PRIVATE void
+PRIVATE bool
 rd_4dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -938,21 +953,22 @@ rd_4dim_slice(char    **content,
   int delta_post  = post[0] + post[1] + post[2] + post[3];
 
   if (delta_pre + delta_post == 0) {
-    rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2] * dim[3], 0);
-    return;
+    return rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2] * dim[3], 0);
   }
 
   for (i = shift[0]; i < dim[0] - post[0]; i++) {
-    rd_3dim_slice(content, line_no, array + (i * dim[1] * dim[2] * dim[3]),
+    if (!rd_3dim_slice(content, line_no, array + (i * dim[1] * dim[2] * dim[3]),
                   dim + 1,
                   shift + 1,
-                  post + 1);
+                  post + 1)) {
+      return false;
+    }
   }
-  return;
+  return true;
 }
 
 
-PRIVATE void
+PRIVATE bool
 rd_5dim(char    **content,
         size_t  *line_no,
         int     *array,
@@ -963,14 +979,14 @@ rd_5dim(char    **content,
     0, 0, 0, 0, 0
   };
 
-  rd_5dim_slice(content, line_no, array,
+  return rd_5dim_slice(content, line_no, array,
                 dim,
                 shift,
                 post);
 }
 
 
-PRIVATE void
+PRIVATE bool
 rd_5dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -983,16 +999,17 @@ rd_5dim_slice(char    **content,
   int delta_post  = post[0] + post[1] + post[2] + post[3] + post[4];
 
   if (delta_pre + delta_post == 0) {
-    rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2] * dim[3] * dim[4], 0);
-    return;
+    return rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2] * dim[3] * dim[4], 0);
   }
 
   for (i = shift[0]; i < dim[0] - post[0]; i++)
-    rd_4dim_slice(content, line_no, array + (i * dim[1] * dim[2] * dim[3] * dim[4]),
+    if (!rd_4dim_slice(content, line_no, array + (i * dim[1] * dim[2] * dim[3] * dim[4]),
                   dim + 1,
                   shift + 1,
-                  post + 1);
-  return;
+                  post + 1)) {
+      return false;
+    }
+  return true;
 }
 
 
@@ -1000,7 +1017,7 @@ rd_5dim_slice(char    **content,
 *** \param dim1   The size of the first dimension
 *** \param shift1 The pre shift for the first dimension
 **/
-PRIVATE void
+PRIVATE bool
 rd_6dim(char    **content,
         size_t  *line_no,
         int     *array,
@@ -1011,14 +1028,14 @@ rd_6dim(char    **content,
     0, 0, 0, 0, 0, 0
   };
 
-  rd_6dim_slice(content, line_no, array,
+  return rd_6dim_slice(content, line_no, array,
                 dim,
                 shift,
                 post);
 }
 
 
-PRIVATE void
+PRIVATE bool
 rd_6dim_slice(char    **content,
               size_t  *line_no,
               int     *array,
@@ -1031,16 +1048,17 @@ rd_6dim_slice(char    **content,
   int delta_post  = post[0] + post[1] + post[2] + post[3] + post[4] + post[5];
 
   if (delta_pre + delta_post == 0) {
-    rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2] * dim[3] * dim[4] * dim[5], 0);
-    return;
+    return rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2] * dim[3] * dim[4] * dim[5], 0);
   }
 
   for (i = shift[0]; i < dim[0] - post[0]; i++)
-    rd_5dim_slice(content, line_no, array + (i * dim[1] * dim[2] * dim[3] * dim[4] * dim[5]),
+    if (!rd_5dim_slice(content, line_no, array + (i * dim[1] * dim[2] * dim[3] * dim[4] * dim[5]),
                   dim + 1,
                   shift + 1,
-                  post + 1);
-  return;
+                  post + 1)) {
+      return false;
+    }
+  return true;
 }
 
 
