@@ -110,21 +110,21 @@ In ``Python`` you can obtain a list of alternating numbers to loop over like thi
 
 .. code:: python-console
 
->>> import RNA
-... 
-... for i in RNA.boustrophedon(11, 20)[1:]:
-...     print(i)
-...
-11
-20
-12
-19
-13
-18
-14
-17
-15
-16
+    >>> import RNA
+    ... 
+    ... for i in RNA.boustrophedon(11, 20)[1:]:
+    ...     print(i)
+    ...
+    11
+    20
+    12
+    19
+    13
+    18
+    14
+    17
+    15
+    16
 
 Note here, that we sliced-off the 0th element from the list that is returned by
 :c:func:`vrna_boustrophedon`, since the first element simply stores the length
