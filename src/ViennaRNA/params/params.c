@@ -141,6 +141,12 @@ rescale_params(vrna_fold_compound_t *vc);
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
+PUBLIC void
+vrna_params_dirty(void)
+{
+  p_pre_init = pf_pre_init = 0;
+}
+
 PUBLIC vrna_param_t *
 vrna_params(vrna_md_t *md_p)
 {

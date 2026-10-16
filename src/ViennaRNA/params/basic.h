@@ -164,6 +164,22 @@ struct vrna_exp_param_s {
 
 
 /**
+ *  @brief Set internal parameters-dirty flag
+ *
+ *  Calling this function sets an internal flag that instructs vrna_params()
+ *  or vrna_exp_params() to actually re-read the underlying energy parameters
+ *  before creating the parameters data structure.
+ *
+ *  Calling this function might be useful after tempering with any of the
+ *  global energy parameter variables. Loading energy parameters via one
+ *  of the vrna_params_load() or vrna_params_load_from_string() functions
+ *  will call this one automatically.
+ */
+void
+vrna_params_dirty(void);
+
+
+/**
  *  @brief  Get a data structure containing prescaled free energy parameters
  *
  *  If a NULL pointer is passed for the model details parameter, the default
