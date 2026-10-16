@@ -38,10 +38,8 @@ jobs:
           - '3.11'
           - '3.12'
           - '3.13'
+          - '3.14'
         sphinx-version:
-          - '6.2'
-          - '7.0'
-          - '7.1'
           - '7.2' # Ubuntu 24.04
           # version 7.3 broke up the domain modules into packages, changing
           # where some classes had to be imported from
@@ -66,9 +64,9 @@ jobs:
             sphinx-version: 'latest'
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
@@ -83,12 +81,12 @@ jobs:
       run: |
         python -m pip install "Sphinx @ git+https://github.com/sphinx-doc/sphinx.git@master"
 
-    - uses: actions/cache/restore@v4
+    - uses: actions/cache/restore@v6
       id: cache-doxygen
       with:
         path: doxygen-bin-arc
         fail-on-cache-miss: true
-        key: ${{ runner.os }}-doxygen-${{ matrix.doxygen-version }}
+        key: ${{ runner.os }}-doxygen-${{ matrix.doxygen-version }}-v1
 
     - name: Install doxygen
       # at some point actions/cache/restore@4 started unpacking doxygen.tar.gz
@@ -111,6 +109,12 @@ jobs:
         pip install --upgrade pip
         pip install --editable .[build]
         pip install --editable .[test]
+
+    - name: Version info
+      run: |
+        echo 'python: ' && python --version
+        echo 'sphinx: ' && sphinx-build --version
+        echo 'doxygen: ' && doxygen --version
 
     - name: Generate parser
       run: |

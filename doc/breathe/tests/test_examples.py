@@ -6,24 +6,11 @@ import os
 import pathlib
 import shutil
 import subprocess
-from typing import TYPE_CHECKING
 from xml.parsers import expat
 
 import pytest
-import sphinx
 
 from breathe.process import AutoDoxygenProcessHandle
-
-if TYPE_CHECKING:
-    from typing import Any
-
-sphinx_path: Any
-
-if sphinx.version_info < (7, 2, 0):
-    from sphinx.testing.path import path as sphinx_path
-else:
-    sphinx_path = pathlib.Path
-
 
 C_FILE_SUFFIXES = frozenset((".h", ".c", ".hpp", ".cpp"))
 IGNORED_ELEMENTS: frozenset[str] = frozenset(())
@@ -220,14 +207,6 @@ def compare_xml(generated, input_dir, version):
 
                 # ignore extra attributes in o_node
                 for key, value in c_node.attr.items():
-                    if (
-                        c_node.name == "desc_inline"
-                        and key == "domain"
-                        and sphinx.version_info[0] < 6
-                    ):
-                        # prior to Sphinx 6, this attribute was not present
-                        continue
-
                     assert key in o_node.attr, f"missing attribute at line {o_node.line_no}: {key}"
                     o_value = o_node.attr[key]
                     assert attr_compare(key, o_value, value), (
@@ -301,7 +280,7 @@ def run_sphinx_and_compare(make_app, tmp_path, test_input, overrides, version):
 
     make_app(
         buildername="xml",
-        srcdir=sphinx_path(tmp_path),
+        srcdir=tmp_path,
         confoverrides=conf_overrides(overrides),
     ).build()
 

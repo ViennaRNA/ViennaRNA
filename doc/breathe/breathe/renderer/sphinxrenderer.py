@@ -95,7 +95,7 @@ _findall_compat = cast(
 # is also left in the type. See also #767.
 # Until version 1.11, Doxygen left constexpr (I haven't checked consteval or
 # constinit) in the type.
-QUALIFIERS_TO_REMOVE = re.compile(r"\b(static|friend|constexpr|consteval|constinit) ")
+QUALIFIERS_TO_REMOVE = re.compile(r"\b(static|friend|constexpr|consteval|constinit)(?:\s+|$)")
 
 
 def strip_legacy_qualifiers(x):
@@ -1120,7 +1120,11 @@ class SphinxRenderer(metaclass=NodeVisitor):
         brief = self.render_optional(node.briefdescription)
         descr = node.detaileddescription
         if isinstance(node, parser.Node_memberdefType):
-            if self.app.env.config.breathe_show_decl_file_include and node.location and node.location.file:
+            if (
+                self.app.env.config.breathe_show_decl_file_include
+                and node.location
+                and node.location.file
+            ):
                 text = "#include <" + node.location.file + ">"
                 literal = nodes.literal_block("", nodes.Text(text))
                 literal["language"] = "c"
@@ -1315,11 +1319,7 @@ class SphinxRenderer(metaclass=NodeVisitor):
             # Defer to domains specific directive.
 
             names = self.get_qualification()
-            # strip out any template arguments before splitting on '::', to
-            # avoid errors if a template specialization has qualified arguments
-            # (see examples/specific/cpp_ns_template_specialization)
-            cleaned_name, _sep, _rest = nodeDef.compoundname.partition("<")
-            cname = split_name(cleaned_name)
+            cname = split_name(nodeDef.compoundname)
             if self.nesting_level == 0:
                 names.extend(cname)
             else:
@@ -2569,7 +2569,7 @@ class SphinxRenderer(metaclass=NodeVisitor):
             if not isinstance(render_nodes[0], nodes.paragraph):
                 separator = " "
                 assert isinstance(render_nodes[0], nodes.Text)
-                if not render_nodes[0].startswith("="):
+                if not render_nodes[0].lstrip().startswith("="):
                     separator += "= "
                 signature.append(nodes.Text(separator))
             signature.extend(render_nodes)
@@ -2636,9 +2636,9 @@ class SphinxRenderer(metaclass=NodeVisitor):
         typ = "".join(n.astext() for n in self.render(node.type))
         # in Doxygen < 1.9 the 'friend' part is there, but afterwards not
         # https://github.com/breathe-doc/breathe/issues/616
-        assert typ in ("friend class", "friend struct", "class", "struct")
-        if not typ.startswith("friend "):
-            typ = "friend " + typ
+        assert typ in ("friend class", "friend struct", "class", "struct", "friend")
+        if not typ.startswith("friend"):
+            typ = "friend " + typ.lstrip()
         signode += addnodes.desc_annotation(typ, typ)
         signode += nodes.Text(" ")
         # expr = cpp.CPPExprRole(asCode=False)
