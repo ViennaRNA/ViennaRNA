@@ -45,5 +45,5 @@ in particular:
     :provider: local
     :avatars:
     :names:
-    :contributions:
+    :contributions: emoji
     :order: byCommit
