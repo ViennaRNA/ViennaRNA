@@ -4,13 +4,14 @@ import os
 from typing import TYPE_CHECKING
 
 import docutils.parsers.rst
+import pytest
 import sphinx.addnodes
 import sphinx.environment
 import sphinx.locale
 from docutils import frontend, nodes, utils
 
 from breathe import parser, renderer
-from breathe.renderer.sphinxrenderer import SphinxRenderer
+from breathe.renderer.sphinxrenderer import SphinxRenderer, strip_legacy_qualifiers
 
 if TYPE_CHECKING:
     from breathe.renderer import filter
@@ -209,7 +210,8 @@ def test_find_node():
     section.children = [foo, desc, bar]
     assert find_node(section, "description") == desc
     check_exception(
-        lambda: find_node([section, desc], "description"), "the number of nodes description is 2"
+        lambda: find_node([section, desc], "description"),
+        "the number of nodes description is 2",
     )
     check_exception(lambda: find_node([], "description"), "the number of nodes description is 0")
     check_exception(lambda: find_node([section], "unknown"), "the number of nodes unknown is 0")
@@ -217,13 +219,19 @@ def test_find_node():
 
 
 def render(
-    app, member_def, domain=None, show_define_initializer=False, dox_parser=None, options=[]
+    app,
+    member_def,
+    domain=None,
+    show_define_initializer=False,
+    dox_parser=None,
+    options=[],
 ):
     """Render Doxygen *member_def* with *renderer_class*."""
 
     app.config.breathe_separate_member_pages = False
     app.config.breathe_use_project_refids = False
     app.config.breathe_show_define_initializer = show_define_initializer
+    app.config.breathe_show_decl_file_include = False
     app.config.breathe_order_parameters_first = False
     app.config.breathe_debug_trace_directives = False
     app.config.breathe_debug_trace_doxygen_ids = False
@@ -315,6 +323,32 @@ def test_render_using_alias(app):
     )
     signature = find_node(render(app, member_def), "desc_signature")
     assert signature.astext() == "using foo = int"
+
+
+@pytest.mark.parametrize("qualifier", ["static", "friend", "constexpr", "consteval", "constinit"])
+def test_strip_legacy_qualifiers(qualifier):
+    assert strip_legacy_qualifiers(qualifier) == ""
+    assert strip_legacy_qualifiers(f"{qualifier} int") == "int"
+    assert strip_legacy_qualifiers(f"{qualifier}\tint") == "int"
+    assert strip_legacy_qualifiers(f"{qualifier}\nint") == "int"
+    assert strip_legacy_qualifiers(f"{qualifier}_type") == f"{qualifier}_type"
+    assert strip_legacy_qualifiers(f"type_{qualifier}") == f"type_{qualifier}"
+
+
+def test_render_constexpr_constructor(app):
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.function,
+        definition="Widget::Widget",
+        type=parser.Node_linkedTextType(["constexpr"]),
+        name="Widget",
+        argsstring="()",
+        inline=True,
+        constexpr=True,
+        **COMMON_ARGS_memberdefType,
+    )
+    signature = find_node(render(app, member_def), "desc_signature")
+    assert signature.astext() == "inline constexpr Widget()"
+    assert not app._warning.getvalue()
 
 
 def test_render_const_func(app):
@@ -441,6 +475,22 @@ def test_render_define_no_initializer(app):
     assert signature.astext() == "USE_MILK"
 
 
+def test_render_variable_initializer_with_leading_space(app):
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.variable,
+        definition="Limit AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        type=parser.Node_linkedTextType(["Limit"]),
+        name="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        initializer=parser.Node_linkedTextType([f"{' ' * 85}= \n", "Limit::HIGH"]),
+        **COMMON_ARGS_memberdefType,
+    )
+    signature = find_node(render(app, member_def), "desc_signature")
+    assert (
+        signature.astext()
+        == "Limit AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA = Limit::HIGH"
+    )
+
+
 def test_render_innergroup(app):
     refid = "group__innergroup"
     mock_compound_parser = MockCompoundParser({
@@ -530,3 +580,15 @@ def test_ellipsis(app):
     # Verify that parsing an ellipsis works
     ast_param = cls._parse_args(argsstrings[0])
     _ = cls._resolve_function(matches, ast_param, None)
+
+
+def test_cxx11_extended_friend(app):
+    member_def = parser.Node_memberdefType(
+        kind=parser.DoxMemberKind.friend,
+        type=parser.Node_linkedTextType(["friend"]),
+        definition=parser.Node_linkedTextType(["friend Outer"]),
+        name="Outer",
+        **COMMON_ARGS_memberdefType,
+    )
+    signature = find_node(render(app, member_def), "desc_signature")
+    assert signature.astext() == "friend Outer"
