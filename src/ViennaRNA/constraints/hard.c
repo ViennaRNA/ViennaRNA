@@ -290,11 +290,15 @@ vrna_hc_prepare(vrna_fold_compound_t  *fc,
         default_hc_bp(fc, options);
       }
 
-      if (fc->hc->state & STATE_DIRTY_BP)
+      if (fc->hc->state & STATE_DIRTY_BP) {
+        default_hc_bp(fc, options);
         prepare_hc_bp(fc, options);
+      }
 
-      if (fc->hc->state & STATE_DIRTY_UP)
+      if (fc->hc->state & STATE_DIRTY_UP) {
+        default_hc_up(fc, options);
         prepare_hc_up(fc, options);
+      }
 
       if (fc->hc->state & ~STATE_CLEAN)
         hc_update_up(fc);
