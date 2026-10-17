@@ -468,6 +468,9 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
         continue;
       }
 
+      /* mutate the modification site into the fallback nucleotide */
+      vrna_sequence_mutate(fc, actual_msite, (int)strand, params->fallback);
+
       vrna_array_append(diffs->modification_sites[strand], actual_msite);
 
       /* increase return value per modified base we found */
