@@ -91,6 +91,13 @@ vrna_sequence_order_update(vrna_fold_compound_t *fc,
 
 
 int
+vrna_sequence_mutate(vrna_fold_compound_t *fc,
+                     size_t               position,
+                     int                  strand_indicator,
+                     char                 nucleotide);
+
+
+int
 vrna_msa_add( vrna_fold_compound_t      *fc,
               const char                **alignment,
               const char                **names,

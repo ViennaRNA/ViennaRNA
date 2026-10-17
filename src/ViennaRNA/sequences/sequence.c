@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/utils/basic.h"
@@ -565,6 +566,64 @@ vrna_sequence_order_update(vrna_fold_compound_t *fc,
 
   return 0;
 }
+
+
+PUBLIC int
+vrna_sequence_mutate(vrna_fold_compound_t *fc,
+                     size_t               position,
+                     int                  strand_indicator,
+                     char                 nucleotide)
+{
+  unsigned int strand;
+
+  if ((fc) &&
+      (position != 0) &&
+      (strand_indicator < (int)fc->strands)) {
+
+    /* auto-detect strand? */
+    if (strand_indicator < 0) {
+      strand    = fc->strand_number[position];
+      position  = position - fc->strand_start[strand] + 1;
+    } else {
+      strand = (unsigned int)strand_indicator;
+    }
+
+    /* modify the nucleotide */
+    vrna_log_debug("mutating position %u (strand %u) from %c to %c",
+                    position,
+                    strand,
+                    fc->nucleotides[strand].string[position - 1],
+                    nucleotide);
+    fc->nucleotides[strand].string[position - 1] = toupper(nucleotide);
+    fc->nucleotides[strand].encoding[position] = vrna_nucleotide_encode(toupper(nucleotide), &(fc->params->model_details));
+    /* update neighbor encodings */
+    fc->nucleotides[strand].encoding5[position + 1] = fc->nucleotides[strand].encoding[position];
+    fc->nucleotides[strand].encoding3[position - 1] = fc->nucleotides[strand].encoding[position];
+
+    update_sequence(fc);
+    update_encodings(fc);
+
+    fc->hc->state = (unsigned char)2;
+    vrna_hc_prepare(fc, VRNA_OPTION_DEFAULT);
+
+    if (fc->ptype) {
+      free(fc->ptype);
+      fc->ptype = vrna_ptypes(fc->sequence_encoding2, &(fc->params->model_details));
+    }
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+    if (fc->ptype_pf_compat) {
+        /* backward compatibility ptypes */
+        free(fc->ptype_pf_compat);
+        fc->ptype_pf_compat = get_ptypes(fc->sequence_encoding2, &(fc->params->model_details), 1);
+    }
+#endif
+
+    return 1;
+  }
+
+  return 0;
+}
+
 
 
 PRIVATE void
