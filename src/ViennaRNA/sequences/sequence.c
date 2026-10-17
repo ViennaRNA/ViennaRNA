@@ -603,13 +603,25 @@ vrna_sequence_mutate(vrna_fold_compound_t *fc,
     update_sequence(fc);
     update_encodings(fc);
 
-    fc->hc->state = (unsigned char)2;
-    vrna_hc_prepare(fc, VRNA_OPTION_DEFAULT);
+    /*
+     * hacking min_loop_size here for multistrand context
+     * only works as long as we use the actual constraints
+     * framework for checking whether a base pair is allowed
+     * or not.
+     */
+    int mls_bak = fc->params->model_details.min_loop_size;
+    if (fc->strands > 1)
+      fc->params->model_details.min_loop_size = 0;
 
+    /* rebuilding the ptype array here is costly! We
+     * should better update only the relevant base pairs
+     * where the modified base pairs with anything else...
+     * this should cost at most O(n) steps.
+     */
     if (fc->ptype) {
-      free(fc->ptype);
-      fc->ptype = vrna_ptypes(fc->sequence_encoding2, &(fc->params->model_details));
-    }
+       free(fc->ptype);
+       fc->ptype = vrna_ptypes(fc->sequence_encoding2, &(fc->params->model_details));
+     }
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
     if (fc->ptype_pf_compat) {
         /* backward compatibility ptypes */
@@ -617,6 +629,10 @@ vrna_sequence_mutate(vrna_fold_compound_t *fc,
         fc->ptype_pf_compat = get_ptypes(fc->sequence_encoding2, &(fc->params->model_details), 1);
     }
 #endif
+    fc->params->model_details.min_loop_size = mls_bak;
+
+    /* render the hard constraints dirty, so they will be rebuild on vrna_hc_prepare() */
+    fc->hc->state = (unsigned char)2;
 
     return 1;
   }
