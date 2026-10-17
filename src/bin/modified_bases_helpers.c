@@ -22,15 +22,14 @@ mod_positions_seq_prepare(char                *sequence,
 
   *param_set_num = 0;
 
-  if (sequence) {
-    if (params)
-      for (size_t i = 0; params[i] != NULL; i++)
-        (*param_set_num)++;
+  if ((sequence) &&
+      (params)) {
+    for (size_t i = 0; params[i] != NULL; i++)
+      (*param_set_num)++;
 
-    if (*param_set_num > 0)
+    if (*param_set_num > 0) {
       mod_positions = vrna_alloc(sizeof(size_t *) * *param_set_num);
 
-    if (params) {
       /* split input sequences at default delimiter '&' */
       char **sequences = vrna_strsplit(sequence, NULL);
 
@@ -61,11 +60,15 @@ mod_positions_seq_prepare(char                *sequence,
             for (size_t j = 1; j <= mpos[0]; j++) {
               mod_positions[i][old_size + j] = mpos[j] + total_length;
 
+#if 1
+              /* change modified base to unmodified */
+              sequence[mod_positions[i][old_size + j] - 1 + strand_num] = (*ptr)->unmodified;
+#else
               /* change modified base to fallback */
               sequence[mod_positions[i][old_size + j] - 1 + strand_num] = (*ptr)->fallback;
-
+#endif
               if (verbose)
-                vrna_log_info("Found modified base %c at position %d\n",
+                vrna_log_info("Found modified base %c at position %d",
                               (*ptr)->one_letter_code,
                               mod_positions[i][old_size + j]);
 
