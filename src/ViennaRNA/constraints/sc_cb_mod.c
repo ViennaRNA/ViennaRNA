@@ -409,27 +409,38 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
   if ((fc) &&
       (params) &&
       (modification_sites)) {
+    unsigned int        nmods     = 0;
     unsigned int        *sn       = fc->strand_number;
     unsigned int        *ss       = fc->strand_start;
     vrna_md_t           *md       = &(fc->params->model_details);
     char                bases[8]  = "_ACGUTM";
+    char                *modchars = NULL;
     energy_corrections  *diffs;
-
     bases[6]  = params->one_letter_code;
     diffs     = (energy_corrections *)vrna_alloc(sizeof(energy_corrections));
 
     /* copy ptypes */
     memcpy(&(diffs->ptypes[0][0]), &(params->ptypes[0][0]), sizeof(params->ptypes));
 
-    diffs->enc = NULL;
+    /* count number of modification sites */
+    for (nmods = 0; modification_sites[nmods]; nmods++);
+
+    modchars    = (char *)vrna_alloc(sizeof(char) * (nmods + 1));
+    modchars    = memset(modchars, params->fallback, nmods * sizeof(char));
+    diffs->enc  = NULL;
 
      /* store (current) number of strands and prepare per-strand modification site lists */
     diffs->strands = fc->strands;
     vrna_array_init_size(diffs->modification_sites, diffs->strands);
+
+    vrna_array(unsigned int)  modsites_kept;
+    vrna_array_init_size(modsites_kept, nmods);
+
     for (size_t i = 0; i < diffs->strands; i++) {
       vrna_array_make(unsigned int, msites);
       vrna_array_append(diffs->modification_sites, msites);
     }
+
 
     /* store modification sites on a per-strand basis */
     for (size_t i = 0; modification_sites[i]; i++) {
@@ -468,61 +479,70 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
         continue;
       }
 
-      /* mutate the modification site into the fallback nucleotide */
-      vrna_sequence_mutate(fc, actual_msite, (int)strand, params->fallback);
-
       vrna_array_append(diffs->modification_sites[strand], actual_msite);
+      vrna_array_append(modsites_kept, msite);
 
       /* increase return value per modified base we found */
       ret++;
+    }
 
-      if (params->num_ptypes > 0) {
-        /* remove all canonical base pairing for the modified base(s) */
-        for (unsigned int j = 1; j < msite; j++) {
-          if ((sn[msite] != sn[j]) ||
-              ((msite - j - 1) >= (unsigned int)md->min_loop_size)) {
-                vrna_hc_add_bp(fc,
-                               j,
-                               msite,
-                               VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+    /* mutate the modification sites into the fallback nucleotide */
+    vrna_sequence_mutate(fc, modsites_kept, modchars, ret);
+    vrna_array_free(modsites_kept);
+
+    /* apply hard constraints for those modifications that passed the checks above */
+    for (size_t s = 0; s < diffs->strands; s++) {
+      for (size_t pos = 0; pos < vrna_array_size(diffs->modification_sites[s]); pos++) {
+        unsigned int msite = diffs->modification_sites[s][pos] + ss[s] - 1;
+
+        if (params->num_ptypes > 0) {
+          /* remove all canonical base pairing for the modified base(s) */
+          for (unsigned int j = 1; j < msite; j++) {
+            if ((sn[msite] != sn[j]) ||
+                ((msite - j - 1) >= (unsigned int)md->min_loop_size)) {
+                  vrna_hc_add_bp(fc,
+                                 j,
+                                 msite,
+                                 VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+            }
           }
-        }
 
-        for (unsigned int j = msite + 1; j <= fc->length; j++) {
-          if ((sn[msite] != sn[j]) ||
-              ((j - msite - 1) >= (unsigned int)md->min_loop_size)) {
-                vrna_hc_add_bp(fc,
-                               msite,
-                               j,
-                               VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+          for (unsigned int j = msite + 1; j <= fc->length; j++) {
+            if ((sn[msite] != sn[j]) ||
+                ((j - msite - 1) >= (unsigned int)md->min_loop_size)) {
+                  vrna_hc_add_bp(fc,
+                                 msite,
+                                 j,
+                                 VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+            }
           }
-        }
 
-        /* allow for all pairing partners specified in the input */
-        for (unsigned int j = 1; j < msite; j++) {
-          if ((sn[msite] != sn[j]) ||
-              ((msite - j - 1) >= (unsigned int)md->min_loop_size)) {
-            for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
-              unsigned int pp_enc = params->pairing_partners_encoding[cnt];
-              if ((unsigned int)fc->sequence_encoding[j] == pp_enc) {
-                vrna_hc_add_bp(fc,
-                               j,
-                               msite,
-                               VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+          /* allow for all pairing partners specified in the input */
+          for (unsigned int j = 1; j < msite; j++) {
+            if ((sn[msite] != sn[j]) ||
+                ((msite - j - 1) >= (unsigned int)md->min_loop_size)) {
+              for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
+                unsigned int pp_enc = params->pairing_partners_encoding[cnt];
+                if ((unsigned int)fc->sequence_encoding[j] == pp_enc) {
+                  vrna_hc_add_bp(fc,
+                                 j,
+                                 msite,
+                                 VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+                }
               }
             }
           }
-        }
-        for (unsigned int j = msite + 1; j <= fc->length; j++) {
-          if ((sn[msite] != sn[j]) ||
-              ((j - msite - 1) >= (unsigned int)md->min_loop_size)) {
-            for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
-              unsigned int pp_enc = params->pairing_partners_encoding[cnt];
-              if ((unsigned int)fc->sequence_encoding[j] == pp_enc) {
-                vrna_hc_add_bp(fc,
-                               msite,
-                               j,
-                               VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+          for (unsigned int j = msite + 1; j <= fc->length; j++) {
+            if ((sn[msite] != sn[j]) ||
+                ((j - msite - 1) >= (unsigned int)md->min_loop_size)) {
+              for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
+                unsigned int pp_enc = params->pairing_partners_encoding[cnt];
+                if ((unsigned int)fc->sequence_encoding[j] == pp_enc) {
+                  vrna_hc_add_bp(fc,
+                                 msite,
+                                 j,
+                                 VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+                }
               }
             }
           }
@@ -768,6 +788,8 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                            &free_energy_corrections,
                            VRNA_DECOMP_PAIR_IL);
     }
+
+    free(modchars);
   }
 
   return ret;
