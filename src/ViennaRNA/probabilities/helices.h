@@ -31,7 +31,16 @@
  *  @{
  */
 
-vrna_array(vrna_ep_t)
+/**
+ *  @brief  Get a list of helix probabiltities
+ *
+ *  @param  fc        The fold compound to operate on
+ *  @param  min_size  The minimum helix size
+ *  @param  max_size  The maximum helix size
+ *  @param  cutoff    A probability threshold to filter the output
+ *  @return           A list of base pair probabiltities
+ */
+vrna_ep_array_t
 vrna_eqm_probs_hx(vrna_fold_compound_t *fc,
                   unsigned int         min_size,
                   unsigned int         max_size,

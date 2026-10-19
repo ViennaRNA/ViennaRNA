@@ -40,7 +40,14 @@ vrna_pairing_probs(vrna_fold_compound_t *fc,
                    char                 *structure);
 
 
-vrna_array(vrna_ep_t)
+/**
+ *  @brief  Get a list of base pair probabiltities
+ *
+ *  @param  fc      The fold compound to operate on
+ *  @param  cutoff  A probability threshold to filter the output
+ *  @return         A list of base pair probabiltities
+ */
+vrna_ep_array_t
 vrna_eqm_probs_bp(vrna_fold_compound_t *fc,
                   double               cutoff);
 

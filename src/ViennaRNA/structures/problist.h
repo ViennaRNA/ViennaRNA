@@ -13,6 +13,8 @@
 # define DEPRECATED(func, msg) func
 #endif
 
+#include <ViennaRNA/datastructures/array.h>
+
 /**
  *  @file     ViennaRNA/structures/problist.h
  *  @ingroup  struct_utils
@@ -30,6 +32,8 @@
  */
 typedef struct vrna_elem_prob_s vrna_ep_t;
 
+
+VRNA_ARRAY_REGISTER_NAME(vrna_ep_t, vrna_ep_array_t);
 
 /**
  *  @brief  A Base Pair element
