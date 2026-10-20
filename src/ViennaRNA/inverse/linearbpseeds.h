@@ -15,6 +15,7 @@ extern "C" {
 /**
  *  @addtogroup inverse_fold
  *  @{
+ */
 
 /**
  *  @brief  The options data structure for vrna_inverse_seed_linearbp()
