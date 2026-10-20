@@ -89,7 +89,7 @@
  *                                          for number of unpaired nucleotides in loop, and number of pairs in stems)
  *  * #VRNA_STRUCTURE_TREE_EXPANDED       - @copybrief #VRNA_STRUCTURE_TREE_EXPANDED
  *
- *  @see  @ref sec_structure_representations_tree
+ *  @see  @rstinline :ref:`structure-tree-representation` @endrst
  *
  *  @param  structure   The null-terminated dot-bracket structure string
  *  @param  type        A switch to determine the type of tree string representation
@@ -121,7 +121,7 @@ vrna_tree_string_unweight(const char *structure);
  *  @warning  This function only accepts <em>Expanded</em> and <em>HIT</em> tree representations!
  *
  *  @see vrna_db_to_tree_string(), #VRNA_STRUCTURE_TREE_EXPANDED, #VRNA_STRUCTURE_TREE_HIT,
- *       @ref sec_structure_representations_tree
+ *       @rstinline :ref:`structure-tree-representation` @endrst
  *
  *  @param  tree  A linear tree string representation of a secondary structure
  *  @return       A dot-bracket notation of the secondary structure provided in @p tree

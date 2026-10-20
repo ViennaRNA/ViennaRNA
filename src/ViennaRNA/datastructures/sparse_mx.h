@@ -9,6 +9,7 @@
   vrna_smx_csr_##TYPE##_t
 
 #define VRNA_SMX_CSR_DECLARE( TYPE )      \
+  /** Sparse matrix of type TYPE */       \
   typedef struct vrna_smx_csr_##TYPE##_s  \
   {                                       \
     unsigned char    dirty;               \

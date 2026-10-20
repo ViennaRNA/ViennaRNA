@@ -101,7 +101,7 @@
  *  * #VRNA_ANY_LOOP  - @copybrief #VRNA_ANY_LOOP
  *
  *  @see  vrna_eqm_probabilities(), vrna_probs_window(),
- *        #VRNA_EQM_PROBS_UP, #VRNA_EQM_PROBS_BPP
+ *        #VRNA_EQM_PROBS_UP, #VRNA_EQM_PROBS_BP
  */
 #define VRNA_EQM_PROBS_SPLIT  (unsigned int)(1 << 15)
 
@@ -109,7 +109,7 @@
 
 #define VRNA_EQM_PROBS_OUTSIDE_PF     (unsigned int)(1 << 17)
 
-#define VRNA_EQM_PROBS_MASK   (VRNA_EQM_PROBS_BPP | VRNA_EQM_PROBS_UP | VRNA_EQM_PROBS_HX)
+#define VRNA_EQM_PROBS_MASK   (VRNA_EQM_PROBS_BP | VRNA_EQM_PROBS_UP | VRNA_EQM_PROBS_HX)
 
 typedef struct {
   unsigned int  mode;

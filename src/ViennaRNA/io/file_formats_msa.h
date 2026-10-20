@@ -115,10 +115,10 @@
  *
  *  Currently, the list of parsable multiple sequence alignment file formats
  *  consists of:
- *  - @ref msa-formats-clustal
- *  - @ref msa-formats-stockholm
- *  - @ref msa-formats-fasta
- *  - @ref msa-formats-maf
+ *  - @rstinline :ref:`msa-formats-clustal` @endrst
+ *  - @rstinline :ref:`msa-formats-stockholm` @endrst
+ *  - @rstinline :ref:`msa-formats-fasta` @endrst
+ *  - @rstinline :ref:`msa-formats-maf` @endrst
  *  .
  *
  *  @note After successfully reading an alignment, this function performs
@@ -179,10 +179,10 @@ vrna_file_msa_read(const char   *filename,
  *
  *  Currently, the list of parsable multiple sequence alignment file formats
  *  consists of:
- *  - @ref msa-formats-clustal
- *  - @ref msa-formats-stockholm
- *  - @ref msa-formats-fasta
- *  - @ref msa-formats-maf
+ *  - @rstinline :ref:`msa-formats-clustal` @endrst
+ *  - @rstinline :ref:`msa-formats-stockholm` @endrst
+ *  - @rstinline :ref:`msa-formats-fasta` @endrst
+ *  - @rstinline :ref:`msa-formats-maf` @endrst
  *  .
  *
  *  @note After successfully reading an alignment, this function performs
@@ -256,7 +256,7 @@ vrna_file_msa_detect_format(const char    *filename,
 /**
  *  @brief Write multiple sequence alignment file
  *
- *  @note Currently, we only support @ref msa-formats-stockholm output
+ *  @note Currently, we only support @rstinline :ref:`msa-formats-stockholm output` @endrst
  *
  *  @see  #VRNA_FILE_FORMAT_MSA_STOCKHOLM, #VRNA_FILE_FORMAT_MSA_APPEND,
  *        #VRNA_FILE_FORMAT_MSA_MIS

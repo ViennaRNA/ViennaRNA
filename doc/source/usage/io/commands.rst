@@ -1,6 +1,8 @@
 Command Files
 =============
 
+.. _usage-io-commands:
+
 The RNAlib and many programs of the ViennaRNA Package can parse and apply data from
 so-called *command files*. These commands may refer to structure constraints or even
 extensions of the RNA folding grammar (such as :ref:`grammar:unstructured domains`).

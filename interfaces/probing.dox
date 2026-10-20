@@ -12,7 +12,7 @@ This function is attached as method @b sc_probing() to objects of type @b fold_c
 @parblock
 This function exists in two forms, (i) as overloaded function @b probing_data_Deigan2009() and (ii) as
 constructor of the @b probing_data object. For the former the second argument @p n can be omitted
-since the length of the @p reactivities list is determined from the list itself. When the #vrna_probing_data_s
+since the length of the @p reactivities list is determined from the list itself. When the #vrna_probing_data_t
 constructor is called with the three parameters @p reactivities, @p m and @p b, it will automatically
 create a prepared data structure for the Deigan et al. 2009 method. See, e.g.
 @rstinline :py:meth:`RNA.probing_data_Deigan2009()` and :py:meth:`RNA.probing_data()` in the :doc:`/api/python` @endrst.

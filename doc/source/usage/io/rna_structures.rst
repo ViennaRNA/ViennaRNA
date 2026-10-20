@@ -51,6 +51,8 @@ just the weaker version of the above and ``|`` represents a base that is mostly 
 but has pairing partners both upstream and downstream. In this case opening and closing
 brackets do not need to match.
 
+.. _dot-bracket-ext-notation:
+
 Extended Dot-Bracket Notation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -72,6 +74,8 @@ The follwing annotations of a simple structure with two crossing helices of size
   :c:func:`vrna_db_from_ptable()`, :c:func:`vrna_db_from_plist()`, :c:func:`vrna_db_to_element_string()`,
   :c:func:`vrna_db_pk_remove()`
 
+
+.. _wuss-notation:
 
 WUSS notation
 -------------

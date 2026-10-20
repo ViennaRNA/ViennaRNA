@@ -11,7 +11,7 @@
 /**
  *  @addtogroup  command_files
  *  @{
- *  @brief  Functions to parse and interpret the content of @ref constraint-formats-file
+ *  @brief  Functions to parse and interpret the content of @rstinline :ref:`usage-io-commands` @endrst
  */
 
 /** @brief A data structure that contains commands */
@@ -80,8 +80,7 @@ vrna_file_commands_read(const char    *filename,
  *
  *  This function is a shortcut to directly parse a commands file
  *  and apply all successfully parsed commands to a #vrna_fold_compound_t
- *  data structure. It is the same as:
- *  @snippet commands.c Applying commands from file
+ *  data structure.
  *
  *  @param    fc        The #vrna_fold_compound_t the command list will be applied to
  *  @param    filename  The filename

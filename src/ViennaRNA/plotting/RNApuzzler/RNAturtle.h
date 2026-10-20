@@ -76,7 +76,7 @@ vrna_plot_coords_turtle(const char  *structure,
  *  @return                   The length of the structure on success, 0 otherwise
  */
 int
-vrna_plot_coords_turtle_pt(short const *const pair_table,
+vrna_plot_coords_turtle_pt(short const *const pt,
                            float              **x,
                            float              **y,
                            double             **arc_coords);

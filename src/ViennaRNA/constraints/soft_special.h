@@ -75,7 +75,7 @@ typedef struct vrna_sc_mod_param_s *vrna_sc_mod_param_t;
  *  @brief Parse and extract energy parameters for a modified base from a JSON file
  *
  *  @see  vrna_sc_mod_read_from_json(), vrna_sc_mod_parameters_free(), vrna_sc_mod(),
- *        @ref modified-bases-params
+ *        @rstinline :ref:`usage-io-params-modified-bases` @endrst
  *
  *  @param  filename    The JSON file containing the specifications of the modified base
  *  @param  md          A model-details data structure (for look-up of canonical base pairs)
@@ -90,11 +90,11 @@ vrna_sc_mod_read_from_jsonfile(const char *filename,
  *  @brief Parse and extract energy parameters for a modified base from a JSON string
  *
  *  @see  vrna_sc_mod_read_from_jsonfile(), vrna_sc_mod_parameters_free(), vrna_sc_mod(),
- *        @ref modified-bases-params
+ *        @rstinline :ref:`usage-io-params-modified-bases` @endrst
  *
- *  @param  filename    The JSON file containing the specifications of the modified base
- *  @param  md          A model-details data structure (for look-up of canonical base pairs)
- *  @return             Parameters of the modified base
+ *  @param  json    The JSON string containing the specifications of the modified base
+ *  @param  md      A model-details data structure (for look-up of canonical base pairs)
+ *  @return         Parameters of the modified base
  */
 vrna_sc_mod_param_t
 vrna_sc_mod_read_from_json(const char *json,
@@ -124,7 +124,7 @@ vrna_sc_mod_parameters_free(vrna_sc_mod_param_t params);
  *        vrna_sc_mod_7DA(), vrna_sc_mod_purine(), vrna_sc_mod_dihydrouridine(),
  *        #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
  *        #VRNA_SC_MOD_DEFAULT,
- *        @ref modified-bases-params
+ *        @rstinline :ref:`usage-io-params-modified-bases` @endrst
  *
  *  @param  fc                  The fold_compound the corrections should be bound to
  *  @param  json                The JSON formatted string with the modified base parameters
@@ -152,11 +152,12 @@ vrna_sc_mod_json(vrna_fold_compound_t *fc,
  *        vrna_sc_mod_7DA(), vrna_sc_mod_purine(), vrna_sc_mod_dihydrouridine(),
  *        #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
  *        #VRNA_SC_MOD_DEFAULT,
- *        @ref modified-bases-params
+ *        @rstinline :ref:`usage-io-params-modified-bases` @endrst
  *
- *  @param  fc    The fold_compound the corrections should be bound to
- *  @param  json  The JSON formatted string with the modified base parameters
+ *  @param  fc                  The fold_compound the corrections should be bound to
+ *  @param  json_file           The JSON formatted string with the modified base parameters
  *  @param  modification_sites  A list of modification site, i.e. positions that contain the modified base (1-based, last element in the list indicated by 0)
+ *  @param  options             A bitvector of options how to handle the input, e.g. #VRNA_SC_MOD_DEFAULT
  *  @return Number of sequence positions modified base parameters will be used for
  */
 int
@@ -184,7 +185,7 @@ vrna_sc_mod_jsonfile(vrna_fold_compound_t *fc,
  *        #VRNA_SC_MOD_DEFAULT
  *
  *  @param  fc                  The fold_compound the corrections should be bound to
- *  @param  json                The JSON formatted string with the modified base parameters
+ *  @param  params              The modified base parameters
  *  @param  modification_sites  A list of modification site, i.e. positions that contain the modified base (1-based, last element in the list indicated by 0)
  *  @param  options             A bitvector of options how to handle the input, e.g. #VRNA_SC_MOD_DEFAULT
  *  @return Number of sequence positions modified base parameters will be used for

@@ -165,7 +165,7 @@ vrna_sc_add_SHAPE_eddy_2(vrna_fold_compound_t *fc,
  *  @brief  Parse a character string and extract the encoded SHAPE reactivity conversion
  *          method and possibly the parameters for conversion into pseudo free energies
  *
- *  @ingroup soft_cosntraints
+ *  @ingroup probing_data
  *
  *  @param  method_string   The string that contains the encoded SHAPE reactivity conversion method
  *  @param  method          A pointer to the memory location where the method character will be stored

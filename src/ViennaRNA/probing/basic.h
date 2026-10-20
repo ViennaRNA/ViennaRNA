@@ -59,8 +59,19 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 #define VRNA_PROBING_DATA_SINGLE_WEIGHT                           (1 << 1)
 #define VRNA_PROBING_DATA_DEFAULT                                 0
 
+/**
+ *  @brief  Target flag indicating base pair stack contributions for #vrna_probing_strategy_f
+ */
 #define VRNA_PROBING_DATA_LINEAR_TARGET_STACK                     (1 << 4)
+
+/**
+ *  @brief  Target flag indicating unpaired nucleotide contributions for #vrna_probing_strategy_f
+ */
 #define VRNA_PROBING_DATA_LINEAR_TARGET_UP                        (1 << 5)
+
+/**
+ *  @brief  Target flag indicating base pair contributions for #vrna_probing_strategy_f
+ */
 #define VRNA_PROBING_DATA_LINEAR_TARGET_BP                        (1 << 6)
 
 

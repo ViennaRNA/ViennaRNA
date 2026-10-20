@@ -113,11 +113,11 @@ vrna_plot_coords_puzzler(const char                   *structure,
  *  @return                   The length of the structure on success, 0 otherwise
  */
 int
-vrna_plot_coords_puzzler_pt(short const *const          pair_table,
+vrna_plot_coords_puzzler_pt(short const *const          pt,
                             float                       **x,
                             float                       **y,
                             double                      **arc_coords,
-                            vrna_plot_options_puzzler_t *puzzler);
+                            vrna_plot_options_puzzler_t *options);
 
 
 /**

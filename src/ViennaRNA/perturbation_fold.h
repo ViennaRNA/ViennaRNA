@@ -131,6 +131,10 @@ typedef void (*progress_callback)(int     iteration,
  *  @param algorithm          The minimization algorithm (VRNA_MINIMIZER_*)
  *  @param sample_size        The number of sampled sequences used for estimating the pairing probabilities. A value <= 0 will lead to an exact evaluation.
  *  @param epsilon            A pointer to an array used for storing the calculated vector of perturbation energies
+ *  @param initialStepSize
+ *  @param minStepSize
+ *  @param minImprovement
+ *  @param minimizerTolerance
  *  @param callback           A pointer to a callback function used for reporting the current minimization progress
  *
  */

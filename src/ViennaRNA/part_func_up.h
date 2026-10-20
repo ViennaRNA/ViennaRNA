@@ -32,11 +32,11 @@
  *  to the probabilities of unpaired regions of maximum length u.
  *  Each array in #pu_contrib contains one of the contributions to the
  *  total probability of being unpaired: The probability of being unpaired
- *  within an exterior loop is in array #pu_contrib->E, the probability
- *  of being unpaired within a hairpin loop is in array #pu_contrib->H,
+ *  within an exterior loop is in array #pu_contrib.E, the probability
+ *  of being unpaired within a hairpin loop is in array #pu_contrib.H,
  *  the probability of being unpaired within an internal loop is in array
- *  #pu_contrib->I and probability of being unpaired within a multi-loop
- *  is in array #pu_contrib->M. The total probability of being unpaired
+ *  #pu_contrib.I and probability of being unpaired within a multi-loop
+ *  is in array #pu_contrib.M. The total probability of being unpaired
  *  is the sum of the four arrays of #pu_contrib.
  * 
  *  This function frees everything allocated automatically. To

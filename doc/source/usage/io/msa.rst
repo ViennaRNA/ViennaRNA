@@ -1,6 +1,8 @@
 Multiple Sequence Alignments (MSA)
 ==================================
 
+.. _msa-formats-clustal:
+
 ClustalW format
 ---------------
 
@@ -47,6 +49,8 @@ Here is an example alignment in ClustalW format:
    :literal:
 
 
+.. _msa-formats-stockholm:
+
 Stockholm 1.0 format
 --------------------
 
@@ -62,6 +66,8 @@ Here is an example alignment in Stockholm 1.0 format:
   their interpretation in the consensus secondary structure line ``SS_cons``.
 
 
+.. _msa-formats-fasta:
+
 FASTA (Pearson) format
 ----------------------
 
@@ -76,6 +82,8 @@ Here is an example alignment in FASTA format:
 .. include:: ../../../../examples/files/alignment_fasta.fa
    :literal:
 
+
+.. _msa-formats-maf:
 
 MAF format
 ----------

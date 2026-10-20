@@ -25,7 +25,7 @@
  */
 
 /**
- *  @brief Create a pair table from a dot-bracket notation of a secondary structure
+ *  @brief Create a pair table from a @rstinline :ref:`dot-bracket-notation` @endrst of a secondary structure
  *
  *  Returns a newly allocated table, such that table[i]=j if (i.j) pair
  *  or 0 if i is unpaired, table[0] contains the length of the structure.
@@ -43,7 +43,7 @@ vrna_ptable(const char *structure);
  *  @brief  Create a pair table for a secondary structure string
  *
  *  This function takes an input string of a secondary structure annotation
- *  in @ref dot-bracket-notation or @ref dot-bracket-ext-notation, and converts
+ *  in @rstinline :ref:`dot-bracket-notation` @endrst or @rstinline :ref:`dot-bracket-ext-notation` @endrst, and converts
  *  it into a pair table representation.
  *
  *  @note   This function also extracts crossing base pairs, i.e. pseudo-knots
@@ -54,7 +54,7 @@ vrna_ptable(const char *structure);
  *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
  *       VRNA_BRACKETS_ALPHA, #VRNA_BRACKETS_DEFAULT, #VRNA_BRACKETS_ANY
  *
- *  @param  structure Secondary structure in @ref dot-bracket-ext-notation
+ *  @param  structure Secondary structure in @rstinline :ref:`dot-bracket-ext-notation` @endrst
  *  @param  options   A bitmask to specify which brackets are recognized during conversion to pair table
  *  @return           A pointer to a new pair table of the provided secondary structure
  */

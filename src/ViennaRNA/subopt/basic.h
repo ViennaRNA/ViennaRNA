@@ -40,7 +40,7 @@ typedef struct vrna_subopt_sol_s vrna_subopt_solution_t;
  * @param energy    The free energy of the secondary structure in kcal/mol
  * @param data      Some arbitrary, auxiliary data address as passed to vrna_subopt_cb()
  */
-typedef void (*vrna_subopt_result_f)(const char  *stucture,
+typedef void (*vrna_subopt_result_f)(const char  *structure,
                                     float       energy,
                                     void        *data);
 
