@@ -7,7 +7,7 @@
 #include <ViennaRNA/params/basic.h>
 
 /**
- *  @file     ViennaRNA/probabilities/hrelices.h
+ *  @file     ViennaRNA/probabilities/helices.h
  *  @ingroup  thermodynamics
  *  @brief    Equilibrium Helix Probability implementations
  *
