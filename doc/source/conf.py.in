@@ -269,7 +269,7 @@ breathe_default_members = ('members', 'undoc-members')
 sphinx_contributors_conf = {
     "avatar_image_default" : "sc_user_avartar_default.svg",
     "all_contributors" : True,
-    "all_contributors_file" : "../.all-contributorsrc",
+    "all_contributors_file" : "@top_srcdir@/.all-contributorsrc",
 }
 
 # json binary packages settings
