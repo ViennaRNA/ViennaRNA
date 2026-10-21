@@ -64,7 +64,7 @@ def parse_all_contributors(app, docname, source):
 
     if contributors_config.get("all_contributors", False) and \
         "all_contributors_file" in contributors_config:
-        ac = AllContributors(contributors_config["all_contributors_file"])
+        ac = AllContributors(os.path.join(app.confdir, contributors_config["all_contributors_file"]))
         contributors_config['all_contributors_data'] = ac
 
 class ContributorsDirective(Directive):
@@ -96,7 +96,7 @@ class ContributorsDirective(Directive):
 
         if "byContribution" in order:
             sort_by = 'contribution'
-        if "byCommit" in order:
+        elif "byCommit" in order:
             sort_by = 'commit'
         elif "byName" in order:
             sort_by = 'name'
