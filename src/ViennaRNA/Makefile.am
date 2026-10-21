@@ -340,6 +340,7 @@ vrna_partfunc_HEADERS =   \
 
 
 vrna_probabilities_HEADERS =  \
+    probabilities/basic.h \
     probabilities/basepairs.h \
     probabilities/accessibility.h \
     probabilities/helices.h \

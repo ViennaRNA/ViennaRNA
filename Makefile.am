@@ -50,8 +50,8 @@ distdir: $(BUILT_SOURCES)
   (cd src/ViennaRNA && $(MAKE) $(AM_MAKEFLAGS) && \
   cd ../../man && $(MAKE) $(AM_MAKEFLAGS) && \
   cd ../doc/doxygen && $(MAKE) $(AM_MAKEFLAGS) && \
-  cd ../source/man && $(MAKE) $(AM_MAKEFLAGS) && \
-  cd ../../../interfaces/Python && $(MAKE) $(AM_MAKEFLAGS) && \
+  cd ../source/usage/man && $(MAKE) $(AM_MAKEFLAGS) && \
+  cd ../../../../interfaces/Python && $(MAKE) $(AM_MAKEFLAGS) && \
   cd ../../doc && $(MAKE) $(AM_MAKEFLAGS) && \
   cd ../interfaces/Python && $(MAKE) $(AM_MAKEFLAGS) clean && \
   cd ../../src/ViennaRNA && $(MAKE) $(AM_MAKEFLAGS) clean))
