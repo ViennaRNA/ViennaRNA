@@ -138,6 +138,11 @@ div.rst-versions > div.rst-other-versions > div.injected > dl:nth-child(4) {
     border-radius: 50% !important;
 }
 
+/* stack footer items horizontally */
+.footer-items__start, .footer-items__end {
+  flex-direction: row !important;
+}
+
 /* Main index page overview images */
 
 html[data-theme=dark] .sd-card img[src*='.svg'] {

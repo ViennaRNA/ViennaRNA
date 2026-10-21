@@ -144,6 +144,8 @@ option_emphasise_placeholders = True
 #html_logo = "gfx/vrna_logo.png"
 html_favicon = 'gfx/vrna_logo_32.png'
 
+html_last_updated_fmt = ""
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
@@ -178,7 +180,7 @@ html_theme_options = {
       },
     ],
     "footer_start": ["copyright"],
-    "footer_end": ["theme-version", "sphinx-version"],
+    "footer_end": ["sphinx-version", "theme-version", "last-updated"],
 }
 
 # sphinx-copybutton config
@@ -219,6 +221,7 @@ html_context = {
 
 # remove sidebar from install page
 html_sidebars = {
+  "**": ["search-field.html", "sidebar-nav-bs.html", "sidebar-ethical-ads.html"],
   "index": [],
   "install": [],
   "news": [],
