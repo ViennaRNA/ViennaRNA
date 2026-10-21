@@ -1,6 +1,6 @@
 sphinx
-sphinx-multiproject
 myst-parser
 sphinx-copybutton
 sphinxcontrib-bibtex
-sphinx-rtd-theme
+sphinx-design
+pydata-sphinx-theme

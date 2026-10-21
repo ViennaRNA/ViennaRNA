@@ -14,4 +14,4 @@ dependencies:
     - sphinx-copybutton
     - sphinx-design
     - sphinxcontrib-bibtex
-    - sphinx-rtd-theme
+    - pydata-sphinx-theme
