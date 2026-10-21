@@ -1,17 +1,19 @@
+from operator import attrgetter
 from docutils import nodes
+import copy
 
 class Contributor:
     def __init__(
                   self,
                   login,
                   url,
-                  contributions = [],
+                  contributions = None,
                   avatar_url="",
                   name="",
                   email="",
-                  aliases = [],
+                  aliases = None,
                   anonymous = True,
-                  source = []
+                  source = None
                 ):
         self.login = login
         self.url = url
@@ -36,7 +38,7 @@ class Contributor:
             elif isinstance(source, list) or isinstance(source, tuple):
                 self.source.extend([s for s in source])
 
-        self.contributions = contributions
+        self.contributions = copy.deepcopy(contributions) if contributions is not None else []
         if isinstance(self.contributions, int):
             # assume contribution is a code commit
             self.contributions = [ { 'type' : "code", 'commits': self.contributions } ]
@@ -76,13 +78,13 @@ class Contributor:
 
                         if k in self.contributions[found]:
                             if isinstance(v, str):
-                                self.contributions[found][k] = ", ".join(self.contributions[found][k], v)
+                                self.contributions[found][k] = ", ".join([ str(self.contributions[found][k]), v ])
                             else:
                                 self.contributions[found][k] += v
                         else:
                             self.contributions[found][k] = v
             else:
-                self.contributions.append(c)
+                self.contributions.append(copy.deepcopy(c))
 
     def update(self, data, keep = []):
         if isinstance(data, Contributor):

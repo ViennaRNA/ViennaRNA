@@ -130,7 +130,7 @@ def get_github_user_data(login, options = {}):
                     anonymous     = False,
                     source        = 'github-user'
                 )
-    except requests.exceptions.HTTPError as err:
+    except requests.exceptions.RequestException as err:
         log.warning(f"Error while retrieving user data for github login \"{login}\" {err=}, {type(err)=}")
 
     return None
@@ -141,14 +141,24 @@ def _git_shortlog(repo_name):
     from . import logger as log
 
     try:
+        # explicitly strip Git repository-location environment variables
+        # (GIT_DIR, GIT_WORK_TREE, GIT_INDEX_FILE, GIT_OBJECT_DIRECTORY, etc.)
+        # from the child process environment before invoking
+        env = {k: v for k, v in os.environ.items()
+               if k not in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE",
+                            "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+                            "GIT_COMMON_DIR")}
         r = subprocess.run(['git',
                             '-C', repo_name,
                             'shortlog',
                             '--summary',
                             '--numbered',
-                            '--email'
+                            '--email',
+                            'HEAD',
                            ],
+                           stdin=subprocess.DEVNULL,
                            stdout=subprocess.PIPE,
+                           env=env,
                            timeout = 120)
         r.check_returncode()
 

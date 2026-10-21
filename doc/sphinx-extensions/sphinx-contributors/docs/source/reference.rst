@@ -40,7 +40,7 @@ Contributors directive
       attribute to use while ordering, the second to specify ascending or descending order. Use the following keywords to select an order attribute:
 
       - ``byContribution`` to order by the total number of contributions
-      - ``byCommits`` to order by the total number of git commits
+      - ``byCommit`` to order by the total number of git commits
       - ``byName`` to order by the cotributors full name
       - ``byLogin`` to order by the contributors login name
       - ``byEmail`` to order by the contributors email address
@@ -57,7 +57,7 @@ Contributors directive
 
       Show only avatar images with no usernames or contribution counts. Each avatar links to the contributor's (GitHub) profile, and the username is shown as a tooltip on hover. Implies ``:avatars:``.
 
-    .. rst:directive:option:: avatars_size
+    .. rst:directive:option:: avatar_size
       :type: int
 
       Set the avatar size in pixels. Default is specified by the global default setting ``sphinx_contributors_conf['avatar_size_default']``.
@@ -68,7 +68,7 @@ Contributors directive
       If present, individual contributions are shown. The optional string argument is a whitespace delimited
       list of keywords to change the level of detail of the contribution output. By default, a detailed list
       of contributions is created. Use the ``brief`` keyword to create a brief list of contribution types.
-      Add the ``emoji`` keyword to place an emoji icon before the contribution type. Use the ``emoji-only``
+      Add the ``emoji`` keyword to place an emoji icon before the contribution type. Use the ``emojis-only``
       keyword to omit the contribution type text and only render the emoji icon if one is available for the
       particular contribution type. Detailed output may consist of additional text describing the contribution
       and key/value pairs, such as total number of commits in git repositories.
