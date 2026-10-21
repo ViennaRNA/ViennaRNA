@@ -44,16 +44,17 @@ jobs:
           python3-sphinxcontrib.bibtex \
           python3-sphinx-copybutton \
           python3-sphinx-design \
-          python3-sphinx-rtd-theme \
+          python3-pydata-sphinx-theme \
           texlive-latex-recommended \
           texlive-latex-extra \
           texlive-font-utils \
-          texlive-fonts-recommended
+          texlive-fonts-recommended \
+          cmake
     - name: Checkout swig repo
       uses: actions/checkout@v6
       with:
         repository: swig/swig
-        ref: 'v4.4.0'
+        ref: 'v4.5.1'
         path: swig
     - name: Install swig
       run:  |
@@ -65,7 +66,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         repository: doxygen/doxygen
-        ref: 'Release_1_15_0'
+        ref: 'Release_1_18_0'
         path: doxygen
     - name: Install doxygen
       run:  |
