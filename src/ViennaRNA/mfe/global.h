@@ -114,10 +114,6 @@ DEPRECATED(float
  *        you require other conditions than specified by the default model details, use vrna_mfe(),
  *        and the data structure #vrna_fold_compound_t instead.
  *
- *  @rst
- *  .. include:: ../examples/vrna_fold.rst
- *  @endrst
- *
  *  @see vrna_circfold(), vrna_mfe()
  *
  *  @param sequence   RNA sequence
