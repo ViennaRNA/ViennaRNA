@@ -1,0 +1,136 @@
+{
+  "2.7.x": { "package": { "viennarna-2.7.2-src-any" : "packages/source/ViennaRNA-2.7.2.tar.gz",
+                          "viennarna-2.7.1-src-any" : "packages/source/ViennaRNA-2.7.1.tar.gz",
+                          "viennarna-2.7.0-src-any" : "packages/source/ViennaRNA-2.7.0.tar.gz"},
+             "flavor": "SourceCode"
+           },
+  "2.6.x": { "package": { "viennarna-2.6.4-src-any" : "packages/source/ViennaRNA-2.6.4.tar.gz",
+                          "viennarna-2.6.3-src-any" : "packages/source/ViennaRNA-2.6.3.tar.gz",
+                          "viennarna-2.6.2-src-any" : "packages/source/ViennaRNA-2.6.2.tar.gz",
+                          "viennarna-2.6.1-src-any" : "packages/source/ViennaRNA-2.6.1.tar.gz",
+                          "viennarna-2.6.0-src-any" : "packages/source/ViennaRNA-2.6.0.tar.gz"},
+             "flavor": "SourceCode"
+           },
+  "2.5.x": { "package": { "viennarna-2.5.0-src-any" : "packages/source/ViennaRNA-2.5.0.tar.gz",
+                          "viennarna-2.5.1-src-any" : "packages/source/ViennaRNA-2.5.1.tar.gz"},
+             "flavor": "SourceCode"
+           },
+  "2.4.x": { "package": { "viennarna-2.4.18-src-any" : "packages/source/ViennaRNA-2.4.18.tar.gz",
+                          "viennarna-2.4.17-src-any" : "packages/source/ViennaRNA-2.4.17.tar.gz",
+                          "viennarna-2.4.16-src-any" : "packages/source/ViennaRNA-2.4.16.tar.gz",
+                          "viennarna-2.4.15-src-any" : "packages/source/ViennaRNA-2.4.15.tar.gz",
+                          "viennarna-2.4.14-src-any" : "packages/source/ViennaRNA-2.4.14.tar.gz",
+                          "viennarna-2.4.13-src-any" : "packages/source/ViennaRNA-2.4.13.tar.gz",
+                          "viennarna-2.4.12-src-any" : "packages/source/ViennaRNA-2.4.12.tar.gz",
+                          "viennarna-2.4.11-src-any" : "packages/source/ViennaRNA-2.4.11.tar.gz",
+                          "viennarna-2.4.10-src-any" : "packages/source/ViennaRNA-2.4.10.tar.gz",
+                          "viennarna-2.4.9-src-any" : "packages/source/ViennaRNA-2.4.9.tar.gz",
+                          "viennarna-2.4.8-src-any" : "packages/source/ViennaRNA-2.4.8.tar.gz",
+                          "viennarna-2.4.7-src-any" : "packages/source/ViennaRNA-2.4.7.tar.gz",
+                          "viennarna-2.4.6-src-any" : "packages/source/ViennaRNA-2.4.6.tar.gz",
+                          "viennarna-2.4.5-src-any" : "packages/source/ViennaRNA-2.4.5.tar.gz",
+                          "viennarna-2.4.4-src-any" : "packages/source/ViennaRNA-2.4.4.tar.gz",
+                          "viennarna-2.4.3-src-any" : "packages/source/ViennaRNA-2.4.3.tar.gz",
+                          "viennarna-2.4.2-src-any" : "packages/source/ViennaRNA-2.4.2.tar.gz",
+                          "viennarna-2.4.1-src-any" : "packages/source/ViennaRNA-2.4.1.tar.gz",
+                          "viennarna-2.4.0-src-any" : "packages/source/ViennaRNA-2.4.0.tar.gz"
+                        },
+             "flavor" : "SourceCode"
+           },
+  "2.3.x": { "package": { "viennarna-2.3.5-src-any" : "packages/source/ViennaRNA-2.3.5.tar.gz",
+                          "viennarna-2.3.4-src-any" : "packages/source/ViennaRNA-2.3.4.tar.gz",
+                          "viennarna-2.3.3-src-any" : "packages/source/ViennaRNA-2.3.3.tar.gz",
+                          "viennarna-2.3.2-src-any" : "packages/source/ViennaRNA-2.3.2.tar.gz",
+                          "viennarna-2.3.1-src-any" : "packages/source/ViennaRNA-2.3.1.tar.gz",
+                          "viennarna-2.3.0-src-any" : "packages/source/ViennaRNA-2.3.0.tar.gz"
+                        },
+             "flavor" : "SourceCode"
+           },
+  "2.2.x": { "package": { "viennarna-2.2.10-src-any" : "packages/source/ViennaRNA-2.2.10.tar.gz",
+                          "viennarna-2.2.9-src-any" : "packages/source/ViennaRNA-2.2.9.tar.gz",
+                          "viennarna-2.2.8-src-any" : "packages/source/ViennaRNA-2.2.8.tar.gz",
+                          "viennarna-2.2.7-src-any" : "packages/source/ViennaRNA-2.2.7.tar.gz",
+                          "viennarna-2.2.6-src-any" : "packages/source/ViennaRNA-2.2.6.tar.gz",
+                          "viennarna-2.2.5-src-any" : "packages/source/ViennaRNA-2.2.5.tar.gz",
+                          "viennarna-2.2.4-src-any" : "packages/source/ViennaRNA-2.2.4.tar.gz",
+                          "viennarna-2.2.3-src-any" : "packages/source/ViennaRNA-2.2.3.tar.gz",
+                          "viennarna-2.2.2-src-any" : "packages/source/ViennaRNA-2.2.2.tar.gz",
+                          "viennarna-2.2.1-src-any" : "packages/source/ViennaRNA-2.2.1.tar.gz",
+                          "viennarna-2.2.0-src-any" : "packages/source/ViennaRNA-2.2.0.tar.gz"
+                        },
+              "flavor" :  "SourceCode"
+            },
+  "2.1.x": { "package": { "viennarna-2.1.9-src-any" : "packages/source/ViennaRNA-2.1.9.tar.gz",
+                          "viennarna-2.1.8-src-any" : "packages/source/ViennaRNA-2.1.8.tar.gz",
+                          "viennarna-2.1.7-src-any" : "packages/source/ViennaRNA-2.1.7.tar.gz",
+                          "viennarna-2.1.6-src-any" : "packages/source/ViennaRNA-2.1.6.tar.gz",
+                          "viennarna-2.1.5-src-any" : "packages/source/ViennaRNA-2.1.5.tar.gz",
+                          "viennarna-2.1.4-src-any" : "packages/source/ViennaRNA-2.1.4.tar.gz",
+                          "viennarna-2.1.3-src-any" : "packages/source/ViennaRNA-2.1.3.tar.gz",
+                          "viennarna-2.1.2-src-any" : "packages/source/ViennaRNA-2.1.2.tar.gz",
+                          "viennarna-2.1.1-src-any" : "packages/source/ViennaRNA-2.1.1.tar.gz",
+                          "viennarna-2.1.0-src-any" : "packages/source/ViennaRNA-2.1.0.tar.gz"
+                        },
+              "flavor" :  "SourceCode"
+            },
+  "2.0.x": { "package": { "viennarna-2.0.7-src-any" : "packages/source/ViennaRNA-2.0.7.tar.gz",
+                          "viennarna-2.0.6-src-any" : "packages/source/ViennaRNA-2.0.6.tar.gz",
+                          "viennarna-2.0.5-src-any" : "packages/source/ViennaRNA-2.0.5.tar.gz",
+                          "viennarna-2.0.4-src-any" : "packages/source/ViennaRNA-2.0.4.tar.gz",
+                          "viennarna-2.0.3b-src-any" : "packages/source/ViennaRNA-2.0.3b.tar.gz",
+                          "viennarna-2.0.3-src-any" : "packages/source/ViennaRNA-2.0.3.tar.gz",
+                          "viennarna-2.0.2-src-any" : "packages/source/ViennaRNA-2.0.2.tar.gz",
+                          "viennarna-2.0.1-src-any" : "packages/source/ViennaRNA-2.0.1.tar.gz",
+                          "viennarna-2.0.0-src-any" : "packages/source/ViennaRNA-2.0.0.tar.gz"
+                        },
+              "flavor" :  "SourceCode"
+            },
+  "1.8.x": { "package": { "viennarna-1.8.5-src-any" : "packages/source/ViennaRNA-1.8.5.tar.gz",
+                          "viennarna-1.8.4-src-any" : "packages/source/ViennaRNA-1.8.4.tar.gz",
+                          "viennarna-1.8.3-src-any" : "packages/source/ViennaRNA-1.8.3.tar.gz",
+                          "viennarna-1.8.2-src-any" : "packages/source/ViennaRNA-1.8.2.tar.gz",
+                          "viennarna-1.8.1-src-any" : "packages/source/ViennaRNA-1.8.1.tar.gz",
+                          "viennarna-1.8.0-src-any" : "packages/source/ViennaRNA-1.8.0.tar.gz"
+                        },
+              "flavor" :  "SourceCode"
+            },
+  "1.7.x": { "package": { "viennarna-1.7.2-src-any" : "packages/source/ViennaRNA-1.7.2.tar.gz",
+                          "viennarna-1.7.1-src-any" : "packages/source/ViennaRNA-1.7.1.tar.gz",
+                          "viennarna-1.7.0-src-any" : "packages/source/ViennaRNA-1.7.tar.gz"
+                        },
+              "flavor" :  "SourceCode"
+            },
+  "1.6.x": { "package": { "viennarna-1.6.5-src-any" : "packages/source/ViennaRNA-1.6.5.tar.gz",
+                          "viennarna-1.6.4-src-any" : "packages/source/ViennaRNA-1.6.4.tar.gz",
+                          "viennarna-1.6.3-src-any" : "packages/source/ViennaRNA-1.6.3.tar.gz",
+                          "viennarna-1.6.2-src-any" : "packages/source/ViennaRNA-1.6.2.tar.gz",
+                          "viennarna-1.6.1-src-any" : "packages/source/ViennaRNA-1.6.1.tar.gz",
+                          "viennarna-1.6.0-src-any" : "packages/source/ViennaRNA-1.6.tar.gz",
+                          "viennarna-1.6.0alpha-src-any" : "packages/source/ViennaRNA-1.6alpha.tar.gz"
+                        },
+              "flavor" :  "SourceCode"
+            },
+  "1.5.x": { "package": { "viennarna-1.5beta-src-any" : "packages/source/ViennaRNA-1.5beta.tar.gz",
+                          "viennarna-1.5alpha-src-any" : "packages/source/ViennaRNA-1.5alpha.tar.gz"
+                        },
+              "flavor" :  "SourceCode"
+            },
+  "1.4.x": { "package": { "viennarna-1.4-src-any" : "packages/source/ViennaRNA-1.4.tar.gz"
+                        },
+              "flavor" :  "SourceCode"
+            },
+  "1.3.x": { "package": { "viennarna-1.3-src-any" : "packages/source/ViennaRNA-1.3.tar.gz",
+                          "viennarna-1.3.1-src-any" : "packages/source/ViennaRNA-1.3.1.tar.gz"
+                        },
+              "flavor" :  "SourceCode"
+            },
+  "1.2.x": { "package": { "viennarna-1.2-src-any" : "packages/source/ViennaRNA-1.2.tar.gz",
+                          "viennarna-1.2.1-src-any" : "packages/source/ViennaRNA-1.2.1.tar.gz"
+                        },
+              "flavor" :  "SourceCode"
+            },
+  "1.1.x": { "package": { "viennarna-1.1b-src-any" : "packages/source/ViennaRNA-1.1b.tar.gz"
+                        },
+              "flavor" :  "SourceCode"
+            }
+}

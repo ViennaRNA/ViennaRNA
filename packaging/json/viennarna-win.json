@@ -1,0 +1,7 @@
+{
+  "Windows":  { "package":  { "viennarna-2.7.2-win-x86_64" : "packages/win/Install-ViennaRNA-2.7.2_64bit.exe",
+                              "viennarna-2.7.2-win-i686": "packages/win/Install-ViennaRNA-2.7.2_32bit.exe"
+                                },
+                    "flavor": "Win"
+                  }
+}

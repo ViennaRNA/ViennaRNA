@@ -25,6 +25,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = RNAlib2.pc
 
 EXTRA_DIST =  packaging/debian \
+              packaging/json \
               packaging/make_windows_installer.sh \
               license.txt \
               README.md \
