@@ -180,7 +180,8 @@ html_theme_options = {
       },
     ],
     "footer_start": ["copyright"],
-    "footer_end": ["sphinx-version", "theme-version", "last-updated"],
+    "footer_center": ["last-updated"],
+    "footer_end": ["sphinx-version", "theme-version"],
 }
 
 # sphinx-copybutton config
@@ -221,7 +222,7 @@ html_context = {
 
 # remove sidebar from install page
 html_sidebars = {
-  "**": ["search-field.html", "sidebar-nav-bs.html", "sidebar-ethical-ads.html"],
+  "**": ["sidebar-nav-bs.html", "sidebar-ethical-ads.html"],
   "index": [],
   "install": [],
   "news": [],
