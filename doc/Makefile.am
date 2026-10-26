@@ -65,7 +65,7 @@ endif WITH_REFERENCE_MANUAL_PDF
 ##--------------------------------------------------##
 if WITH_REFERENCE_MANUAL_BUILD
 
-refman-html: $(pkginclude_HEADERS) doxygen/doxygen-xml $(REFMAN_MANPAGES)
+refman-html: $(pkginclude_HEADERS) doxygen/doxygen-xml $(REFMAN_MANPAGES) CLA/@CLA_I_PDF_NAME@ CLA/@CLA_E_PDF_NAME@
 	$(sphinx_verbose)(rm -f refman-html && \
     $(SPHINXBUILD) -M html source build >sphinx.log 2>&1 && \
     touch refman-html) || cat sphinx.log

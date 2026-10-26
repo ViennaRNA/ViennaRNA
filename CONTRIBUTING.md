@@ -1,4 +1,4 @@
-# How to Contribute
+# Contributing to ViennaRNA
 
 ## Contents
 - [General Remarks](#general-remarks)
@@ -89,6 +89,13 @@ This contributor agreement ("Agreement") documents the rights granted by contrib
 to Us. To make this document effective, please sign it and send it to Us by email to
 rna@tbi.univie.ac.at.
 
-The respective CLA PDF documents are available in the [doc/CLA directory](doc/CLA) of
+The respective CLA PDF documents are available in the `doc/CLA` directory of
 the distribution tarball, and online at our
-[official ViennaRNA Website](https://www.tbi.univie.ac.at/RNA/contributing.html).
+[official ViennaRNA Website](https://www.tbi.univie.ac.at/RNA/contributors.html):
+
+[ViennaRNA Package - Individual Contributor License Agreement](doc/CLA/ViennaRNA-CLA-Individual.pdf)
+
+[ViennaRNA Package - Entity Contributor License Agreement](doc/CLA/ViennaRNA-CLA-Entity.pdf)
+
+
+
