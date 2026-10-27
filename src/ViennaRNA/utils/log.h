@@ -52,6 +52,7 @@ typedef struct vrna_log_event_s {
   vrna_log_levels_e level;          /**< The log level */
   int               line_number;    /**< The source code line number that issued the log */
   const char        *file_name;     /**< The source code file that issued the log */
+  const char        *function;      /**< The name of the lexically-enclosing function that issued the log */
 } vrna_log_event_t;
 
 
@@ -97,10 +98,10 @@ typedef void (*vrna_logdata_free_f)(void *data);
  *  only user-defined callbacks will be seeing any logs.
  *
  *  @see  vrna_log_options_set(), vrna_log_options(), vrna_log_reset(),
- *        #VRNA_LOG_OPTION_TRACE_CALL, #VRNA_LOG_OPTION_TRACE_TIME,
- *        #VRNA_LOG_OPTION_DEFAULT
+ *        #VRNA_LOG_OPTION_TRACE_CALL, #VRNA_LOG_OPTION_TRACE_FUNC,
+ *        #VRNA_LOG_OPTION_TRACE_TIME, #VRNA_LOG_OPTION_DEFAULT
  */
-#define VRNA_LOG_OPTION_QUIET       1U
+#define VRNA_LOG_OPTION_QUIET       (1 << 0)
 
 
 /**
@@ -113,9 +114,25 @@ typedef void (*vrna_logdata_free_f)(void *data);
  *
  *  @see  vrna_log_options_set(), vrna_log_options(), vrna_log_reset(),
  *        #VRNA_LOG_OPTION_QUIET, #VRNA_LOG_OPTION_TRACE_TIME,
- *        #VRNA_LOG_OPTION_DEFAULT
+ *        #VRNA_LOG_OPTION_TRACE_FUNC, #VRNA_LOG_OPTION_DEFAULT
  */
-#define VRNA_LOG_OPTION_TRACE_CALL  2U
+#define VRNA_LOG_OPTION_TRACE_CALL  (1 << 1)
+
+
+/**
+ *  @brief  Log option to turn on calling funmction tracing
+ *
+ *  When this option is set via vrna_log_options_set()
+ *  the internal logging system will include a call
+ *  trace to the log output to retrieve the name of the
+ *  function that issued the log. The function name will
+ *  then be included in the log message.
+ *
+ *  @see  vrna_log_options_set(), vrna_log_options(), vrna_log_reset(),
+ *        #VRNA_LOG_OPTION_QUIET, #VRNA_LOG_OPTION_TRACE_CALL,
+ *        #VRNA_LOG_OPTION_TRACE_TIME, #VRNA_LOG_OPTION_DEFAULT
+ */
+#define VRNA_LOG_OPTION_TRACE_FUNC  (1 << 2)
 
 
 /**
@@ -128,9 +145,9 @@ typedef void (*vrna_logdata_free_f)(void *data);
  *
  *  @see  vrna_log_options_set(), vrna_log_options(), vrna_log_reset(),
  *        #VRNA_LOG_OPTION_QUIET, #VRNA_LOG_OPTION_TRACE_CALL,
- *        #VRNA_LOG_OPTION_DEFAULT
+ *        #VRNA_LOG_OPTION_TRACE_FUNC, #VRNA_LOG_OPTION_DEFAULT
  */
-#define VRNA_LOG_OPTION_TRACE_TIME  4U
+#define VRNA_LOG_OPTION_TRACE_TIME  (1 << 3)
 
 
 /**
@@ -141,7 +158,7 @@ typedef void (*vrna_logdata_free_f)(void *data);
  *
  *  @see  vrna_log_options_set(), vrna_log_options(), vrna_log_reset(),
  *        #VRNA_LOG_OPTION_QUIET, #VRNA_LOG_OPTION_TRACE_CALL,
- *        #VRNA_LOG_OPTION_TRACE_TIME
+ *        #VRNA_LOG_OPTION_TRACE_FUNC, #VRNA_LOG_OPTION_TRACE_TIME
  */
 #define VRNA_LOG_OPTION_DEFAULT     0U
 
@@ -158,7 +175,7 @@ typedef void (*vrna_logdata_free_f)(void *data);
 #ifndef VRNA_LOG_NO_DEBUG_RNALIB
 # define vrna_log_debug(...) \
         do { \
-          vrna_log(VRNA_LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__); \
+          vrna_log(VRNA_LOG_LEVEL_DEBUG, __FILE__, __func__, __LINE__, __VA_ARGS__); \
         } while (0)
 #else
 # define vrna_log_debug(...)
@@ -174,7 +191,7 @@ typedef void (*vrna_logdata_free_f)(void *data);
  */
 #define vrna_log_info(...) \
         do { \
-          vrna_log(VRNA_LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__); \
+          vrna_log(VRNA_LOG_LEVEL_INFO, __FILE__, __func__, __LINE__, __VA_ARGS__); \
         } while (0)
 
 /**
@@ -188,7 +205,7 @@ typedef void (*vrna_logdata_free_f)(void *data);
  */
 #define vrna_log_warning(...) \
         do { \
-          vrna_log(VRNA_LOG_LEVEL_WARNING, __FILE__, __LINE__, __VA_ARGS__); \
+          vrna_log(VRNA_LOG_LEVEL_WARNING, __FILE__, __func__, __LINE__, __VA_ARGS__); \
         } while (0)
 
 /**
@@ -202,7 +219,7 @@ typedef void (*vrna_logdata_free_f)(void *data);
  */
 #define vrna_log_error(...) \
         do { \
-          vrna_log(VRNA_LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__); \
+          vrna_log(VRNA_LOG_LEVEL_ERROR, __FILE__, __func__, __LINE__, __VA_ARGS__); \
         } while (0)
 
 /**
@@ -216,21 +233,22 @@ typedef void (*vrna_logdata_free_f)(void *data);
  */
 #define vrna_log_critical(...) \
         do { \
-          vrna_log(VRNA_LOG_LEVEL_CRITICAL, __FILE__, __LINE__, __VA_ARGS__); \
+          vrna_log(VRNA_LOG_LEVEL_CRITICAL, __FILE__, __func__, __LINE__, __VA_ARGS__); \
         } while (0)
 
 
 /**
  *  @brief  Issue a log message
  *
- *  This is the low-level log message function. Usually, you don't want to call
- *  it directly but rather call one of the following high-level macros instead:
+ *  This is the low-level log message function.
+ *  @warning  Usually, you don't want to call this function directly but rather
+ *            call one of the following high-level macros instead:
  *
- *  - #vrna_log_debug
- *  - #vrna_log_info
- *  - #vrna_log_warning
- *  - #vrna_log_error
- *  - #vrna_log_critical
+ *            - #vrna_log_debug
+ *            - #vrna_log_info
+ *            - #vrna_log_warning
+ *            - #vrna_log_error
+ *            - #vrna_log_critical
  *
  *  @see  #vrna_log_debug, #vrna_log_info, #vrna_log_warning, #vrna_log_error,
  *        #vrna_log_critical, vrna_log_level_set(), vrna_log_options_set(),
@@ -238,6 +256,7 @@ typedef void (*vrna_logdata_free_f)(void *data);
  *
  *  @param  level         The log level
  *  @param  file_name     The source code file name of the file that issued the log
+ *  @param  function      The name of the lexically-enclosing function that issued the log
  *  @param  line_number   The source code line number that issued the log
  *  @param  format_string The printf-like format string containing the log message
  *  @param  ...           The variable argument list for the printf-like @p format_string
@@ -245,6 +264,7 @@ typedef void (*vrna_logdata_free_f)(void *data);
 void
 vrna_log(vrna_log_levels_e  level,
          const char         *file_name,
+         const char         *function,
          int                line_number,
          const char         *format_string,
          ...);
@@ -281,8 +301,9 @@ vrna_log_level_set(vrna_log_levels_e level);
  *  @brief  Get the current log options of the default logging system
  *
  *  @see  vrna_log_options_set(),
- *        #VRNA_LOG_OPTION_QUIET, #VRNA_LOG_OPTION_TRACE_TIME
- *        #VRNA_LOG_OPTION_TRACE_CALL, #VRNA_LOG_OPTION_DEFAULT
+ *        #VRNA_LOG_OPTION_QUIET, #VRNA_LOG_OPTION_TRACE_TIME,
+ *        #VRNA_LOG_OPTION_TRACE_CALL, #VRNA_LOG_OPTION_TRACE_FUNC,
+ *        #VRNA_LOG_OPTION_DEFAULT
  *
  *  @return The current options for the default logging system
  */
@@ -295,7 +316,8 @@ vrna_log_options(void);
  *
  *  @see  vrna_log_options(),
  *        #VRNA_LOG_OPTION_QUIET, #VRNA_LOG_OPTION_TRACE_TIME
- *        #VRNA_LOG_OPTION_TRACE_CALL, #VRNA_LOG_OPTION_DEFAULT
+ *        #VRNA_LOG_OPTION_TRACE_CALL, #VRNA_LOG_OPTION_TRACE_FUNC,
+ *        #VRNA_LOG_OPTION_DEFAULT
  *
  *  @param  options   The new options for the default logging system
  */

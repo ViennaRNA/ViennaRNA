@@ -116,6 +116,7 @@ get_log_level_string(vrna_log_levels_e level);
 PUBLIC void
 vrna_log(vrna_log_levels_e  level,
          const char         *file_name,
+         const char         *function,
          int                line_number,
          const char         *format_string,
          ...)
@@ -124,7 +125,8 @@ vrna_log(vrna_log_levels_e  level,
     .format_string  = format_string,
     .level          = level,
     .line_number    = line_number,
-    .file_name      = file_name
+    .file_name      = file_name,
+    .function       = function
   };
 
   va_start(event.params, format_string);
@@ -335,7 +337,8 @@ vrna_message_verror(const char  *format,
     .format_string  = format,
     .level          = VRNA_LOG_LEVEL_ERROR,
     .line_number    = __LINE__,
-    .file_name      = __FILE__
+    .file_name      = __FILE__,
+    .function       = __func__
   };
 
   va_copy(event.params, args);
@@ -368,7 +371,8 @@ vrna_message_vwarning(const char  *format,
     .format_string  = format,
     .level          = VRNA_LOG_LEVEL_WARNING,
     .line_number    = __LINE__,
-    .file_name      = __FILE__
+    .file_name      = __FILE__,
+    .function       = __func__
   };
 
   va_copy(event.params, args);
@@ -410,7 +414,8 @@ vrna_message_vinfo(FILE       *fp_p,
     .format_string  = format,
     .level          = VRNA_LOG_LEVEL_INFO,
     .line_number    = __LINE__,
-    .file_name      = __FILE__
+    .file_name      = __FILE__,
+    .function       = __func__
   };
 
   va_copy(event.params, args);
@@ -450,32 +455,65 @@ log_default(vrna_log_event_t *event)
             get_log_level_string(event->level));
   } else {
 #endif
-  fprintf(logger.default_file,
-          "%-9s ",
-          get_log_level_string(event->level));
+    fprintf(logger.default_file,
+            "%-9s ",
+            get_log_level_string(event->level));
 #ifndef VRNA_WITHOUT_TTY_COLORS
-}
-
-
+  }
 #endif
 
   /* print file name / line number trace unless turned off explicitely */
-  if (logger.options & VRNA_LOG_OPTION_TRACE_CALL) {
+  if (logger.options & (VRNA_LOG_OPTION_TRACE_CALL | VRNA_LOG_OPTION_TRACE_FUNC)) {
+    if ((logger.options & VRNA_LOG_OPTION_TRACE_CALL) &&
+        (logger.options & VRNA_LOG_OPTION_TRACE_FUNC)) {
+      /* print filename, function name, and line number */
 #ifndef VRNA_WITHOUT_TTY_COLORS
-    if (isatty(fileno(logger.default_file))) {
-      fprintf(logger.default_file,
-              "\x1b[90m%s:%d:" ANSI_COLOR_RESET " ",
+      if (isatty(fileno(logger.default_file))) {
+        fprintf(logger.default_file,
+                "\x1b[90m%s()@%s:%d:" ANSI_COLOR_RESET " ",
+                event->function,
+                event->file_name,
+                event->line_number);
+      } else {
+#endif
+        fprintf(logger.default_file, "%s()@%s:%d: ",
+                event->function,
+                event->file_name,
+                event->line_number);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+      }
+#endif
+    } else if (logger.options & VRNA_LOG_OPTION_TRACE_CALL) {
+      /* print filename and line number */
+#ifndef VRNA_WITHOUT_TTY_COLORS
+      if (isatty(fileno(logger.default_file))) {
+        fprintf(logger.default_file,
+                "\x1b[90m%s:%d:" ANSI_COLOR_RESET " ",
+                event->file_name,
+                event->line_number);
+      } else {
+#endif
+      fprintf(logger.default_file, "%s:%d: ",
               event->file_name,
               event->line_number);
-    } else {
-#endif
-    fprintf(logger.default_file, "%s:%d: ",
-            event->file_name,
-            event->line_number);
 #ifndef VRNA_WITHOUT_TTY_COLORS
-  }
-
+      }
 #endif
+    } else {
+      /* function name */
+#ifndef VRNA_WITHOUT_TTY_COLORS
+      if (isatty(fileno(logger.default_file))) {
+        fprintf(logger.default_file,
+                "\x1b[90m%s():" ANSI_COLOR_RESET " ",
+                event->function);
+      } else {
+#endif
+      fprintf(logger.default_file, "%s(): ",
+              event->function);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+      }
+#endif
+    }
   }
 
   /* print actual message */
