@@ -285,18 +285,11 @@ vrna_hc_prepare(vrna_fold_compound_t  *fc,
       if ((!fc->hc) || (fc->hc->type != VRNA_HC_WINDOW) || (!fc->hc->matrix_local))
         vrna_hc_init_window(fc);
     } else {
-      if (fc->hc->state & STATE_UNINITIALIZED) {
+      if (fc->hc->state & (STATE_DIRTY_BP | STATE_DIRTY_UP)) {
+        default_hc_bp(fc, options);
         default_hc_up(fc, options);
-        default_hc_bp(fc, options);
-      }
 
-      if (fc->hc->state & STATE_DIRTY_BP) {
-        default_hc_bp(fc, options);
         prepare_hc_bp(fc, options);
-      }
-
-      if (fc->hc->state & STATE_DIRTY_UP) {
-        default_hc_up(fc, options);
         prepare_hc_up(fc, options);
       }
 
