@@ -7,6 +7,80 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.7.2...HEAD)
 
+#### Fixed in 
+
+  * Fix wrong include file in `RNAfold.c`
+  * Fix Wuchty subopt with G-quadruplexes
+  * Fix Wuchty subopt with circular RNAs
+  * Fix heap-use-after-free in `RNAsubopt` constraint handling
+  * Remove debug output from `subopt/subopt_zuker.c`
+  * Fix base pair hard constraints for modified bases
+  * Fix compiler warning with `glibc-2.43`
+  * Fix energy evaluation split for internal loops into stacks, bulges, real int loops
+  * Fix application order bug in hard constraints
+  * Fix multibranch loop soft constraints in Wuchty subopt
+  * Fix wrong units for G-Quadruplex energy parameters
+  * Fix dangling end and mismatch corrections for modified bases
+  * Fix correction for bulges of length 1 with modified nucleotides
+  * Fix MSA input processing in `RNAplot`
+  * SWIG: Fix building with most recent `swig=4.5.0`
+  * DOC: Fix Python docstring issues with unnamed struct/union since `doxygen=1.18`
+  * Fix possible resource leak in `ssv` and `xrna` plot outputs
+  * API: Fix multiple `extern` declarations for deprecated global variables `cv_fact` and `nc_fact`
+  * Fix Wuchty-style `subopt*()` for `dangles==1|3`
+  * Fix retrieval of wrong parameter data structures after reloading parameters from file
+  * Fix discrepancy for modified base support in `RNAfold` vs. API calls due to unmodified input sequence
+  * DOC: Fix expansion of function-like macros in `doxygen`
+  * DOC: Fix many `doxygen` related warnings
+
+#### Changed since 
+
+  * Remove redundant check in `backtrack/bt_exterior_f5.c`
+  * Add 'G' to the list of pairing partners for pseudo-uridine
+  * Use `vrna_log_info()`` to print input sequence length in interactive mode of executable programs
+  * Changed output format for structure benchmark in `RNAfold` and `RNAalifold`
+  * DOC: Major rewrite/restructure of documentation to allow for stand-alone HTML website
+  * DOC: Move shipped sphinx extensions into subdirectory `doc/sphinx-extensions`
+  * DOC: Update `breathe` sphinx extension to version `5.1`
+  * DOC: Use `sphinx-design`, `sphinx-contributors`, and `pydata-sphinx-theme` for documentation
+  * DOC: Changed `NEWS` file structure
+  * DOC: Changed `CHANGELOG.md` file structure
+  * DOC: Update contributors section in manual
+  * Remove redundant MFE computation in `RNAup`
+  * Make nucleotide encoding model details `const`
+  * Always start with default hard constraints before any user-supplied ones in `vrna_hc_prepare()`
+
+#### Added in 
+
+  * Support hi-motifs in Wuchty-style subopt
+  * Add `vrna_en_internal()`, `vrna_en_bulge()`, `vrna_en_stack()` functions
+  * Add Dihydrouridine parameters for pairs with `G`
+  * Add (new) parameter files for Pseudouridine and N1-Methyl-Pseudouridine
+  * Include all RNA modification parameter files into `RNAlib`
+  * Add *LinearBPDesign* sequence seeds for `RNAinverse` available via the new `--init-strategy` option
+  * Finally add softconsensus feature in `RNAconsensus.py`
+  * Added relaxed metrics to structure benchmark
+  * Add `vrna_db_compat_remove()` and `vrna_ptable_compat_remove()`
+  * Add `vrna_ptable_count_bp()` and `vrna_ptable_count_up()`
+  * Allow for ignoring compatible base pairs for structure benchmark in `RNAfold` and `RNAalifold`
+  * Add vrna_ribosum_mx()
+  * Add accessibility computations in global scope
+  * Add callback-based API for global equilibrium probability computations (base pairs, helices, accessibility)
+  * Add `vrna_eqm_probs_bp()`, `vrna_eqm_probs_up()`, and `vrna_eqm_probs_hx()`
+  * DOC: Add sphinx extension for release file downloads
+  * Add `vrna_sequence_mutate()` for in-place mutation of RNA sequence in `vrna_fold_compound_t` data structure
+  * Add `VRNA_ARRAY_REGISTER*` macros to automatically create typedefs for `vrna_array()` types
+  * Add `vrna_ep_array_t` type and use it as return type for `vrna_eqm_probs_*()` functions
+  * Add `.all-contributorsrc` file to list contributors according the the *All Contributors* guidelines
+
+#### Removed in 
+
+  * SWIG: Remove Python 2.x support
+
+#### Deprecated since 
+
+  * Deprecated use of all global variables
+
 
 ### [Version 2.7.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.7.1...v2.7.2)
 
