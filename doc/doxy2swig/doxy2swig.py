@@ -215,7 +215,7 @@ class Doxy2SWIG:
             node.attributes['kind'].value in ('class', 'struct') and \
             node.attributes['prot'].value == 'public':
             name = self.extract_text(self.get_specific_subnodes(node, 'compoundname'))
-            if "::[struct].__unnamed" in name:
+            if ("::[struct].__unnamed" in name) or ("::[union].__unnamed" in name):
                 parent = node.parentNode
                 parent.removeChild(node)
         else:
