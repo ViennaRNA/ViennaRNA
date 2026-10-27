@@ -190,6 +190,13 @@ off
 hidden
 
 
+option  "log-func" -
+"Include name of the function that issued the log.\n\n"
+flag
+off
+hidden
+
+
 section "Algorithms"
 sectiondesc="Select and change parameters of (additional) algorithms which should be included in the calculations.\n\n"
 

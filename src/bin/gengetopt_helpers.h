@@ -382,6 +382,8 @@ set_salt_DNA(vrna_md_t *md);
         options |= VRNA_LOG_OPTION_TRACE_TIME; \
       if (args_info.log_call_given) \
         options |= VRNA_LOG_OPTION_TRACE_CALL; \
+      if (args_info.log_func_given) \
+        options |= VRNA_LOG_OPTION_TRACE_FUNC; \
       vrna_log_level_set(level); \
       vrna_log_options_set(options); \
       if (args_info.log_file_given) { \

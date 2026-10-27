@@ -112,6 +112,13 @@ off
 hidden
 
 
+option  "log-func" -
+"Include name of the function that issued the log.\n\n"
+flag
+off
+hidden
+
+
 section "Algorithms"
 sectiondesc="Options which alter the computing behaviour of RNAplex.\
  Please note that the options allowing to filter out snoRNA-RNA\

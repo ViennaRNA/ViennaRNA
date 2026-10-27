@@ -101,5 +101,12 @@ off
 hidden
 
 
+option  "log-func" -
+"Include name of the function that issued the log.\n\n"
+flag
+off
+hidden
+
+
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n\n"

@@ -224,6 +224,13 @@ off
 hidden
 
 
+option  "log-func" -
+"Include name of the function that issued the log.\n\n"
+flag
+off
+hidden
+
+
 section "Plotting"
 sectiondesc="Command line options for changing the default behavior of structure layout and pairing probability plots\n\n"
 

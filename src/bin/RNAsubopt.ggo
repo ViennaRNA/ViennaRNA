@@ -177,6 +177,13 @@ off
 hidden
 
 
+option  "log-func" -
+"Include name of the function that issued the log.\n\n"
+flag
+off
+hidden
+
+
 section "Algorithms"
 sectiondesc="Select the algorithms which should be applied to the given RNA sequence(s).\n\n"
 

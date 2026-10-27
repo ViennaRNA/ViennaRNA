@@ -215,6 +215,13 @@ off
 hidden
 
 
+option  "log-func" -
+"Include name of the function that issued the log.\n\n"
+flag
+off
+hidden
+
+
 option  "benchmark" -
 "Perform a prediction performance test (benchmark) based on reference structures taken from the input.\n\n"
 flag
