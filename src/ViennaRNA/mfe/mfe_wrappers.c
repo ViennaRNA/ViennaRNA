@@ -29,7 +29,7 @@
 #endif
 
 
-PRIVATE INLINE int
+PRIVATE INLINE double
 get_stored_bp_contributions(vrna_sc_bp_storage_t  *container,
                             unsigned int          j);
 
@@ -226,7 +226,7 @@ vrna_mfe_dimer(vrna_fold_compound_t *vc,
     if (vc->sc) {
       if (vc->sc->up_storage) {
         for (unsigned int i = l1 + 1; i <= l1 + l2; ++i) {
-          vrna_sc_add_up(fc2, i - l1, (FLT_OR_DBL)vc->sc->up_storage[i] / 100., VRNA_OPTION_DEFAULT);
+          vrna_sc_add_up(fc2, i - l1, vc->sc->up_storage[i] / 100., VRNA_OPTION_DEFAULT);
         }
       }
 
@@ -239,10 +239,10 @@ vrna_mfe_dimer(vrna_fold_compound_t *vc,
               if (j > l1 + l2)
                 break;
 
-              int e = get_stored_bp_contributions(vc->sc->bp_storage[i], j);
+              double e = get_stored_bp_contributions(vc->sc->bp_storage[i], j);
 
               if (e != 0) {
-                vrna_sc_add_bp(fc2, i - l1, j - l1, (FLT_OR_DBL)e / 100., VRNA_OPTION_DEFAULT);
+                vrna_sc_add_bp(fc2, i - l1, j - l1, e / 100., VRNA_OPTION_DEFAULT);
               }
             }
           }
@@ -276,14 +276,14 @@ vrna_mfe_dimer(vrna_fold_compound_t *vc,
 }
 
 
-PRIVATE INLINE int
+PRIVATE INLINE double
 get_stored_bp_contributions(vrna_sc_bp_storage_t  *container,
                             unsigned int          j)
 {
   unsigned int  cnt;
-  int           e;
+  double        e;
 
-  e = 0;
+  e = 0.;
 
   /* go through list of constraints for current position i */
   for (cnt = 0; container[cnt].interval_start != 0; cnt++) {

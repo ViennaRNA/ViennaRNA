@@ -7,6 +7,10 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.7.2...HEAD)
 
+#### Library
+  * API: Preserve fractional unpaired and base-pair soft constraints for single-sequence partition functions, and round accumulated contributions for MFE calculations
+  * API: Change raw soft-constraint storage fields from `int` to `double`
+
 
 ### [Version 2.7.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.7.1...v2.7.2)
 
