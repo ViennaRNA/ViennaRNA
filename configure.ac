@@ -5,7 +5,7 @@ m4_define([vrna_version_patch], [2])
 
 dnl Every other copy of the package version number gets its value from here
 AC_INIT([ViennaRNA],[vrna_version_major.vrna_version_minor.vrna_version_patch],[rna@tbi.univie.ac.at],[ViennaRNA],[https://www.tbi.univie.ac.at/RNA])
-AC_PREREQ([2.69])
+AC_PREREQ([2.70])
 AC_CONFIG_AUX_DIR(config)
 
 AC_SUBST(VERSION)
