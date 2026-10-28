@@ -321,7 +321,7 @@ PRIVATE double
 conversion_nlogp(double           value,
                  nlogp_options_t  *options)
 {
-  FLT_OR_DBL p;
+  double p;
 
   if (value == VRNA_REACTIVITY_MISSING) {
     return 0;

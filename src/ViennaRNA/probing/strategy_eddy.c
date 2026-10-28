@@ -22,8 +22,8 @@ typedef struct {
   unsigned char                 options;
   double                        temperature;
   double                        kT;
-  vrna_array(double)        priors_unpaired;
-  vrna_array(double)        priors_paired;
+  vrna_array(double)            priors_unpaired;
+  vrna_array(double)            priors_paired;
   double                        unpaired_h;
   double                        paired_h;
   vrna_math_fun_dbl_f           cb_preprocess;
@@ -480,10 +480,10 @@ PRIVATE double
 conversion_eddy_up(double         value,
                    eddy_options_t *options)
 {
-  FLT_OR_DBL p;
+  double p;
 
   if (value == VRNA_REACTIVITY_MISSING) {
-    return 0;
+    return 0.;
   } else {
     p = gaussian_kde_pdf(value,
                          vrna_array_size(options->priors_unpaired),
@@ -499,10 +499,10 @@ PRIVATE double
 conversion_eddy_bp(double         value,
                    eddy_options_t *options)
 {
-  FLT_OR_DBL p;
+  double p;
 
   if (value == VRNA_REACTIVITY_MISSING) {
-    return 0;
+    return 0.;
   } else {
     p = gaussian_kde_pdf(value,
                          vrna_array_size(options->priors_paired),
@@ -525,8 +525,8 @@ gaussian_kde_pdf(double       x,
                  float        h,
                  const double *data)
 {
-  FLT_OR_DBL  total;
-  int         count;
+  double  total;
+  int     count;
 
   total = 0.;
   count = 0;
@@ -544,7 +544,7 @@ PRIVATE double
 exp_pdf(double  x,
         double  lambda)
 {
-  return x < 0 ? 0. : (FLT_OR_DBL)(lambda * exp(-lambda * x));
+  return x < 0. ? 0. : lambda * exp(-lambda * x);
 }
 
 
@@ -554,9 +554,9 @@ gev_pdf(double  x,
         double  loc,
         double  scale)
 {
-  FLT_OR_DBL s, t;
+  double s, t;
 
-  s = (FLT_OR_DBL)((x - loc) / scale);
+  s = (x - loc) / scale;
   t = c * s;
 
   if (c == 0) {
@@ -595,7 +595,7 @@ bandwidth(unsigned int  n,
       std += (data[i] - mu) * (data[i] - mu);
 
   std = sqrt(std / (count - 1));
-  return (FLT_OR_DBL)(factor * std);
+  return factor * std;
 }
 
 

@@ -387,7 +387,7 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
     case 'W':
       v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
       for (i = 0; i < length; i++)
-        v[i] = values[i];
+        v[i] = (FLT_OR_DBL)values[i];
 
       vrna_sc_set_up(vc, v, constraint_type);
       free(v);

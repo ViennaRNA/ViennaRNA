@@ -39,12 +39,12 @@ typedef struct {
  #################################
  */
 
-PRIVATE FLT_OR_DBL
+PRIVATE double
 conversion_zarringhalam_up(double pr,
                            double beta);
 
 
-PRIVATE FLT_OR_DBL
+PRIVATE double
 conversion_zarringhalam_bp(double pr,
                            double beta);
 
@@ -421,7 +421,7 @@ vrna_probing_data_zarringhalam_trans_comparative(const double                 **
  # BEGIN OF STATIC HELPER FUNCTIONS  #
  #####################################
  */
-PRIVATE FLT_OR_DBL
+PRIVATE double
 conversion_zarringhalam_up(double pr,
                            double beta)
 {
@@ -429,7 +429,7 @@ conversion_zarringhalam_up(double pr,
 }
 
 
-PRIVATE FLT_OR_DBL
+PRIVATE double
 conversion_zarringhalam_bp(double pr,
                            double beta)
 {
