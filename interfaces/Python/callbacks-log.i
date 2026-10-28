@@ -112,18 +112,21 @@ py_wrap_log_callback(vrna_log_event_t  *event,
   /* compose argument list */
   char      *message  = vrna_strdup_vprintf(event->format_string, event->params);
   char      *fn       = vrna_strdup_printf(event->file_name);
+  char      *funname  = vrna_strdup_printf(event->function);
 
-  arglist = Py_BuildValue("{s:s,s:i,s:i,s:s},O",
+  arglist = Py_BuildValue("{s:s,s:i,s:i,s:s,s:s},O",
                 "message", message,
                 "level", event->level,
                 "line_number", event->line_number,
                 "file_name", fn,
+                "function", funname,
                 (cb->data) ? cb->data : Py_None);
 
   result =  PyObject_CallObject(func, arglist);
 
   free(message);
   free(fn);
+  free(funname);
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {

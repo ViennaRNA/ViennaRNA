@@ -30,7 +30,7 @@ def reroute_logs(e, data):
     }
 
     # compose an example log message
-    message = f"ViennaRNA: \"{e['message']}\" ({e['file_name']}:{e['line_number']})"
+    message = f"ViennaRNA: \"{e['message']}\" ({e['function']}()@{e['file_name']}:{e['line_number']})"
 
     # send log message to appropriate logging channel
     if e['level'] in log_reroute:
@@ -47,9 +47,8 @@ RNA.log_cb_add(reroute_logs, level = RNA.LOG_LEVEL_DEBUG)
 
 # compose an example call that might issue a few debug- or other
 # log messages
-md = RNA.md(circ=1, gquad=1)
 s = RNA.random_string(10, "ACGU")
 
-fc = RNA.fold_compound(s, md)
+fc = RNA.fold_compound(s)
 
-fc.mfe()
+fc.pbacktrack()
