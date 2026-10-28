@@ -519,7 +519,7 @@ conversion_eddy_bp(double         value,
  *      Eddy
  *****************
  */
-PRIVATE FLT_OR_DBL
+PRIVATE double
 gaussian_kde_pdf(double       x,
                  unsigned int n,
                  float        h,
@@ -540,7 +540,7 @@ gaussian_kde_pdf(double       x,
 }
 
 
-PRIVATE FLT_OR_DBL
+PRIVATE double
 exp_pdf(double  x,
         double  lambda)
 {
@@ -548,7 +548,7 @@ exp_pdf(double  x,
 }
 
 
-PRIVATE FLT_OR_DBL
+PRIVATE double
 gev_pdf(double  x,
         double  c,
         double  loc,
@@ -569,7 +569,7 @@ gev_pdf(double  x,
 }
 
 
-PRIVATE FLT_OR_DBL
+PRIVATE double
 bandwidth(unsigned int  n,
           const double  *data)
 {
