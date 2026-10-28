@@ -1,0 +1,73 @@
+name: Soft constraint regressions
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: C and Python (${{ matrix.precision }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        precision: [double, float]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential autoconf automake libtool \
+            pkg-config check python3-dev gengetopt help2man xxd \
+            bison flex libpcre2-dev
+      # Ubuntu 24.04's packaged SWIG is older than configure's 4.3 minimum.
+      - name: Checkout SWIG
+        uses: actions/checkout@v4
+        with:
+          repository: swig/swig
+          ref: v4.4.0
+          path: .ci-swig
+      - name: Build SWIG
+        working-directory: .ci-swig
+        run: |
+          ./autogen.sh
+          ./configure --prefix="$RUNNER_TEMP/swig"
+          make -j2
+          make install
+          "$RUNNER_TEMP/swig/bin/swig" -version
+          echo "$RUNNER_TEMP/swig/bin" >> "$GITHUB_PATH"
+      - name: Autotools setup
+        run: |
+          tar -xjf src/dlib-20.0.tar.bz2 -C src
+          tar -xzf src/libsvm-3.35.tar.gz -C src
+          autoreconf -i
+      - name: Configure
+        run: |
+          precision_flag=
+          if [ "${{ matrix.precision }}" = float ]; then
+            precision_flag=--enable-floatpf
+          fi
+          ./configure $precision_flag \
+            --without-doc --without-doc-html --without-doc-pdf --without-cla \
+            --without-perl --without-svm --without-gsl --without-kinfold \
+            --without-forester --without-rnalocmin --without-rnaxplorer \
+            --disable-lto
+      - name: Build library and Python interface
+        run: |
+          make -j2 -C src/ViennaRNA
+          make -j2 -C interfaces/Python \
+            doxy2swig_pydoc_file= doxy2swig_pydoc_define=
+      - name: Run C and Python soft-constraint tests
+        run: |
+          make -j2 -C tests check \
+            TESTS="constraints_soft python/test_RNA-constraints-soft.py"
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soft-constraints-${{ matrix.precision }}
+          path: |
+            config.log
+            tests/test-suite.log
+            tests/constraints_soft.log
+            tests/python/test_RNA-constraints-soft.log

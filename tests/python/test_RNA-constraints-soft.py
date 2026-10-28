@@ -1,4 +1,5 @@
 import unittest
+import math
 
 if __name__ == '__main__':
     from py_include import taprunner
@@ -59,7 +60,7 @@ class constraintsTest(unittest.TestCase):
 
         Compute partition function and base pair probabilities both, constrained
         and unconstrained, where the constraint simply shifts the free energy base
-        line by -1 kcal/mol per nucleotide.
+        line by -0.1 kcal/mol per nucleotide.
         When comparing both results, equilibrium probabilities must not have changed,
         except for free energy of the ensemble!
         """
@@ -69,13 +70,19 @@ class constraintsTest(unittest.TestCase):
 
         bpp = fc.bpp()
 
-        # add constraints
+        # Use -0.1 per unpaired nucleotide and -0.2 per pair so every structure
+        # gets the same total shift. The previous -1/-2 values overflowed the
+        # float-PF Boltzmann factors for long unpaired stretches; rescaling
+        # the partition function alone does not prevent that overflow.
         for i in range(1, len(short_seq) + 1):
-          fc.sc_add_up(i, -1.0)
+          fc.sc_add_up(i, -0.1)
 
         for i in range(1, len(short_seq)):
             for j in range(i + 1, len(short_seq) + 1):
-                fc.sc_add_bp(i, j, -2)
+                fc.sc_add_bp(i, j, -0.2)
+
+        # Rescale for the large energy shift, including float-PF builds.
+        fc.exp_params_rescale(fc.mfe()[1])
 
         # constrained partition function
         ss2, dG2 = fc.pf()
@@ -87,10 +94,87 @@ class constraintsTest(unittest.TestCase):
         # check nucleotide pairing propensities
         self.assertEqual(ss, ss2)
 
-        # check pairing probabilities
+        # Allow float-PF roundoff when checking unchanged pairing probabilities.
         for i in range(1, len(short_seq)):
             for j in range(i + 1, len(short_seq) + 1):
-                self.assertEqual("%1.8f" % bpp[i][j], "%1.8f" % bpp2[i][j])
+                self.assertAlmostEqual(bpp[i][j], bpp2[i][j], delta=1e-6)
+
+
+class fractionalSoftConstraintsTest(unittest.TestCase):
+
+    def test_fractional_unpaired_addition(self):
+        """PF retains fractional values; MFE rounds after accumulation."""
+        for sign in (-1, 1):
+            fc = RNA.fold_compound("AAAAAA")
+            for count in (1, 2):
+                fc.sc_add_up(3, sign * 0.003)
+                self.assertAlmostEqual(fc.mfe()[1], sign * (count - 1) * 0.01,
+                                       delta=1e-6)
+                self.assertAlmostEqual(fc.pf()[1], sign * count * 0.003,
+                                       delta=1e-6)
+
+    def test_fractional_unpaired_set(self):
+        """Set replaces contributions while retaining fractions for later additions."""
+        fc = RNA.fold_compound("AAAAAA")
+        fc.sc_add_up(3, 1.0)
+        values = [0.0] * 7
+        values[3] = 0.004
+        fc.sc_set_up(values)
+        self.assertAlmostEqual(fc.mfe()[1], 0.0, delta=1e-6)
+        self.assertAlmostEqual(fc.pf()[1], 0.004, delta=1e-6)
+        fc.sc_add_up(3, 0.003)
+        self.assertAlmostEqual(fc.mfe()[1], 0.01, delta=1e-6)
+        self.assertAlmostEqual(fc.pf()[1], 0.007, delta=1e-6)
+
+    def test_fractional_base_pair(self):
+        """Check ensemble energy and pair probability against exact reweighting."""
+        sequence = "GCGCUUCGCCGC"
+        structure = "((((....))))"
+        for sign in (-1, 1):
+            for use_set in (False, True):
+                fc = RNA.fold_compound(sequence)
+                baseline_mfe = fc.eval_structure(structure)
+                baseline_pf = fc.pf()[1]
+                baseline_p = fc.bpp()[2][11]
+                rt = fc.exp_params.kT / 1000.0
+
+                if use_set:
+                    values = [[0.0] * 13 for _ in range(13)]
+                    values[2][11] = sign * 0.006
+                    fc.sc_add_bp(2, 11, 1.0)
+                    fc.sc_set_bp(values)
+                else:
+                    fc.sc_add_bp(2, 11, sign * 0.003)
+                    fc.mfe()
+                    fc.pf()
+                    fc.sc_add_bp(2, 11, sign * 0.003)
+
+                weight = math.exp(-sign * 0.006 / rt)
+                ratio = 1.0 - baseline_p + baseline_p * weight
+                self.assertAlmostEqual(fc.eval_structure(structure) - baseline_mfe,
+                                       sign * 0.01, delta=1e-6)
+                self.assertAlmostEqual(fc.pf()[1], baseline_pf - rt * math.log(ratio),
+                                       delta=1e-6)
+                self.assertAlmostEqual(fc.bpp()[2][11], baseline_p * weight / ratio,
+                                       delta=1e-6)
+
+    def test_fractional_rounding_boundary(self):
+        """MFE rounding does not first reduce stored contributions to float."""
+        for sign in (-1, 1):
+            fc = RNA.fold_compound("AAAAAA")
+            fc.sc_add_up(3, sign * 0.0049999999)
+            self.assertAlmostEqual(fc.mfe()[1], 0.0, delta=1e-6)
+            self.assertAlmostEqual(fc.pf()[1], sign * 0.0049999999, delta=1e-6)
+
+    def test_fractional_dimer_constraints(self):
+        """Copying constraints to the second monomer preserves fractions."""
+        fc = RNA.fold_compound("AAAA&GCGCAAAAGCGC")
+        baseline = fc.mfe_dimer()[1]
+        fc.sc_add_bp(5, 16, 0.003)
+        fc.sc_add_bp(5, 16, 0.003)
+        structure, energy = fc.mfe_dimer()
+        self.assertEqual(structure, "....((((....))))")
+        self.assertAlmostEqual(energy - baseline, 0.01, delta=1e-6)
 
 
 class constraintsMFEWindowTest(unittest.TestCase):

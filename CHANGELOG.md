@@ -35,6 +35,8 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 #### Changed since 
 
+  * API: Preserve fractional unpaired and base-pair soft constraints for single-sequence partition functions, and round accumulated contributions for MFE calculations
+  * API: Change raw soft-constraint storage fields from `int` to `double`
   * Remove redundant check in `backtrack/bt_exterior_f5.c`
   * Add 'G' to the list of pairing partners for pseudo-uridine
   * Use `vrna_log_info()`` to print input sequence length in interactive mode of executable programs
