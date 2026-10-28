@@ -216,7 +216,9 @@ vrna_pbacktrack_sub_resume_cb(vrna_fold_compound_t  *fc,
   if (fc) {
     vrna_mx_pf_t *matrices = fc->exp_matrices;
 
-    if (start == 0) {
+    if (fc->strands > 1) {
+      vrna_log_error("vrna_pbacktrack*(): Stochastic backtracking for multiple interacting RNAs not implements yet");
+    } else if (start == 0) {
       vrna_log_warning("vrna_pbacktrack*(): interval start coordinate must be at least 1");
     } else if (end > fc->length) {
       vrna_log_warning("vrna_pbacktrack*(): interval end coordinate exceeds sequence length");
