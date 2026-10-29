@@ -22,7 +22,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
     - name: Install prerequisites
       run:  |
         sudo apt-get update
@@ -51,7 +51,7 @@ jobs:
           texlive-fonts-recommended \
           cmake
     - name: Checkout swig repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: swig/swig
         ref: 'v4.5.1'
@@ -63,7 +63,7 @@ jobs:
         make -j $(nproc)
         sudo make install
     - name: Checkout doxygen repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: doxygen/doxygen
         ref: 'Release_1_18_0'

@@ -13,7 +13,7 @@ jobs:
       matrix:
         precision: [double, float]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install prerequisites
         run: |
           sudo apt-get update
@@ -22,7 +22,7 @@ jobs:
             bison flex libpcre2-dev
       # Ubuntu 24.04's packaged SWIG is older than configure's 4.3 minimum.
       - name: Checkout SWIG
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: swig/swig
           ref: v4.4.0

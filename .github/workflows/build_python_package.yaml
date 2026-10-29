@@ -25,7 +25,7 @@ jobs:
       vrna_sdist_file: ${{ steps.create_sdist.outputs.file }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: install prerequisites
         run:  |
           sudo apt-get update
@@ -41,7 +41,7 @@ jobs:
           python3-sphinx \
           cmake
       - name: Checkout swig repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: swig/swig
           ref: 'v4.5.1'
@@ -53,7 +53,7 @@ jobs:
           make -j $(nproc)
           sudo make install
       - name: Checkout doxygen repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: doxygen/doxygen
           ref: 'Release_1_18_0'
@@ -107,7 +107,7 @@ jobs:
       fail-fast: false
       matrix:
         os : [ubuntu-latest]
-        pyver: [cp310, cp311, cp312, cp313, cp314]
+        pyver: [cp311, cp312, cp313, cp314, cp315]
         archs: [x86_64]
 
     steps:
@@ -118,7 +118,7 @@ jobs:
         run:  |
           echo "VRNA_SDIST_FILE=${{needs.build_sdist.outputs.vrna_sdist_file}}" >> "$GITHUB_ENV"
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.3.0
+        uses: pypa/cibuildwheel@v4.3.5
         with:
           package-dir: "$VRNA_SDIST_FILE"
           output-dir: dist
@@ -144,8 +144,8 @@ jobs:
       # Ensure that a wheel builder finishes even if another fails
       fail-fast: false
       matrix:
-        os: [macos-15-intel, macos-14]
-        pyver: [cp310, cp311, cp312, cp313, cp314]
+        os: [macos-15-intel, macos-15]
+        pyver: [cp311, cp312, cp313, cp314, cp315]
 
     steps:
       - uses: actions/download-artifact@v4
@@ -155,14 +155,14 @@ jobs:
         run:  |
           echo "VRNA_SDIST_FILE=${{needs.build_sdist.outputs.vrna_sdist_file}}" >> "$GITHUB_ENV"
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.3.0
+        uses: pypa/cibuildwheel@v4.3.5
         with:
           package-dir: "$VRNA_SDIST_FILE"
           output-dir: dist
         env:
           CIBW_BUILD_VERBOSITY: 3
           CIBW_BUILD: ${{matrix.pyver}}-*
-          CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.14 CC=clang CXX=clang++
+          CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.15 CC=clang CXX=clang++
           CIBW_ARCHS_MACOS: auto
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --datadir {package}/tests/data {package}/tests/python
@@ -181,7 +181,7 @@ jobs:
       # Ensure that a wheel builder finishes even if another fails
       fail-fast: false
       matrix:
-        pyver: [cp310, cp311, cp312, cp313, cp314]
+        pyver: [cp311, cp312, cp313, cp314, cp315]
         archs: [AMD64]
 
     steps:
@@ -192,7 +192,7 @@ jobs:
         run:  |
           echo "VRNA_SDIST_FILE=${{needs.build_sdist.outputs.vrna_sdist_file}}" >> "$env:GITHUB_ENV"
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.3.0
+        uses: pypa/cibuildwheel@v4.3.5
         with:
           package-dir: "$env:VRNA_SDIST_FILE"
           output-dir: dist
@@ -221,7 +221,7 @@ jobs:
       fail-fast: false
       matrix:
         os : [ubuntu-latest]
-        pyver: [cp310, cp311, cp312, cp313]
+        pyver: [cp311, cp312, cp313, cp314, cp315]
         archs: [aarch64]
 
     steps:
@@ -236,7 +236,7 @@ jobs:
         run:  |
           echo "VRNA_SDIST_FILE=${{needs.build_sdist.outputs.vrna_sdist_file}}" >> "$GITHUB_ENV"
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.20.0
+        uses: pypa/cibuildwheel@v4.3.5
         with:
           package-dir: "$VRNA_SDIST_FILE"
           output-dir: dist

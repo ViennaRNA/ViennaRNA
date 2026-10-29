@@ -30,7 +30,7 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Extract release notes
       id: extract-release-notes
       uses: RaumZeit/extract-release-notes@a991ec1541871118630638fe002862a023870cff
