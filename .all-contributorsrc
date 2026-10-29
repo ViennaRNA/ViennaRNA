@@ -59,6 +59,20 @@
       "aliases" : [ "ivo" ]
     },
     {
+      "login": "studla",
+      "name": "Peter F. Stadler",
+      "email" : "",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18547406?v=4",
+      "profile": "https://github.com/studla",
+      "contributions": [
+        "research",
+        "ideas",
+        "question",
+        "mentoring",
+        "infra"
+      ]
+    },
+    {
       "login": "anthonyhtyao",
       "name": "Hua-Ting Yao",
       "email" : "htyao@tbi.univie.ac.at",
@@ -254,6 +268,17 @@
       "contributions": [
         "research",
         { "type" : "code", "commits": 0, "loc": 0, "text" : "LinearBP inverse folding seed" },
+        "ideas"
+      ]
+    },
+    {
+      "login": "GiovanniBussi",
+      "name": "Giovanni Bussi",
+      "email" : "giovanni.bussi@gmail.com",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4378974?v=4",
+      "profile": "https://www.bussilab.org/",
+      "contributions": [
+        "code",
         "ideas"
       ]
     },
