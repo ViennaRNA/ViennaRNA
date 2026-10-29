@@ -47,3 +47,8 @@ RNAlib2.pc
 pyproject.toml
 setup.py
 setup.cfg
+
+# pixi environments
+.pixi
+.pixi/*
+!.pixi/config.toml

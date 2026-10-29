@@ -1,0 +1,21 @@
+[workspace]
+authors = ["Ronny Lorenz <ronny@tbi.univie.ac.at>"]
+channels = ["conda-forge"]
+name = "ViennaRNA"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.14.*"
+swig = ">=4.5.1,<5"
+doxygen = ">=1.18.0,<2"
+
+[pypi-dependencies]
+myst-parser = ">=5.1.0, <6"
+sphinx-design = ">=0.7.0, <0.8"
+sphinx-copybutton = ">=0.5.2, <0.6"
+sphinx = ">=9.2.0, <10"
+sphinxcontrib-bibtex = ">=2.7.0, <3"
+pydata-sphinx-theme = ">=0.23.0, <0.24"
