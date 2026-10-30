@@ -6,11 +6,185 @@ platforms = ["linux-64"]
 version = "0.1.0"
 
 [tasks]
+_unpack-libsvm = {
+  cmd = [
+    "tar",
+    "-xzf",
+    "src/libsvm-3.35.tar.gz",
+    "-C",
+    "src"
+  ],
+  inputs = ["src/libsvm-3.35.tar.gz"],
+  outputs = ["src/libsvm-3.35/*"],
+}
+
+_unpack-dlib = {
+  cmd = [
+    "tar",
+    "-xjf",
+    "src/dlib-20.0.tar.bz2",
+    "-C",
+    "src"
+  ],
+}
+
+prepare = {
+  cmd = [ "autoreconf", "-i" ],
+  depends-on = ["_unpack-libsvm", "_unpack-dlib"]
+}
+
+build = {
+  cmd = [ "make" ]
+}
+
+distcheck = {cmd = [ "make", "distcheck" ] }
+
+_clean-doxygen = {
+  cmd = [ "rm", "-rf", "doxygen-xml", "xml" ],
+  cwd = "doc/doxygen"
+}
+
+_clean-sphinx = {
+  cmd = [ "rm", "-rf", "build" ],
+  cwd = "doc"
+}
+
+_clean-pdf = {
+  cmd = ["rm", "-f", "RNAlib*.pdf"],
+  cwd = "doc",
+}
+
+_clean-doctag = {
+  cmd = [ "rm", "-f", "refman-html" ],
+  cwd = "doc"
+}
+
+_clean = {
+  cmd = [ "make", "clean" ]
+}
+
+clean-doc = {
+  description = "Clean up documentation",
+  depends-on = [
+    "_clean-doctag",
+    "_clean-pdf",
+    "_clean-doxygen",
+    "_clean-sphinx",
+  ]
+}
+
+_build-doxygen = {
+  cmd = ["make"],
+  cwd = "doc/doxygen"
+}
+
+_build-static = {
+  cmd = ["make"],
+  cwd = "src/ViennaRNA/static"
+}
+
+_build-python = {
+  cmd = ["make", "RNA/RNA.py"],
+  cwd = "interfaces/Python"
+}
+
+
+rebuild-doc = {
+   cmd = ["make"],
+   cwd = "doc",
+   depends-on = ["clean-doc", "_build-static", "_build-doxygen", "_build-python"],
+   description = "Rebuild documentation"
+}
+
+
+build-doc = {
+   cmd = ["make"],
+   cwd = "doc",
+   depends-on = ["_build-static", "_build-doxygen", "_build-python"],
+   description = "Rebuild documentation"
+}
+
+build-py-sdist = {
+  description = "Build a Python sdist package",
+  depends-on = [
+    {
+      task = "configure",
+      args = [ { mode = "python-only" } ]
+    },
+    "_build-static",
+    "_build-doxygen",
+    "_build-python"
+  ],
+  cmd = """
+python -m pip install --upgrade build
+python -m build --sdist
+"""
+}
+
+
+tests = {
+  cmd = [ "make", "-j4", "check" ],
+  description = "Run all tests"
+}
+
+
+[tasks.configure]
+description = "Run autoconf ./configure"
+args = [
+  {
+    "arg" = "mode",
+    "default" = "development"
+  }
+]
+cmd = """
+./configure \
+{% if mode == "production" %} \
+--with-cluster --with-kinwalker \
+{% elif mode == "dev-lto" %} \
+--without-perl \
+{% elif mode == "python-only" %} \
+--without-kinfold --without-forester --without-rnalocmin --without-rnaxplorer --without-perl --without-gsl --disable-mpfr \
+{% else %} \
+--disable-lto --without-perl \
+{% endif %}
+"""
+
+[tasks.dist]
+description = "Create a distribution archive"
+args = [
+  {
+    "arg" = "type",
+    "default" = "gzip",
+    "choices" = [
+      "gzip",
+      "zip"
+    ]
+  }
+]
+cmd = """
+make \
+{% if type == "gzip" %} \
+dist-gzip
+{% elif type == "zip" %} \
+dist-zip
+{% endif %}
+"""
+depends-on = [
+  "_clean",
+  {
+    task = "configure",
+    args = [
+      "production"
+    ]
+  }
+]
+
 
 [dependencies]
 python = "3.14.*"
 swig = ">=4.5.1,<5"
 doxygen = ">=1.18.0,<2"
+pip = ">=26.2.2,<27"
 
 [pypi-dependencies]
 myst-parser = ">=5.1.0, <6"
