@@ -8,11 +8,20 @@
 #include <stdexcept>
 #include <random>
 #include <stack>
-#include <unistd.h>
 #include <iomanip>
 #include <cstdint>
 #include <vector>
 #include <iostream>
+
+#ifdef _WIN32
+#ifdef __MINGW32__
+#include <unistd.h>
+#else
+#include "ViennaRNA/intern/unistd_win.h"
+#endif
+#else
+#include <unistd.h>
+#endif
 
 using namespace std;
 
