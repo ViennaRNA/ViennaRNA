@@ -9,9 +9,9 @@ on:
         required: false
         type: string
       version-string:
-        description: 'Version string, e.g. 2.7.1'
+        description: 'Version string, e.g. 2.7.2'
         required: false
-        default: '2.7.1'
+        default: '2.7.2'
         type: string
       artifact-name:
         description: 'Name of the artifact'
@@ -31,9 +31,9 @@ on:
         required: false
         type: string
       version-string:
-        description: 'Version string, e.g. 2.7.1'
+        description: 'Version string, e.g. 2.7.2'
         required: false
-        default: '2.7.1'
+        default: '2.7.2'
         type: string
       artifact-name:
         description: 'Name of the artifact'
@@ -54,7 +54,7 @@ jobs:
       # Ensure that a wheel builder finishes even if another fails
       fail-fast: false
       matrix:
-        os: [macos-15-intel, macos-14]
+        os: [macos-15-intel, macos-15]
 
     steps:
     - uses: actions/download-artifact@v4
@@ -74,7 +74,7 @@ jobs:
       run: |
         mv ViennaRNA-${{ inputs.version-string }}/packaging/macosx/ViennaRNA-${{ inputs.version-string }}-MacOSX.dmg ViennaRNA-${{ inputs.version-string }}/ViennaRNA-${{ inputs.version-string }}-MacOSX-x86_64.dmg
     - name: rename installer arm64
-      if: ${{ matrix.os == 'macos-14' }}
+      if: ${{ matrix.os == 'macos-15' }}
       run: |
         mv ViennaRNA-${{ inputs.version-string }}/packaging/macosx/ViennaRNA-${{ inputs.version-string }}-MacOSX.dmg ViennaRNA-${{ inputs.version-string }}/ViennaRNA-${{ inputs.version-string }}-MacOSX-arm64.dmg
     - name: Upload artifacts

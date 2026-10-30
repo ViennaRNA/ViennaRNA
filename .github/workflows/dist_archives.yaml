@@ -5,7 +5,7 @@ on:
     inputs:
       config-flags:
         description: 'Configure flags to prepare the source directory'
-        default: '--with-cluster --with-kinwalker --disable-lto'
+        default: '--disable-lto'
         required: false
         type: string
       zip:
@@ -22,7 +22,7 @@ on:
     inputs:
       config-flags:
         description: 'Configure flags to prepare the source directory'
-        default: '--with-cluster --with-kinwalker --disable-lto'
+        default: '--disable-lto'
         required: false
         type: string
       zip:
@@ -66,61 +66,28 @@ jobs:
           liblapacke \
           liblapacke-dev \
           graphviz \
-          python3-sphinx \
-          python3-myst-parser \
-          python3-sphinxcontrib.bibtex \
-          python3-sphinx-copybutton \
-          python3-sphinx-design \
-          python3-pydata-sphinx-theme \
           texlive-latex-recommended \
           texlive-latex-extra \
           texlive-font-utils \
-          texlive-fonts-recommended \
-          cmake
-    - name: Checkout swig repo
-      uses: actions/checkout@v7
+          texlive-fonts-recommended
+    - name: Setup pixi
+      uses: prefix-dev/setup-pixi@v0.11.1
       with:
-        repository: swig/swig
-        ref: 'v4.5.1'
-        path: swig
-    - name: Install swig
-      run:  |
-        cd swig
-        ./autogen.sh && ./configure --prefix=/usr
-        make -j $(nproc)
-        sudo make install
-    - name: Checkout doxygen repo
-      uses: actions/checkout@v7
-      with:
-        repository: doxygen/doxygen
-        ref: 'Release_1_18_0'
-        path: doxygen
-    - name: Install doxygen
-      run:  |
-        cd doxygen
-        mkdir build
-        cd build
-        cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX:PATH=/usr -Dbuild_doc:BOOL=OFF ..
-        make -j $(nproc)
-        sudo make install
-    - name: Autotools setup
-      run:  |
-        tar -xjf src/dlib-20.0.tar.bz2 -C src
-        tar -xzf src/libsvm-3.35.tar.gz -C src
-        autoreconf -i
-    - name: Configure
-      run: ./configure ${{ inputs.config-flags }}
-    - name: Make tarball
-      id: tarball
-      run:  |
-        make dist-gzip
+        pixi-version: v0.83.0
+    - name: Pixi prepare stage
+      run: pixi run prepare
+    - name: Pixi configure stage
+      run: pixi run configure production -- ${{ inputs.config-flags }}
+    - name: Pixi - Create distribution archive
+      run: |
+        pixi run dist
         version_number=$(ls ViennaRNA-*.tar.gz)
         version_number="${version_number#ViennaRNA-}"
         version_number="${version_number%.tar.gz}"
         echo "version_number=${version_number}" >> "$GITHUB_OUTPUT"
-    - name: Make ZIP
+    - name: Pixi - Create distribution archive (ZIP)
       if: ${{ inputs.zip }}
-      run:  make dist-zip
+      run:  pixi run dist zip
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
