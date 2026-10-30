@@ -63,15 +63,7 @@ typedef struct {
               float         p     = 1.,
               int           type  = VRNA_PLIST_TYPE_BASEPAIR)
     {
-      vrna_ep_t *pair;
-
-      pair        = (vrna_ep_t *)vrna_alloc(sizeof(vrna_ep_t));
-      pair->i     = (int)i;
-      pair->j     = (int)j;
-      pair->p     = p;
-      pair->type  = type;
-
-      return pair;
+      return new vrna_ep_t { (int)i, (int)j, p, type };
     }
 
 #ifdef SWIGPYTHON
