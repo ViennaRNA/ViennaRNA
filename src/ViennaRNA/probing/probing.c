@@ -641,7 +641,7 @@ apply_probing_data(vrna_fold_compound_t       *fc,
 
             num_data++;
 
-            if (vrna_array_size(data->data_linear[s] - 1) != n)
+            if (vrna_array_size(data->data_linear[s]) - 1 != n)
               vrna_log_warning(
                 "Length of probing data (%u) for sequence no. \"%u\" doesn't match length of gap-free sequence (%u)",
                 vrna_array_size(data->data_linear[s]) - 1,
