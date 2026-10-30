@@ -52,11 +52,8 @@ def __repr__(self):
     my_eqm_probs_bp(vrna_fold_compound_t *fc,
                     double               cutoff = 1e-5)
     {
-      std::vector<vrna_ep_t> result;
-      vrna_array(vrna_ep_t) c_result;
-
-      c_result  = vrna_eqm_probs_bp(fc, cutoff);
-      result    = { &(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
+      vrna_ep_array_t c_result  = vrna_eqm_probs_bp(fc, cutoff);
+      std::vector<vrna_ep_t> result = { &(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
 
       vrna_array_free(c_result);
 
@@ -69,11 +66,8 @@ def __repr__(self):
                     unsigned int         max_u = 0,
                     double               cutoff = 1e-5)
     {
-      std::vector<vrna_ep_t> result;
-      vrna_array(vrna_ep_t) c_result;
-
-      c_result  = vrna_eqm_probs_up(fc, min_u, max_u, cutoff);
-      result    = { &(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
+      vrna_ep_array_t c_result = vrna_eqm_probs_up(fc, min_u, max_u, cutoff);
+      std::vector<vrna_ep_t> result = { &(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
 
       vrna_array_free(c_result);
 
@@ -86,11 +80,8 @@ def __repr__(self):
                     unsigned int         max_size = 0,
                     double               cutoff = 1e-5)
     {
-      std::vector<vrna_ep_t> result;
-      vrna_array(vrna_ep_t) c_result;
-
-      c_result  = vrna_eqm_probs_hx(fc, min_size, max_size, cutoff);
-      result    = { &(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
+      vrna_array(vrna_ep_t) c_result = vrna_eqm_probs_hx(fc, min_size, max_size, cutoff);
+      std::vector<vrna_ep_t> result = { &(c_result[0]), &(c_result[0]) + vrna_array_size(c_result) };
 
       vrna_array_free(c_result);
 
