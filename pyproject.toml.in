@@ -14,8 +14,8 @@ maintainers = [
   { name = "Ronny Lorenz", email = "rna@tbi.univie.ac.at" },
   { name = "Ayaan Hossain", email = "auh57@psu.edu" },
 ]
-requires-python = ">=3.8"
-license = {file = "COPYING"}
+requires-python = ">=3.11"
+license-files = [ "COPYING" ]
 keywords = [
         'synthetic',
         'computational',
@@ -56,7 +56,7 @@ dynamic = ["readme"]
 
 [project.urls]
 Homepage = "@PACKAGE_URL@"
-Documentation = "https://viennarna.readthedocs.io/"
+Documentation = "@PACKAGE_URL@"
 "Bug Tracker" = "https://github.com/ViennaRNA/ViennaRNA/issues"
 Changelog = "@PACKAGE_URL@/changelog.html"
 
@@ -70,4 +70,4 @@ addopts = "-ra -q -v"
 testpaths = ["tests/python"]
 
 [tool.cibuildwheel.macos.environment]
-MACOSX_DEPLOYMENT_TARGET = "10.14"
+MACOSX_DEPLOYMENT_TARGET = "10.15"
