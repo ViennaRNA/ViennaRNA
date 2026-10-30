@@ -833,8 +833,8 @@ set_sequence(vrna_seq_t   *obj,
   }
 
   obj->encoding   = vrna_seq_encode(obj->string, md);
-  obj->encoding5  = (short *)vrna_alloc(sizeof(short) * (obj->length + 1));
-  obj->encoding3  = (short *)vrna_alloc(sizeof(short) * (obj->length + 1));
+  obj->encoding5  = (short *)vrna_alloc(sizeof(short) * (obj->length + 2));
+  obj->encoding3  = (short *)vrna_alloc(sizeof(short) * (obj->length + 2));
 
   if (md->circ) {
     for (size_t i = obj->length; i > 0; i--) {
