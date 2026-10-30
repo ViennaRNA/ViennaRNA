@@ -37,65 +37,23 @@ jobs:
           help2man \
           libtool \
           check \
-          graphviz \
-          python3-sphinx \
-          cmake
-      - name: Checkout swig repo
-        uses: actions/checkout@v7
+          graphviz
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.11.1
         with:
-          repository: swig/swig
-          ref: 'v4.5.1'
-          path: swig
-      - name: Install swig
-        run:  |
-          cd swig
-          ./autogen.sh && ./configure --prefix=/usr
-          make -j $(nproc)
-          sudo make install
-      - name: Checkout doxygen repo
-        uses: actions/checkout@v7
-        with:
-          repository: doxygen/doxygen
-          ref: 'Release_1_18_0'
-          path: doxygen
-      - name: Install doxygen
-        run:  |
-          cd doxygen
-          mkdir build
-          cd build
-          cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX:PATH=/usr -Dbuild_doc:BOOL=OFF ..
-          make -j $(nproc)
-          sudo make install
-      - name: Autotools setup
-        run:  |
-          tar -xjf src/dlib-20.0.tar.bz2 -C src
-          tar -xzf src/libsvm-3.35.tar.gz -C src
-          autoreconf -i
-      - name: Configure
-        run: ./configure --without-kinfold --without-forester --without-rnalocmin --without-rnaxplorer --without-perl --without-gsl --disable-mpfr
-      - name: prepare source files
-        run:  |
-          cd src/ViennaRNA/static
-          make
-      - name: prepare doxygen XML
-        run: |
-          cd doc/doxygen
-          make doxygen-xml
-      - name: prepare Python wrapper
-        run: |
-          cd interfaces/Python
-          make RNA/RNA.py
+          pixi-version: v0.83.0
+      - name: Pixi prepare stage
+        run: pixi run prepare
       - id: create_sdist
-        name: build Python source distribution
-        run:  |
-          python -m pip install --upgrade build
-          python -m build --sdist
+        name: Pixi build Python sdist
+        run: |
+          pixi run build-py-sdist
           echo "file=$(cd dist && ls viennarna-*.tar.gz)" >> "$GITHUB_OUTPUT"
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sdist
-          path: dist/
+          path: dist/*
 
   build_wheels_linux:
     name: Build Linux wheels for ${{ matrix.pyver }} on ${{ matrix.os }} [ ${{ matrix.archs }} ]
@@ -111,16 +69,18 @@ jobs:
         archs: [x86_64]
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: sdist
+      - name: Display structure of downloaded files
+        run: ls -R
       - name: Set sdist environment variable
         run:  |
           echo "VRNA_SDIST_FILE=${{needs.build_sdist.outputs.vrna_sdist_file}}" >> "$GITHUB_ENV"
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.3.5
         with:
-          package-dir: "$VRNA_SDIST_FILE"
+          package-dir: ${{ env.VRNA_SDIST_FILE }}
           output-dir: dist
         env:
           CIBW_BUILD_VERBOSITY: 3
@@ -129,7 +89,7 @@ jobs:
           CIBW_ENVIRONMENT: VRNA_SDIST_FILE=$VRNA_SDIST_FILE
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --datadir {package}/tests/data {package}/tests/python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-linux-${{ strategy.job-index }}
           path: ./dist/*.whl
@@ -148,7 +108,7 @@ jobs:
         pyver: [cp311, cp312, cp313, cp314, cp315]
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: sdist
       - name: Set sdist environment variable
@@ -157,7 +117,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.3.5
         with:
-          package-dir: "$VRNA_SDIST_FILE"
+          package-dir: ${{ env.VRNA_SDIST_FILE }}
           output-dir: dist
         env:
           CIBW_BUILD_VERBOSITY: 3
@@ -166,7 +126,7 @@ jobs:
           CIBW_ARCHS_MACOS: auto
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --datadir {package}/tests/data {package}/tests/python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-mac-${{ strategy.job-index }}
           path: ./dist/*.whl
@@ -185,7 +145,7 @@ jobs:
         archs: [AMD64]
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: sdist
       - name: Set sdist environment variable
@@ -194,7 +154,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.3.5
         with:
-          package-dir: "$env:VRNA_SDIST_FILE"
+          package-dir: ${{ env.VRNA_SDIST_FILE }}
           output-dir: dist
         # to supply options, put them in 'env', like:
         # env:
@@ -205,7 +165,7 @@ jobs:
           CIBW_ENVIRONMENT_WINDOWS: VRNA_SDIST_FILE=$env:VRNA_SDIST_FILE
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND_WINDOWS: pytest --datadir {package}\tests\data {package}\tests\python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-win-${{ strategy.job-index }}
           path: ./dist/*.whl
@@ -226,10 +186,10 @@ jobs:
 
     steps:
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: arm64
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: sdist
       - name: Set sdist environment variable
@@ -238,7 +198,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.3.5
         with:
-          package-dir: "$VRNA_SDIST_FILE"
+          package-dir: ${{ env.VRNA_SDIST_FILE }}
           output-dir: dist
         env:
           CIBW_BUILD_VERBOSITY: 3
@@ -248,7 +208,7 @@ jobs:
           CIBW_ENVIRONMENT: VRNA_SDIST_FILE=$VRNA_SDIST_FILE
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --datadir {package}/tests/data {package}/tests/python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-cross-${{ strategy.job-index }}
           path: ./dist/*.whl
@@ -260,14 +220,14 @@ jobs:
     environment: production
     if: (github.event_name == 'workflow_dispatch' && inputs.publish-TestPyPI) || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           # unpacks all wheels into dist/
           pattern: wheels-*
           merge-multiple: true
           path: dist
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           # unpacks sdist into dist/
           name: sdist
@@ -284,14 +244,14 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.event_name == 'workflow_dispatch' && inputs.publish-PyPI) || (github.event_name == 'release' && github.event.action == 'published')
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           # unpacks all wheels into dist/
           pattern: wheels-*
           merge-multiple: true
           path: dist
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           # unpacks sdist into dist/
           name: sdist
