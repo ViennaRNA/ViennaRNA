@@ -52,6 +52,7 @@
 typedef struct {
   int i;
   int j;
+  unsigned int size;
   float p;
   int type;
 } vrna_ep_t;
@@ -61,9 +62,10 @@ typedef struct {
     vrna_ep_t(unsigned int  i,
               unsigned int  j,
               float         p     = 1.,
-              int           type  = VRNA_PLIST_TYPE_BASEPAIR)
+              int           type  = VRNA_PLIST_TYPE_BASEPAIR,
+              unsigned int  size  = 1)
     {
-      return new vrna_ep_t { (int)i, (int)j, p, type };
+      return new vrna_ep_t { (int)i, (int)j, (unsigned int)size, (float)p, (int)type };
     }
 
 #ifdef SWIGPYTHON
@@ -73,6 +75,7 @@ typedef struct {
       std::ostringstream out;
       out << "{ i: " << $self->i;
       out << ", j: " << $self->j;
+      out << ", s: " << $self->size;
       out << ", p: " << $self->p;
       out << ", t: " << $self->type;
       out << " }";
@@ -90,6 +93,10 @@ def __repr__(self):
 #endif
 }
 
+#ifdef SWIGPYTHON
+%feature("autodoc") vrna_ep_t::vrna_ep_t;
+%feature("kwargs") vrna_ep_t::vrna_ep_t;
+#endif
 
 /************************************/
 /*  Dot-Bracket wrappers            */
