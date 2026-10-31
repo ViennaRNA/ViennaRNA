@@ -223,6 +223,7 @@ class vrna_build_ext(build_ext):
 
             if self.compiler_is_msvc():
                 ext.libraries.remove("m")
+                ext.extra_compile_args += ['/std:c++17']
                 try:
                     ext.libraries.remove("stdc++")
                 except:
