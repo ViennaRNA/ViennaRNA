@@ -99,11 +99,11 @@ VRNA_ARRAY_REGISTER_NAME(vrna_ep_t, vrna_ep_array_t);
  *  #VRNA_PLIST_TYPE_UD_MOTIF, #VRNA_PLIST_TYPE_STACK
  */
 struct vrna_elem_prob_s {
-  int   i;    /**<  @brief  Start position (usually 5' nucleotide that starts the element, e.g. base pair) */
-  int   j;    /**<  @brief  End position (usually 3' nucleotide that ends the element, e.g. base pair) */
-  unsigned int  size; /**< @brief   The size of the element (e.g. number of base pairs that constitute a helix) */
-  float p;    /**<  @brief  Probability of the element */
-  int   type; /**<  @brief  Type of the element */
+  int           i;    /**<  @brief  Start position (usually 5' nucleotide that starts the element, e.g. base pair) */
+  int           j;    /**<  @brief  End position (usually 3' nucleotide that ends the element, e.g. base pair) */
+  float         p;    /**<  @brief  Probability of the element */
+  int           type; /**<  @brief  Type of the element */
+  unsigned int  size; /**<  @brief  The size of the element (e.g. number of base pairs that constitute a helix) */
 };
 
 /**

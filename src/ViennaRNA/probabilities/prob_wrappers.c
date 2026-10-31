@@ -240,10 +240,11 @@ vrna_stack_prob(vrna_fold_compound_t  *vc,
         p *= vrna_exp_eval_stack(vc, i, j, VRNA_EVAL_LOOP_DEFAULT);
 
         if (p > cutoff) {
-          pl[num].i     = i;
-          pl[num].j     = j;
-          pl[num].type  = VRNA_PLIST_TYPE_STACK;
-          pl[num++].p   = p;
+          pl[num].i       = i;
+          pl[num].j       = j;
+          pl[num].p       = p;
+          pl[num].type    = VRNA_PLIST_TYPE_STACK;
+          pl[num++].size  = 2;
           if (num >= plsize) {
             plsize  *= 2;
             pl      = vrna_realloc(pl, plsize * sizeof(vrna_ep_t));
@@ -282,9 +283,9 @@ bpp_cb_default(vrna_fold_compound_t   *fc,
                           ((vrna_ep_t){
                             .i    = i,
                             .j    = j,
-                            .size = 1,
                             .p    = pr[i],
-                            .type = VRNA_PLIST_TYPE_BASEPAIR
+                            .type = VRNA_PLIST_TYPE_BASEPAIR,
+                            .size = 1
                           }));
   }
 }
@@ -309,9 +310,9 @@ accessibility_cb_default(vrna_fold_compound_t   *fc,
                           ((vrna_ep_t){
                             .i    = j + 1 - u,
                             .j    = j,
-                            .size = u,
                             .p    = pr[u],
-                            .type = VRNA_PLIST_TYPE_UNPAIRED
+                            .type = VRNA_PLIST_TYPE_UNPAIRED,
+                            .size = u
                           }));
   }
 }
@@ -335,9 +336,9 @@ hx_prob_cb_default(vrna_fold_compound_t   *fc,
                         ((vrna_ep_t){
                           .i    = i,
                           .j    = j,
-                          .size = 1,
                           .p    = pr[1],
-                          .type = VRNA_PLIST_TYPE_BASEPAIR
+                          .type = VRNA_PLIST_TYPE_BASEPAIR,
+                          .size = 1
                         }));
 
     if ((d->min_size <= 2) &&
@@ -346,9 +347,9 @@ hx_prob_cb_default(vrna_fold_compound_t   *fc,
                         ((vrna_ep_t){
                           .i    = i,
                           .j    = j,
-                          .size = 2,
                           .p    = pr[2],
-                          .type = VRNA_PLIST_TYPE_STACK
+                          .type = VRNA_PLIST_TYPE_STACK,
+                          .size = 2
                         }));
 
     for (unsigned int s = MAX2(3, d->min_size); s <= max_size; s++)
@@ -357,9 +358,9 @@ hx_prob_cb_default(vrna_fold_compound_t   *fc,
                           ((vrna_ep_t){
                             .i    = i,
                             .j    = j,
-                            .size = s,
                             .p    = pr[s],
-                            .type = VRNA_PLIST_TYPE_HELIX
+                            .type = VRNA_PLIST_TYPE_HELIX,
+                            .size = s
                           }));
   }
 }

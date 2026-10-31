@@ -1985,15 +1985,17 @@ store_bpp_callback(FLT_OR_DBL *pr,
 
     pl[pl_size].i     = k;
     pl[pl_size].j     = j;
-    pl[pl_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
     pl[pl_size++].p   = pr[j];
+    pl[pl_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
+    pl[pl_size].size  = 1;
   }
 
   /* mark end of vrna_ep_t */
   pl[pl_size].i     = 0;
   pl[pl_size].j     = 0;
-  pl[pl_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
   pl[pl_size].p     = 0.;
+  pl[pl_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
+  pl[pl_size].size  = 0;
 
   /* update data */
   ((default_cb_data *)data)->bpp          = pl;
@@ -2215,7 +2217,7 @@ wrap_pf_foldLP(char             *sequence,
   iindx                     = backward_compat_compound->iindx; /* for backward compatibility and Perl wrapper */
 
   if (pU)
-    ulength = (int)pU[0][0] + 0.49;
+    ulength = (int)(pU[0][0] + 0.49);
 
   data.fp_pU                = pUfp;
   data.pU                   = pU;

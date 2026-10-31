@@ -54,6 +54,7 @@ typedef struct {
   int j;
   float p;
   int type;
+  unsigned int size;
 } vrna_ep_t;
 
 %extend vrna_ep_t {
@@ -61,9 +62,10 @@ typedef struct {
     vrna_ep_t(unsigned int  i,
               unsigned int  j,
               float         p     = 1.,
-              int           type  = VRNA_PLIST_TYPE_BASEPAIR)
+              int           type  = VRNA_PLIST_TYPE_BASEPAIR,
+              unsigned int  size  = 1)
     {
-      return new vrna_ep_t { (int)i, (int)j, p, type };
+      return new vrna_ep_t { (int)i, (int)j, (float)p, (int)type, (unsigned int)size };
     }
 
 #ifdef SWIGPYTHON
@@ -75,6 +77,7 @@ typedef struct {
       out << ", j: " << $self->j;
       out << ", p: " << $self->p;
       out << ", t: " << $self->type;
+      out << ", s: " << $self->size;
       out << " }";
 
       return std::string(out.str());
@@ -90,6 +93,10 @@ def __repr__(self):
 #endif
 }
 
+#ifdef SWIGPYTHON
+%feature("autodoc") vrna_ep_t::vrna_ep_t;
+%feature("kwargs") vrna_ep_t::vrna_ep_t;
+#endif
 
 /************************************/
 /*  Dot-Bracket wrappers            */
@@ -409,10 +416,11 @@ my_ptable_compat_remove(var_array<short> &pt,
     if (plist) {
       for (ptr = plist; ptr->i && ptr->j; ptr++) {
         vrna_ep_t pl;
-        pl.i = ptr->i;
-        pl.j = ptr->j;
-        pl.p = ptr->p;
+        pl.i    = ptr->i;
+        pl.j    = ptr->j;
+        pl.p    = ptr->p;
         pl.type = ptr->type;
+        pl.size = ptr->size;
         ep_v.push_back(pl);
       }
 
@@ -430,6 +438,7 @@ my_ptable_compat_remove(var_array<short> &pt,
     last_elem.i     = last_elem.j = 0;
     last_elem.p     = 0;
     last_elem.type  = 0;
+    last_elem.size  = 0;
 
     pairs.push_back(last_elem);
 
@@ -491,6 +500,7 @@ std::string db_pk_remove(std::string structure, unsigned int options = VRNA_BRAC
       pl.j = ptr->j;
       pl.p = ptr->p;
       pl.type = ptr->type;
+      pl.size = ptr->size;
       ep_v.push_back(pl);
     }
 
@@ -1036,6 +1046,8 @@ my_gq_parse(std::string               structure,
 %constant int PLIST_TYPE_UD_MOTIF = VRNA_PLIST_TYPE_UD_MOTIF;
 %constant int PLIST_TYPE_STACK    = VRNA_PLIST_TYPE_STACK;
 %constant int PLIST_TYPE_UNPAIRED = VRNA_PLIST_TYPE_UNPAIRED;
+%constant int PLIST_TYPE_TRIPLE   = VRNA_PLIST_TYPE_TRIPLE;
+%constant int PLIST_TYPE_HELIX    = VRNA_PLIST_TYPE_HELIX;
 
 %constant unsigned int STRUCTURE_TREE_HIT            = VRNA_STRUCTURE_TREE_HIT;
 %constant unsigned int STRUCTURE_TREE_SHAPIRO_SHORT  = VRNA_STRUCTURE_TREE_SHAPIRO_SHORT;
