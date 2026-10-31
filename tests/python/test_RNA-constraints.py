@@ -21,32 +21,30 @@ def mfe_window_callback(start, end, structure, energy, data=None):
 class constraintsTest(unittest.TestCase):
     DATADIR = os.environ.get('VRNA_TEST_DATA', os.sep.join(["tests", "data"]))
 
-    def test_constraints_add(self):
-        """Add (hard and soft) contraints from file"""
-        #seq_con  =      "CCCAAAAGGGCCCAAAAGGG"
-        #str_con_def=    "(((....)))(((....)))"
-        #hc.txt=    "P 1 0 2"
-        #str_con=    "..........(((....)))"
-
-        hc_file = os.sep.join([self.DATADIR, "hc.txt"])
+    def test_constraints_add_hc(self):
+        """Add hard  contraints from file"""
         fc = RNA.fold_compound(seq_con)
-        fc.constraints_add(hc_file)
-        (ss,mfe) = fc.mfe()
-        print(ss, "[ %6.2f ]" % mfe)
-        self.assertEqual(ss,str_con)
-
-        fc.hc_init()
-        (ss,mfe) = fc.mfe()
-        print(ss, "[ %6.2f ]" % mfe)
+        (ss, mfe) = fc.mfe()
+        print(f"{ss} [{mfe:6.2f}]")
         self.assertEqual(ss,str_con_def)
 
-        #sc.txt = E 3 8 1 -5
-        sc_file = os.sep.join([self.DATADIR, "/sc.txt"])
-        fc.sc_init()
-        fc.constraints_add(sc_file)
-        (ss,mfeNew) = fc.mfe()
-        print(ss, "[ %6.2f ]" % mfeNew)
-        self.assertEqual("%6.2f" %mfe, "%6.2f" % (mfeNew +5))
+        fc.constraints_add(os.sep.join([self.DATADIR, "hc.txt"]))
+        (ss2, mfe2) = fc.mfe()
+        print(f"{ss2} [{mfe2:6.2f}]")
+        self.assertEqual(ss2, str_con)
+
+
+    def test_constraints_add(self):
+        """Add soft contraints from file"""
+        fc = RNA.fold_compound(seq_con)
+        (ss, mfe) = fc.mfe()
+        print(f"{ss} [{mfe:6.2f}]")
+        self.assertEqual(ss,str_con_def)
+
+        fc.constraints_add(os.sep.join([self.DATADIR, "sc.txt"]))
+        (ss, mfeNew) = fc.mfe()
+        print(f"{ss} [{mfeNew:6.2f}]")
+        self.assertEqual(f"{mfe:6.2f}", f"{(mfeNew + 5):6.2f}")
 
 
     def test_hc_add_up(self):
