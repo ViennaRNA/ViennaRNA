@@ -143,11 +143,14 @@ class GeneralTests(unittest.TestCase):
         start = RNA.random_string(len(struct1), "GC")
         cost = 100
         trial = 0
-        max_tries = 500
+        max_tries = 1000
         while cost != 0 and trial < max_tries:
             (sinv, cost) = RNA.inverse_fold(start, struct1)
             trial += 1
+        print(f"trials: {trial}/{max_tries}, cost: {cost}, {sinv}")
         (ss, en) = RNA.fold(sinv)
+        print(f"trials: {trial}/{max_tries}, cost: {cost}")
+        print(f"{sinv}\n{struct1}\n{ss} [{en:6.2f}]")
         self.assertEqual(ss, struct1)
         RNA.cvar.symbolset = "ACGU"
 
