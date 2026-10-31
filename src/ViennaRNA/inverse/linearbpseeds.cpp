@@ -244,9 +244,9 @@ vrna_inverse_seed_linearbp(const char                   *structure,
   char                        **samples   = NULL;
   size_t                      ns          = 0;
   vrna_inverse_linearbp_opt_t default_opt = {
-    .biseparable  = 0,
-    .maxmodulo    = 3,
-    .GCweight     = 0.0
+    (unsigned int)0,
+    (unsigned int)3,
+    (double)0.0
   };
 
   if (structure) {
