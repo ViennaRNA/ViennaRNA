@@ -1632,13 +1632,13 @@ print_block_list(struct block *block_list)
   size_t cnt = 0;
 
   for (ptr = block_list; ptr; ptr = ptr->next_entry, cnt++)
-    printf("block %lu: en=%d, start: %lu, end: %lu, shift: %lu\n",
+    printf("block %zu: en=%d, start: %lu, end: %lu, shift: %lu\n",
            cnt,
            ptr->energy,
            ptr->start,
            ptr->end,
            ptr->shift);
-  printf("%lu blocks remaining\n", cnt);
+  printf("%zu blocks remaining\n", cnt);
   fflush(stdout);
 }
 

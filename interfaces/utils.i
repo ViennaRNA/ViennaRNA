@@ -157,7 +157,7 @@ my_strtrim(char          *seq_mutable,
 
     if (c_vs) {
       for (size_t i = 0; i < vrna_array_size(c_vs); i++)
-        printf("v[%ld] = %f", i, c_vs[i]);
+        printf("v[%zu] = %f", i, c_vs[i]);
 
       vs = std::vector<double>(c_vs, c_vs + vrna_array_size(c_vs));
     }
