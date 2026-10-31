@@ -16,6 +16,7 @@
 #include "ViennaRNA/params/constants.h" /* defines MINPSCORE */
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/datastructures/sparse_mx.h"
 #include "ViennaRNA/sequences/alignments.h"
 #include "ViennaRNA/utils/log.h"
