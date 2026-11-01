@@ -67,9 +67,6 @@ hc_int_cb_sn(int   i,
              int   l,
              vrna_hc_t *hc)
 {
-  unsigned char pij, pkl;
-  unsigned int  u1, u2, u3;
-
   if ((hc->sn[i] != hc->sn[k]) ||
       (hc->sn[l] != hc->sn[j]))
     return (unsigned char)0;
@@ -86,7 +83,7 @@ wrap_hc_int_cb_window(int   i,
               vrna_hc_t *hc)
 {
   unsigned char pij, pkl;
-  unsigned int  u1, u2, u3;
+  unsigned int  u1, u2;
 
   pij = hc->matrix_local[i][j - i];
   pkl = hc->matrix_local[k][l - k];
