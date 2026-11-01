@@ -561,7 +561,6 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
   vrna_md_t                 *md;
   vrna_exp_param_t          *pf_params;
   vrna_ud_t                 *domains_up;
-  vrna_hc_t                 *hc;
   struct sc_ext_exp_dat     sc_wrapper;
   vrna_smx_csr(FLT_OR_DBL)  *q_gq;
 
@@ -572,7 +571,6 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
   domains_up  = fc->domains_up;
   with_gquad  = md->gquad;
   with_ud     = (domains_up && domains_up->exp_energy_cb);
-  hc          = fc->hc;
 
   init_sc_ext_exp(fc, &sc_wrapper);
 
