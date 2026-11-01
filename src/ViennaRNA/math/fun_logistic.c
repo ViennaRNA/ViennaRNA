@@ -52,11 +52,10 @@ fun_logistic_opt(double                   v,
 
 
 INLINE PRIVATE double
-fun_logistic(double       v,
-             double       mid_point,
-             double       supremum,
-             double       growth_rate,
-             unsigned int options);
+fun_logistic(double v,
+             double mid_point,
+             double supremum,
+             double growth_rate);
 
 
 PRIVATE void
@@ -106,8 +105,7 @@ vrna_math_fun_dbl_logistic(double       v,
   return fun_logistic(v,
                       mid_point,
                       supremum,
-                      growth_rate,
-                      options);
+                      growth_rate);
 }
 
 
@@ -132,17 +130,15 @@ fun_logistic_opt(double                   value,
   return fun_logistic(value,
                       o->mid_point,
                       o->supremum,
-                      o->growth_rate,
-                      o->options);
+                      o->growth_rate);
 }
 
 
 INLINE PRIVATE double
-fun_logistic(double       v,
-             double       mid_point,
-             double       supremum,
-             double       growth_rate,
-             unsigned int options)
+fun_logistic(double v,
+             double mid_point,
+             double supremum,
+             double growth_rate)
 {
   v = 1. + exp(-growth_rate * (v - mid_point));
 
