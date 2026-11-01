@@ -589,10 +589,6 @@ vrna_sequence_mutate_strand(vrna_fold_compound_t *fc,
       (positions) &&
       (nucleotides) &&
       (nucleotides[0] != '\0')) {
-    char          nt;
-    unsigned int  msite;
-    int           enc;
-    vrna_md_t     *md = &(fc->params->model_details);
 
     /* modify the nucleotide */
     mutate_strand(fc, sn, positions, nucleotides, nmods);
@@ -661,7 +657,6 @@ vrna_sequence_mutate(vrna_fold_compound_t *fc,
       unsigned int msite        = positions[i];
       unsigned int strand       = sn[msite];
       unsigned int actual_msite = msite - ss[strand] + 1;
-      unsigned int enc          = fc->sequence_encoding[msite];
 
       mutate_strand(fc, strand, &actual_msite, nucleotides + i, 1);
 
