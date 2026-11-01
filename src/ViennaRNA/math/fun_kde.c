@@ -135,8 +135,6 @@ vrna_math_fun_dbl_kde(double                  value,
                       double                  bandwidth,
                       unsigned int            options)
 {
-  double result = 0.;
-
   if ((samples) &&
       (num_samples > 0)) {
     vrna_math_fun_dbl_f           k;
@@ -156,12 +154,12 @@ vrna_math_fun_dbl_kde(double                  value,
       bandwidth = gaussian_bandwidth_default(samples, num_samples);
     }
 
-    result = fun_kde(value,
-                     samples,
-                     num_samples,
-                     k,
-                     kd,
-                     bandwidth);
+    return fun_kde(value,
+                   samples,
+                   num_samples,
+                   k,
+                   kd,
+                   bandwidth);
   } else {
     vrna_log_warning("Missing samples in KDE! Returning input value instead");
   }
@@ -233,11 +231,10 @@ gaussian_bandwidth_default(const double *data,
                            size_t       n)
 {
   double  factor, mu, std;
-  size_t  i, count;
+  size_t  i;
 
   mu    = 0.;
   std   = 0.;
-  count = 0;
 
   factor = (pow((double)n, -1. / 5)) *
            (pow(4. / 3., 1. / 5.));
