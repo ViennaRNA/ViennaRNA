@@ -275,7 +275,7 @@ en_internal(unsigned int n1,
 {
   /* compute energy of degree 2 loop (stack, bulge or true internal) */
   unsigned int  nl, ns, u, backbones;
-  int           energy, salt_loop_correction;
+  int           energy;
 
   if ((n1 + n2) == 0) /* stack */
     return en_stack(type, type_2, P);
@@ -336,7 +336,6 @@ en_internal(unsigned int n1,
                   P->mismatch23I[type_2][sq1][sp1];
         break;
       }
-
       /* fall through for 2xN loops with N > 3 */
 
     default:

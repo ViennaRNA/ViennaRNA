@@ -152,8 +152,7 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
 {
   short         **S;
   unsigned int  pos, L, l[3], n_seq;
-  int           en_covar, p, q, r, s, u, gq_en[2], num_elem,
-                num_g, up_mis;
+  int           en_covar, p, q, r, s, u, gq_en[2];
   vrna_param_t  *P;
 
   en_covar  = 0;
@@ -185,10 +184,7 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
       continue;                          /* g-quad in exterior loop */
     } else {
       /*  find its enclosing pair */
-      num_elem  = 0;
-      num_g     = 1;
-      r         = p - 1;
-      up_mis    = q - p + 1;
+      r = p - 1;
 
       /* seek for first pairing base located 5' of the g-quad */
       for (r = p - 1; !pt[r] && (r >= i); r--);
@@ -197,7 +193,6 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
         /* found the enclosing pair */
         s = pt[r];
       } else {
-        num_elem++;
         r = pt[r] - 1;
         /* seek for next pairing base 5' of r */
         for (; !pt[r] && (r >= i); r--);
@@ -210,7 +205,6 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
           while ((r > pt[r]) && (r >= i)) {
             if (pt[r]) {
               r = pt[r];
-              num_elem++;
             }
 
             r--;
@@ -241,13 +235,10 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
                                    P,
                                    gq_en);
             en_covar  += gq_en[1];
-            up_mis    += pos;
             u         += pos;
-            num_g++;
           }
         } else {
           /* we must have found a stem */
-          num_elem++;
           en_covar += covar_en_corr_of_loop_gquad(fc,
                                                   u,
                                                   pt[u],
