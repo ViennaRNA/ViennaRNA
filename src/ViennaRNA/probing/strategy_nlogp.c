@@ -63,7 +63,7 @@ vrna_probing_strategy_nlogp(vrna_fold_compound_t  *fc,
                             unsigned int          target,
                             void                  *options)
 {
-  double          *pseudo_energies, t;
+  double          *pseudo_energies;
   nlogp_options_t *opt;
 
   pseudo_energies = NULL;
@@ -131,10 +131,6 @@ vrna_probing_strategy_nlogp_options(double                        base,
                                     vrna_math_fun_dbl_opt_t       cb_preprocess_opt,
                                     vrna_math_fun_dbl_opt_free_f  cb_preprocess_opt_free)
 {
-  const double    *ptr;
-  double          *ptr_transformed;
-  size_t          ptr_size;
-
   nlogp_options_t *opt = (nlogp_options_t *)vrna_alloc(sizeof(nlogp_options_t));
 
   opt->base     = base;
