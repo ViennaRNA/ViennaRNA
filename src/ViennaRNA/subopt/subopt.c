@@ -241,17 +241,6 @@ scan_mb(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE void
-scan_m1(vrna_fold_compound_t  *fc,
-        int                   i,
-        int                   j,
-        unsigned int          array_flag,
-        int                   threshold,
-        STATE                 *state,
-        subopt_env            *env,
-        constraint_helpers    *constraints_dat);
-
-
-PRIVATE INLINE void
 scan_m2(vrna_fold_compound_t  *fc,
         unsigned int          i,
         unsigned int          j,
@@ -515,9 +504,7 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
   subopt_env          *env;
   STATE               *state;
   INTERVAL            *interval;
-  int                 maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length,
-                      circular,
-                      threshold;
+  int                 maxlevel, partial_energy, old_dangles, logML, dangle_model, length, circular, threshold;
   double              structure_energy, min_en, eprint;
   char                *struc, *structure;
   float               correction;
@@ -571,7 +558,6 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
   init_constraint_helpers(fc, &constraints_dat);
 
   maxlevel        = 0;
-  count           = 0;
   partial_energy  = 0;
 
   /* Initialize the stack ------------------------------------------------- */
@@ -629,7 +615,6 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
       int e;
       /* state has no intervals left: we got a solution */
 
-      count++;
       structure         = get_structure(state);
       structure_energy  = state->partial_energy / 100.;
 
@@ -1549,7 +1534,7 @@ scan_m2(vrna_fold_compound_t  *fc,
   char                      *ptype;
   short                     *S1;
   unsigned int              *sn, *so, k, turn, type, dangle_model, length, circular, with_gquad;
-  int                       fi, cij, ckj, e_gq, ij, kj, element_energy, best_energy,
+  int                       fi, ckj, e_gq, kj, element_energy, best_energy,
                             *c, *fML, *fM2_real, *indx;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -1598,8 +1583,6 @@ scan_m2(vrna_fold_compound_t  *fc,
 
     return;
   }
-
-  ij = indx[j] + i;
 
   /* case 1: j is unpaired */
   if ((hc->eval_mb(i, j, i, j - 1, VRNA_DECOMP_ML_ML, hc)) &&
@@ -1991,9 +1974,8 @@ scan_circular(vrna_fold_compound_t  *fc,
   char                      *ptype;
   short                     *S, *S1;
   unsigned int              k, l, p, q, u1, qmin, u2, type_2, n_seq, length, turn, type;
-  int                       e, e_part, tmp_en, best_energy, *c, *fML, Fc, FcH,
-                            FcI, FcM, *fM2_real, *fM1_new, *indx, *rtype, kl, tmpE,
-                            tmpE2;
+  int                       e, e_part, tmp_en, best_energy, *c, Fc, FcH, FcI, FcM,
+                            *fM2_real, *fM1_new, *indx, *rtype, kl, tmpE, tmpE2;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
@@ -2021,7 +2003,6 @@ scan_circular(vrna_fold_compound_t  *fc,
   turn = md->min_loop_size;
 
   c   = fc->matrices->c;
-  fML = fc->matrices->fML;
   Fc  = fc->matrices->Fc;
   FcH = fc->matrices->FcH;
   FcI = fc->matrices->FcI;
@@ -2821,10 +2802,10 @@ repeat(vrna_fold_compound_t *fc,
 
   char                      *ptype;
   short                     *S1;
-  unsigned int              n, *sn, *se, nick, k, p, q, no_close, type, type_2, rt, noGUclosure,
+  unsigned int              n, *sn, *se, nick, p, q, no_close, type, type_2, rt, noGUclosure,
                             noLP, with_gquad, dangle_model, minq, cnt, u1, u2;
-  int                       ij, energy, new, mm, element_energy,  *c, *fML, *fM2, **fms5, **fms3,
-                            *indx, *rtype, eee, aux_eee, tmp_en;
+  int                       ij, energy, new, mm, element_energy,  *c, *fM2, **fms5, **fms3,
+                            *indx, *rtype, eee, tmp_en;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
@@ -2834,7 +2815,6 @@ repeat(vrna_fold_compound_t *fc,
   struct sc_mb_dat          *sc_dat_mb;
   sc_int_cb                 sc_int_pair;
   sc_mb_pair_cb             sc_mb_pair;
-  sc_mb_red_cb              sc_mb_decomp_ml;
   STATE                     *new_state;
 
   n     = fc->length;
@@ -2853,7 +2833,6 @@ repeat(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
 
   c     = fc->matrices->c;
-  fML   = fc->matrices->fML;
   fM2   = fc->matrices->fM2_real;
   fms5  = fc->matrices->fms5;
   fms3  = fc->matrices->fms3;
@@ -2865,7 +2844,6 @@ repeat(vrna_fold_compound_t *fc,
   sc_dat_mb       = &(constraints_dat->sc_dat_mb);
   sc_int_pair     = constraints_dat->sc_dat_int.pair;
   sc_mb_pair      = constraints_dat->sc_dat_mb.pair;
-  sc_mb_decomp_ml = constraints_dat->sc_dat_mb.decomp_ml;
 
   ij = indx[j] + i;
 
