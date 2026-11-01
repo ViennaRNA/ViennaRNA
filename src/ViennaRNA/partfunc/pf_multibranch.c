@@ -395,7 +395,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
       k = i + 2;
 
       if (sliding_window) {
-        for (; k <= j - 1; k++, kl--)
+        for (; k <= j - 1; k++)
           temp += qm_local[i + 1][k - 1] *
                   qqm1_tmp[k];
       } else {
