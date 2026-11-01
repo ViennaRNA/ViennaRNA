@@ -254,7 +254,7 @@ vrna_inverse_seed_linearbp(const char                   *structure,
       options = &default_opt;
 
     vector<string> res = generate_seeds(string(structure),
-                                        num_samples,
+                                        (unsigned int)num_samples,
                                         options);
 
     if (res.size() > 0) {
@@ -517,7 +517,7 @@ num_design(const Tree                                         *v,
         cache[state] = 0.0;
         for (size_t couple = 0; couple < 4; couple++)
           cache[state] += num_design(v,
-                                     couple,
+                                     (int)couple,
                                      current_level_mod,
                                      m,
                                      leaves_levels_mod,
@@ -664,7 +664,7 @@ num_design_biseparated(const Tree                                         *v,
         cache[state] = 0.0;
         for (size_t couple = 0; couple < 4; couple++)
           cache[state] += num_design_biseparated(v,
-                                                 couple,
+                                                 (int)couple,
                                                  current_level_modA,
                                                  mA,
                                                  leaves_levels_modA,
@@ -802,7 +802,7 @@ stochastic_backtrack(const Tree                                         *v,
     long double r = distrib(gen) * cache[state];
     for (size_t couple = 0; couple < 4; couple++) {
       r -= num_design(v,
-                      couple,
+                      (int)couple,
                       current_level_mod,
                       m,
                       leaves_levels_mod,
@@ -813,7 +813,7 @@ stochastic_backtrack(const Tree                                         *v,
                       n);
       if (r < 0.0) {
         return stochastic_backtrack(v,
-                                    couple,
+                                    (int)couple,
                                     current_level_mod,
                                     m,
                                     leaves_levels_mod,
@@ -951,7 +951,7 @@ stochastic_backtrack_biseparated(const Tree *v,
     if (v->is_leaf) {
       for (size_t leaf = 5; leaf < 7; leaf++) {
         r -= num_design_biseparated(v,
-                                    leaf,
+                                    (int)leaf,
                                     current_level_modA,
                                     mA,
                                     leaves_levels_modA,
@@ -965,7 +965,7 @@ stochastic_backtrack_biseparated(const Tree *v,
                                     n);
         if (r < 0.0) {
           return stochastic_backtrack_biseparated(v,
-                                                  leaf,
+                                                  (int)leaf,
                                                   current_level_modA,
                                                   mA,
                                                   leaves_levels_modA,
@@ -982,7 +982,7 @@ stochastic_backtrack_biseparated(const Tree *v,
     } else {
       for (size_t couple = 0; couple < 4; couple++) {
         r -= num_design_biseparated(v,
-                                    couple,
+                                    (int)couple,
                                     current_level_modA,
                                     mA,
                                     leaves_levels_modA,
@@ -996,7 +996,7 @@ stochastic_backtrack_biseparated(const Tree *v,
                                     n);
         if (r < 0.0) {
           return stochastic_backtrack_biseparated(v,
-                                                  couple,
+                                                  (int)couple,
                                                   current_level_modA,
                                                   mA,
                                                   leaves_levels_modA,
@@ -1127,12 +1127,12 @@ ssparse(const string& seq)
 
   for (size_t i = 0; i < seq.size(); i++) {
     if (seq[i] == '(') {
-      p.push(i);
+      p.push((int)i);
     } else if (seq[i] == ')') {
       j = p.top();
       p.pop();
       res[i]  = j;
-      res[j]  = i;
+      res[j]  = (int)i;
     }
   }
   return res;
@@ -1199,7 +1199,7 @@ dbn_to_tree_list(const vector<int>& dbn,
       resu->parent      = { ii, jj };
       resu->unproper    = checker(v, 3, 1);
       resu->children    = v;
-      resu->nb_children = v.size();
+      resu->nb_children = (int)v.size();
       if ((resu->nb_children) > max_degree_optimized_multiloop) {
         resu->leafbits = -1;
       } else {
@@ -1224,13 +1224,13 @@ dbn_to_tree(const vector<int>& dbn)
  * A secondary structure tree
  */
 {
-  vector <Tree *> v     = dbn_to_tree_list(dbn, 0, dbn.size() - 1);
+  vector <Tree *> v     = dbn_to_tree_list(dbn, 0, (int)(dbn.size() - 1));
   Tree            *resu = new Tree;
 
-  resu->parent      = { 0, dbn.size() };
+  resu->parent      = { 0, (int)dbn.size() };
   resu->unproper    = checker(v, 4, 2);
   resu->children    = v;
-  resu->nb_children = v.size();
+  resu->nb_children = (int)v.size();
   if ((resu->nb_children) > max_degree_optimized_multiloop) {
     resu->leafbits = -1;
   } else {
@@ -1411,8 +1411,8 @@ generate_seeds(string                       structure,
     return resu;
   }
 
-  int         n               = structure.size();
-  size_t      magic_threshold = 10 * target_nb_sols * log(target_nb_sols);  //Coupon collector times 10 for safety
+  int         n               = (int)structure.size();
+  size_t      magic_threshold = (size_t)round(10. * (double)target_nb_sols * log(target_nb_sols));  //Coupon collector times 10 for safety
   bool        biseparable     = 0;
   int         maxmodulo       = 3;                                          //Maximal modulos considered for separability or biseparability
   long double GCweight        = 0.0;

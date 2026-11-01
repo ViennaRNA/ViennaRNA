@@ -883,7 +883,7 @@ vrna_sc_set_stack(vrna_fold_compound_t  *fc,
     fc->sc->energy_stack = (int *)vrna_alloc(sizeof(int) * (fc->length + 1));
 
     for (i = 1; i <= fc->length; ++i)
-      fc->sc->energy_stack[i] = (int)roundf(constraints[i] * 100.);
+      fc->sc->energy_stack[i] = (int)round((double)constraints[i] * 100.);
 
     return 1;
   }
@@ -920,7 +920,7 @@ vrna_sc_set_stack_comparative(vrna_fold_compound_t  *fc,
         fc->scs[s]->energy_stack = (int *)vrna_alloc(sizeof(int) * (fc->a2s[s][fc->length] + 1));
 
         for (i = 1; i <= fc->a2s[s][fc->length]; ++i)
-          fc->scs[s]->energy_stack[i] = (int)roundf(constraints[s][i] * 100.);
+          fc->scs[s]->energy_stack[i] = (int)round((double)constraints[s][i] * 100.);
 
         ret++;
       }
@@ -980,7 +980,7 @@ vrna_sc_add_stack(vrna_fold_compound_t  *fc,
       if (!fc->sc->energy_stack)
         fc->sc->energy_stack = (int *)vrna_alloc(sizeof(int) * (fc->length + 1));
 
-      fc->sc->energy_stack[i] += (int)roundf(energy * 100.);
+      fc->sc->energy_stack[i] += (int)round((double)energy * 100.);
 
       return 1;
     }
@@ -1027,7 +1027,7 @@ vrna_sc_add_stack_comparative(vrna_fold_compound_t  *fc,
         if (fc->scs[s]->energy_stack == NULL)
           fc->scs[s]->energy_stack = (int *)vrna_alloc(sizeof(int) * (fc->a2s[s][fc->length] + 1));
 
-        fc->scs[s]->energy_stack[is[s]] += (int)roundf(energies[s] * 100.);
+        fc->scs[s]->energy_stack[is[s]] += (int)round((double)energies[s] * 100.);
         ret++;
       }
     }
@@ -1606,7 +1606,7 @@ sc_add_bp_comparative(vrna_fold_compound_t  *fc,
     if (is[s] != 0) {
       sc = fc->scs[s];
       sc_init_bp_storage(sc);
-      sc_store_bp(sc->bp_storage, is[s], js[s], js[s], (int)roundf(energies[s] * 100.));
+      sc_store_bp(sc->bp_storage, is[s], js[s], js[s], (int)round((double)energies[s] * 100.));
       sc->state |= STATE_DIRTY_BP_MFE | STATE_DIRTY_BP_PF;
 
       ret++;
@@ -1752,7 +1752,7 @@ sc_reset_up_comparative(vrna_fold_compound_t  *fc,
 
       /* add contributions to storage container */
       for (i = 1; i <= n; i++)
-        sc->up_storage[i] = (int)roundf(constraints[s][i] * 100.); /* convert to 10kal/mol */
+        sc->up_storage[i] = (int)round((double)constraints[s][i] * 100.); /* convert to 10kal/mol */
 
       sc->state |= STATE_DIRTY_UP_MFE | STATE_DIRTY_UP_PF;
 
@@ -1835,7 +1835,7 @@ sc_reset_bp_comparative(vrna_fold_compound_t  *fc,
       /* add contributions to storage container */
       for (i = 1; i < n; i++)
         for (j = i + 1; j <= n; j++)
-          sc_store_bp(sc->bp_storage, i, j, j, (int)roundf(constraints[s][i][j] * 100.));
+          sc_store_bp(sc->bp_storage, i, j, j, (int)round((double)constraints[s][i][j] * 100.));
 
       sc->state |= STATE_DIRTY_BP_MFE | STATE_DIRTY_BP_PF;
 
@@ -1892,7 +1892,7 @@ sc_add_up_comparative(vrna_fold_compound_t  *fc,
     if (is[s] != 0) {
       sc = fc->scs[s];
       sc_init_up_storage(sc);
-      sc->up_storage[is[s]] += (int)roundf(energies[s] * 100.);
+      sc->up_storage[is[s]] += (int)round((double)energies[s] * 100.);
       sc->state             |= STATE_DIRTY_UP_MFE | STATE_DIRTY_UP_PF;
 
       ret++;

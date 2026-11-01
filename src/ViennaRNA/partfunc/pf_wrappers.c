@@ -34,7 +34,7 @@ vrna_pf_fold(const char *seq,
   vc  = vrna_fold_compound(seq, &md, 0);
   mfe = (double)vrna_mfe(vc, NULL);
   vrna_exp_params_rescale(vc, &mfe);
-  free_energy = vrna_pf(vc, structure);
+  free_energy = (float)vrna_pf(vc, structure);
 
   /* fill plist */
   if (pl)
@@ -68,7 +68,7 @@ vrna_pf_circfold(const char *seq,
   vc  = vrna_fold_compound(seq, &md, 0);
   mfe = (double)vrna_mfe(vc, NULL);
   vrna_exp_params_rescale(vc, &mfe);
-  free_energy = vrna_pf(vc, structure);
+  free_energy = (float)vrna_pf(vc, structure);
 
   /* fill plist */
   if (pl)
@@ -101,7 +101,7 @@ vrna_pf_alifold(const char  **strings,
   vc  = vrna_fold_compound_comparative(strings, &md, VRNA_OPTION_DEFAULT);
   mfe = (double)vrna_pf(vc, structure);
   vrna_exp_params_rescale(vc, &mfe);
-  free_energy = vrna_pf(vc, structure);
+  free_energy = (float)vrna_pf(vc, structure);
 
   /* fill plist */
   if (pl)
@@ -135,7 +135,7 @@ vrna_pf_circalifold(const char  **sequences,
   vc  = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_DEFAULT);
   mfe = (double)vrna_mfe(vc, structure);
   vrna_exp_params_rescale(vc, &mfe);
-  free_energy = vrna_pf(vc, structure);
+  free_energy = (float)vrna_pf(vc, structure);
 
   /* fill plist */
   if (pl)

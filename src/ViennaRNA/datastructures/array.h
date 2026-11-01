@@ -50,7 +50,7 @@ typedef struct vrna_array_header_s {
 /**
  *  @brief The default growth formula for array
  */
-#define VRNA_ARRAY_GROW_FORMULA(n)                      (1.4 * (n) + 8)
+#define VRNA_ARRAY_GROW_FORMULA(n)                      ((size_t)(1.4 * (n) + 8))
 #endif
 
 /**
@@ -93,7 +93,7 @@ vrna__array_set_capacity(void    *array,
  */
 #define vrna_array_init_size(a, init_size) do { \
   void **a_ptr = (void **)&(a); \
-  size_t size = sizeof(*(a)) * (size_t)(init_size) + sizeof(vrna_array_header_t); \
+  size_t size = sizeof(*(a)) * (init_size) + sizeof(vrna_array_header_t); \
   vrna_array_header_t *h = (void *)vrna_alloc(size); \
   h->num           = 0; \
   h->size          = (size_t)init_size; \
