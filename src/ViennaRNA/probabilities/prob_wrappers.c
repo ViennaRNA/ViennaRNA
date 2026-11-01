@@ -203,10 +203,8 @@ vrna_stack_prob(vrna_fold_compound_t  *vc,
                 double                cutoff)
 {
   vrna_ep_t         *pl;
-  int               i, j, plsize, length, *index, *jindx, *rtype, num;
-  char              *ptype;
-  FLT_OR_DBL        *qb, *probs, *scale, p;
-  vrna_exp_param_t  *pf_params;
+  int               i, j, plsize, length, *index, num;
+  FLT_OR_DBL        *qb, *probs, p;
   vrna_mx_pf_t      *matrices;
 
   plsize  = 256;
@@ -214,16 +212,11 @@ vrna_stack_prob(vrna_fold_compound_t  *vc,
   num     = 0;
 
   if (vc) {
-    pf_params = vc->exp_params;
     length    = vc->length;
     index     = vc->iindx;
-    jindx     = vc->jindx;
-    rtype     = &(pf_params->model_details.rtype[0]);
-    ptype     = vc->ptype;
     matrices  = vc->exp_matrices;
     qb        = matrices->qb;
     probs     = matrices->probs;
-    scale     = matrices->scale;
 
     pl = (vrna_ep_t *)vrna_alloc(plsize * sizeof(vrna_ep_t));
 
