@@ -46,10 +46,8 @@ vrna_compare_structure_pt(const short *pt_gold,
 {
   double        TP = 0., TN = 0., FP = 0., FN = 0.;
 
-  /* number of false positive, but compatible pairs */
-  int           compatible = 0;
   /* count the number of base pairs in pt_gold, and pt_other */
-  unsigned int  bps_gold = 0, bps_other = 0;
+  unsigned int  bps_gold = 0;
 
   /*
    * Marks gold standard positions whose base pair has already been claimed
@@ -64,17 +62,13 @@ vrna_compare_structure_pt(const short *pt_gold,
     if (pt_gold[i] > i)
       bps_gold++;
 
-  for (int i = 1; i <= pt_other[0]; i++)
-    if (pt_other[i] > i)
-      bps_other++;
-
   /* got through pt_other and compare its pairs to pt_gold */
   for (int i = 1; i <= pt_other[0]; i++) {
     int j = pt_other[i];
     if (j < i)
       continue;
 
-    int is_true_positive = 0, is_inconsistent = 0, is_contradicting = 0;
+    int is_true_positive = 0;
 
     /*
      * True Positives
@@ -118,37 +112,7 @@ vrna_compare_structure_pt(const short *pt_gold,
       }
     }
 
-    /*
-     * False Positives
-     * let's check if base-pair i, j is inconsistent with reference structure
-     * base i or base j in reference is paired to something else
-     */
-    if ((is_true_positive == 0) &&
-        ((pt_gold[i] != 0) || (pt_gold[j] != 0)))
-      is_inconsistent = 1;
-
-    /*
-     * let's check if a base-pair is contradicting
-     * there is a pair k * l in the reference that either
-     * k < i < l < j (reference pair opens first), or
-     * i < k < j < l (predicted pair opens first)
-     */
-    for (int k = 1; k <= pt_gold[0]; k++) {
-      if (pt_gold[k] < k)
-        continue;
-
-      int l = pt_gold[k];
-      if (((k < i) && (i < l) && (l < j)) ||
-          ((i < k) && (k < j) && (j < l))) {
-        is_contradicting = 1;
-        break;
-      }
-    }
-
     if (is_true_positive == 0) {
-      if ((is_inconsistent == 0) && (is_contradicting == 0))
-        compatible++;
-
       FP += 1.;
     } else {
       TP += 1.;
