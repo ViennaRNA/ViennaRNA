@@ -1146,7 +1146,7 @@ mfe_multibranch_m2_fast(vrna_fold_compound_t        *fc,
                         struct vrna_mx_mfe_aux_ml_s *helpers)
 {
   unsigned int      k, *sn, *se, sliding_window;
-  int               en, decomp, k1j, *indx, *fm, **fm_local, *fmi, *dmli;
+  int               en, decomp, k1j, *indx, *fm, **fm_local, *fmi;
   vrna_hc_t         *hc;
   struct sc_mb_dat  sc_wrapper;
 
@@ -1159,16 +1159,13 @@ mfe_multibranch_m2_fast(vrna_fold_compound_t        *fc,
   fm        = (sliding_window) ? NULL : fc->matrices->fML;
   fm_local  = (sliding_window) ? fc->matrices->fML_local : NULL;
   fmi       = helpers->Fmi;
-  dmli      = helpers->DMLi;
   decomp    = INF;
 
   init_sc_mb(fc, &sc_wrapper);
 
   /* modular decomposition -------------------------------*/
-  if (sliding_window) {
+  if (sliding_window)
     fmi   -= i;
-    dmli  -= i;
-  }
 
   /* use fmi pointer that we may extend to include hard/soft constraints if necessary */
   int *fmi_tmp = fmi;
