@@ -1,29 +1,3 @@
-
-
-PRIVATE unsigned char
-wrap_hc_hp_cb_def(int            i,
-             int            j,
-             vrna_hc_t *hc);
-
-
-PRIVATE unsigned char
-wrap_hc_hp_cb_def_window(int           i,
-                    int           j,
-                    vrna_hc_t *hc);
-
-
-PRIVATE unsigned char
-wrap_hc_hp_cb_def_user(int           i,
-                  int           j,
-                  vrna_hc_t *hc);
-
-
-PRIVATE unsigned char
-wrap_hc_hp_cb_def_user_window(int            i,
-                         int            j,
-                         vrna_hc_t *hc);
-
-
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -132,7 +106,7 @@ dispatch_wrap_hp_f(int        i,
                    int        j,
                    vrna_hc_t  *hc)
 {
-  /* check whether additional preparations are necessary, e.g. due to constrahps added in the meantime */
+  /* check whether additional preparations are necessary, e.g. due to constraints added in the meantime */
   if (hc->state != STATE_CLEAN) {
     vrna_log_error("uninitialized hard constraints! Call vrna_hc_prepare() first!");
     return (unsigned char)0;

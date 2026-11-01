@@ -1,19 +1,3 @@
-PRIVATE unsigned char
-hc_int_cb_def(int   i,
-              int   j,
-              int   k,
-              int   l,
-              vrna_hc_t *hc);
-
-
-PRIVATE unsigned char
-hc_int_cb_def_user(int  i,
-                   int  j,
-                   int  k,
-                   int  l,
-                   vrna_hc_t *hc);
-
-
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
