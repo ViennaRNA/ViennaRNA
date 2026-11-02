@@ -2,6 +2,9 @@
 #define VIENNA_RNA_PACKAGE_MATH_FUNCTIONS_H
 
 
+#include <math.h>
+#include <ViennaRNA/fold_compound.h>
+
 /**
  *  @file     ViennaRNA/math/functions.h
  *  @ingroup  math_scalar
@@ -401,6 +404,29 @@ vrna_math_fun_dbl_logistic_opt(double                       mid_point,
                                unsigned int                 options,
                                vrna_math_fun_dbl_opt_t      *fun_options_p,
                                vrna_math_fun_dbl_opt_free_f *fun_options_free);
+
+
+#define VRNA_MATH_FUN_LOGIT_BOUNDS_DEFAULT                NULL
+#define VRNA_MATH_FUN_LOGIT_OOB_VALUES_DEFAULT            ((const double[2]){-INFINITY, INFINITY})
+#define VRNA_MATH_FUN_LOGIT_OPTION_BOUNDS_OPEN            0U
+#define VRNA_MATH_FUN_LOGIT_OPTION_BOUNDS_INCLUSIVE_LOWER (1 << 0)
+#define VRNA_MATH_FUN_LOGIT_OPTION_BOUNDS_INCLUSIVE_UPPER (1 << 1)
+#define VRNA_MATH_FUN_LOGIT_OPTION_BOUNDS_INCLUSIVE       (VRNA_MATH_FUN_LOGIT_OPTION_BOUNDS_INCLUSIVE_LOWER | VRNA_MATH_FUN_LOGIT_OPTION_BOUNDS_INCLUSIVE_UPPER)
+#define VRNA_MATH_FUN_LOGIT_OPTION_DEFAULT                (VRNA_MATH_FUN_LOGIT_OPTION_BOUNDS_OPEN)
+
+vrna_math_fun_dbl_f
+vrna_math_fun_dbl_logit_opt(const double                  bounds[2],
+                            const double                  oob_values[2],
+                            unsigned int                  options,
+                            vrna_math_fun_dbl_opt_t       *fun_options_p,
+                            vrna_math_fun_dbl_opt_free_f  *fun_options_free);
+
+
+double
+vrna_math_fun_dbl_logit(double        p,
+                        const double  bounds[2],
+                        const double  oob_values[2],
+                        unsigned int  options);
 
 
 /**
