@@ -7,15 +7,22 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/log.h"
 #include <ViennaRNA/utils/units.h>
+#include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/probing/basic.h"
 #include "ViennaRNA/probing/strategy_deigan.h"
 #include "ViennaRNA/probing/strategy_eddy.h"
 #include "ViennaRNA/probing/strategy_zarringhalam.h"
 #include "ViennaRNA/probing/SHAPE.h"
+#include "ViennaRNA/probing/crosslink.h"
 
 
 #include "probing_data_helpers.h"
+
+typedef struct {
+  char    key;
+  float   value;
+} kv_pair;
 
 
 /*
@@ -23,13 +30,9 @@
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE void
-sc_parse_parameters(const char  *string,
-                    char        c1,
-                    char        c2,
-                    float       *v1,
-                    float       *v2);
-
+PRIVATE vrna_array(kv_pair)
+sc_parse_parameters(const char        *string,
+                    vrna_array(char)  *aux_flags);
 
 /*
  #################################
@@ -71,24 +74,150 @@ probing_data_free(probing_data_t *dat) {
 
 PUBLIC int
 apply_probing_data(vrna_fold_compound_t *fc,
-                   probing_data_t       *d)
+                   probing_data_t       *d,
+                   const char           *allowed_methods)
 {
+  const char          *default_strategies = "DEZW";
   char                method, *sequence;
-  unsigned int        length;
+  unsigned int        length, options;
   size_t              prior_unpaired_size, prior_paired_size;
-  float               p1, p2;
+  float               p1, p2, p3;
   double              *values, *prior_unpaired, *prior_paired;
   vrna_probing_data_t pd;
+
+  if (allowed_methods == NULL)
+    allowed_methods = default_strategies;
 
   length = fc->length;
 
   for (size_t i = 0; i < vrna_array_size(d->strategies); i++) {
     pd = NULL;
+    p1 = 0.;
+    p2 = 0.;
 
     /* parse the strategy and corresponding arguments */
-    if (!vrna_sc_SHAPE_parse_method(d->strategies[i] ? d->strategies[i] : "D", &method, &p1, &p2)) {
-      vrna_log_warning("Method for SHAPE reactivity data conversion not recognized!");
-      return 1;
+    method = d->strategies[i] ? d->strategies[i][0] : 'D';
+
+    if (strchr(allowed_methods, method) == NULL) {
+      vrna_log_error("Probing strategy \"%c\" not allowed in this context, skipping data! Available strategies are: \"%s\"",
+                     method,
+                     allowed_methods);
+      continue;
+    }
+
+    /* parse parameters, if any */
+    vrna_array(char) aux_flags;
+    vrna_array(kv_pair) parameters;
+    parameters = sc_parse_parameters(d->strategies[i] ? d->strategies[i] + 1: "",
+                                     &aux_flags);
+
+    /* process parameters */
+    switch (method) {
+      case 'Z':
+        p1 = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta;
+        if (parameters) {
+          for (size_t i = 0; i < vrna_array_size(parameters); i++)
+            if (parameters[i].key == 'b') {
+              p1 = parameters[i].value;
+              break;
+            }
+        }
+        break;
+
+      case 'E':
+        p1 = -300.;
+        if (parameters) {
+          for (size_t i = 0; i < vrna_array_size(parameters); i++)
+            if ((parameters[i].key == 't') ||
+                (parameters[i].key == 'k')) {
+              p1 = (float)vrna_convert_temperature(parameters[i].value,
+                                                         VRNA_UNIT_K,
+                                                         VRNA_UNIT_DEG_C);
+              break;
+            } else if (parameters[i].key == 'c') {
+              p1 = parameters[i].value;
+              break;
+            }
+        }
+        break;
+
+      case 'D':
+        p1  = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m;
+        p2  = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b;
+        if (parameters) {
+          for (size_t i = 0; i < vrna_array_size(parameters); i++)
+            if (parameters[i].key == 'b') {
+              p2 = parameters[i].value;
+            } else if (parameters[i].key == 'm') {
+              p1 = parameters[i].value;
+              break;
+            }
+        }
+        break;
+
+      case 'W':
+        break;
+
+      case 'X':
+        /* Cross-linking data */
+        p1      = fc->params->model_details.temperature; /* default temperature */
+        p2      = VRNA_PROBING_METHOD_CROSSLINK_DEFAULT_SCALING; /* default scaling factor */
+        p3      = VRNA_PROBING_METHOD_CROSSLINK_DEFAULT_LIMIT; /* limit in energy */
+        options = VRNA_PROBING_METHOD_CROSSLINK_DEFAULT_OPTIONS;
+
+        if (aux_flags) {
+          for (size_t i = 0; i < vrna_array_size(aux_flags); i++) {
+            if (aux_flags[i] == 'E')
+              options |= VRNA_PROBING_METHOD_CROSSLINK_INPUT_ENERGY;  /* input file states energies instead of probabilities */
+            else if (aux_flags[i] == 'P')
+              options &= ~VRNA_PROBING_METHOD_CROSSLINK_INPUT_ENERGY; /* input file states probabilities */
+          }
+        }
+
+        if (parameters) {
+          for (size_t i = 0; i < vrna_array_size(parameters); i++)
+            if ((parameters[i].key == 't') ||
+                (parameters[i].key == 'k')) {
+              p1 = (float)vrna_convert_temperature(parameters[i].value,
+                                                         VRNA_UNIT_K,
+                                                         VRNA_UNIT_DEG_C);
+            } else if (parameters[i].key == 'c') {
+              p1 = parameters[i].value;
+            } else if (parameters[i].key == 's') {
+              p2 = parameters[i].value;
+            } else if (parameters[i].key == 'e') {
+              p3 = parameters[i].value;
+              options &= ~VRNA_PROBING_METHOD_CROSSLINK_LIMIT_PROBABILITY; /* limit is probability */
+            } else if (parameters[i].key == 'p') {
+              p3 = parameters[i].value;
+              options |= VRNA_PROBING_METHOD_CROSSLINK_LIMIT_PROBABILITY; /* limit is probability */
+            }
+        }
+
+        vrna_log_info("Add crosslinking data from \"%s\" with T=%3.2f, scale=%g, limit=%g, options = %u",
+                      d->files[i],
+                      p1,
+                      p2,
+                      p3,
+                      options);
+
+        if (!vrna_probing_data_xlink_file(fc,
+                                          d->files[i],
+                                          p1,
+                                          p2,
+                                          p3,
+                                          options))
+          vrna_log_error("failed to load crosslink data from \"%s\"\n",
+                         d->files[i]);
+
+        break;
+    }
+
+    if (method == 'X') {
+      vrna_array_free(parameters);
+      vrna_array_free(aux_flags);
+      /* do not proceed with the usual probing data integration below */
+      continue;
     }
 
     sequence  = vrna_alloc(sizeof(char) * (length + 1));
@@ -155,7 +284,7 @@ apply_probing_data(vrna_fold_compound_t *fc,
           for (i = 1; i < length; i++)
             (void)vrna_sc_add_up(fc, i, (FLT_OR_DBL)values[i], VRNA_OPTION_DEFAULT);
 
-          vrna_log_info("Probing data set %ld: file = %s, strategy = Wuchty et al. 2012, pre-processing = %s",
+          vrna_log_info("Probing data set %ld: file = %s, strategy = Washietl et al. 2012, pre-processing = %s",
                         i,
                         d->files[i],
                         d->preprocessing[i] ? d->preprocessing[i] : "None");
@@ -179,7 +308,7 @@ apply_probing_data(vrna_fold_compound_t *fc,
           break;
 
         default:
-          vrna_log_warning("Probing data set %ld not recognized", i);
+          vrna_log_warning("Probing data set/strategy %ld not recognized", i);
           break;
       }
     }
@@ -187,6 +316,8 @@ apply_probing_data(vrna_fold_compound_t *fc,
     (void)vrna_sc_probing(fc, pd);
 
     vrna_probing_data_free(pd);
+    vrna_array_free(parameters);
+    vrna_array_free(aux_flags);
     free(values);
     free(sequence);
   }
@@ -211,7 +342,8 @@ constraints_add_SHAPE(vrna_fold_compound_t *vc,
   FLT_OR_DBL        *v;
   vrna_probing_data_t d = NULL;
 
-  if (!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)) {
+  if ((!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)) ||
+      (method == 'X')) {
     vrna_log_warning("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
@@ -282,7 +414,8 @@ constraints_add_SHAPE_ali(vrna_fold_compound_t *vc,
   float p1, p2;
   char  method;
 
-  if (!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)) {
+  if ((!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)) ||
+      (method == 'X')) {
     vrna_log_warning("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
@@ -305,110 +438,61 @@ constraints_add_SHAPE_ali(vrna_fold_compound_t *vc,
   }
 }
 
-PUBLIC int
-sc_SHAPE_parse_method(const char *method_string,
-                      char       *method,
-                      float      *param_1,
-                      float      *param_2)
+/* Parse key-value pairs with key = char and value = float from a string */
+PRIVATE vrna_array(kv_pair)
+sc_parse_parameters(const char        *string,
+                    vrna_array(char)  *aux_flags)
 {
-  const char *params = method_string + 1;
+  vrna_array(kv_pair) parameters;
 
-  *param_1  = 0;
-  *param_2  = 0;
-
-  if (!method_string || !method_string[0])
-    return 0;
-
-  *method = method_string[0];
-
-  switch (method_string[0]) {
-    case 'Z':
-      *param_1 = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta;
-      sc_parse_parameters(params, 'b', '\0', param_1, NULL);
-      break;
-
-    case 'E':
-      *param_1 = -300.;
-
-      sc_parse_parameters(params, 't', '\0', param_1, NULL);
-
-      if (*param_1 == -300.)
-        sc_parse_parameters(params, 'k', '\0', param_1, NULL);
-
-      if (*param_1 == -300.)
-        sc_parse_parameters(params, 'c', '\0', param_1, NULL);
-      else
-        *param_1 = (float)vrna_convert_temperature((float)(*param_1),
-                                                   VRNA_UNIT_K,
-                                                   VRNA_UNIT_DEG_C);
-      break;
-
-    case 'D':
-      *param_1  = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m;
-      *param_2  = VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b;
-      sc_parse_parameters(params, 'm', 'b', param_1, param_2);
-      break;
-
-    case 'W':
-      break;
-
-    default:
-      *method = 0;
-      return 0;
-  }
-
-  return 1;
-}
-
-
-PRIVATE void
-sc_parse_parameters(const char  *string,
-                    char        c1,
-                    char        c2,
-                    float       *v1,
-                    float       *v2)
-{
-  char        *fmt;
-  const char  warning[] = "SHAPE method parameters not recognized! Using default parameters!";
-  int         r;
-
-  assert(c1);
-  assert(v1);
+  parameters = NULL;
+  *aux_flags = NULL;
 
   if (!string || !(*string))
-    return;
+    return parameters;
 
-  if (c2 == 0 || v2 == NULL) {
-    fmt = vrna_strdup_printf("%c%%f", c1);
-    r   = sscanf(string, fmt, v1);
+  size_t l    = strlen(string);
+  size_t pos  = 0;
 
-    if (!r)
-      vrna_log_warning(warning);
+  vrna_array_init(parameters);
+  vrna_array_init(*aux_flags);
 
-    free(fmt);
-
-    return;
-  }
-
-  fmt = vrna_strdup_printf("%c%%f%c%%f", c1, c2);
-  r   = sscanf(string, fmt, v1, v2);
-
-  if (r != 2) {
-    free(fmt);
-    fmt = vrna_strdup_printf("%c%%f", c1);
-    r   = sscanf(string, fmt, v1);
-
-    if (!r) {
-      free(fmt);
-      fmt = vrna_strdup_printf("%c%%f", c2);
-      r   = sscanf(string, fmt, v2);
-
-      if (!r)
-        vrna_log_warning(warning);
+  while (pos < l) {
+    int   consumed = 0;
+    char  p;
+    float v;
+    /* loop through the string and try extracting as many parameters as possible */
+    if (sscanf(string + pos, " %c %f%n", &p, &v, &consumed) == 2) {
+      vrna_array_append(parameters,
+                        ((kv_pair){
+                          .key = p,
+                          .value = v
+                        }));
+      pos += (size_t)consumed;
+    } else if (sscanf(string + pos, " %c = %f%n", &p, &v, &consumed) == 2) {
+      vrna_array_append(parameters,
+                        ((kv_pair){
+                          .key = p,
+                          .value = v
+                        }));
+      pos += (size_t)consumed;
+    } else if (sscanf(string + pos, " %c : %f%n", &p, &v, &consumed) == 2) {
+      vrna_array_append(parameters,
+                        ((kv_pair){
+                          .key = p,
+                          .value = v
+                        }));
+      pos += (size_t)consumed;
+    } else if ((sscanf(string + pos, " %[A-Z]%n", &p, &consumed) == 1)) {
+      vrna_array_append(*aux_flags, p);
+      pos += (size_t)consumed;
+    } else {
+      vrna_log_warning("can't parse any more parameters from \"%s\"", string + pos);
+      break;
     }
   }
 
-  free(fmt);
+  return parameters;
 }
 
 
@@ -495,7 +579,7 @@ extract_probing_options(int     argc,
   strategy = preprocess = NULL;
 
   /* Go through argument options and collect all probing data */
-  for (size_t i = 1; i < argc; i++) {
+  for (size_t i = 1; i < (size_t)argc; i++) {
     if (strncmp(argv[i], "--sp-", 5) == 0) {
       /* extract argument for this option */
       char *cmd, *arg;
@@ -503,7 +587,7 @@ extract_probing_options(int     argc,
 
       if ((arg = strchr(cmd, '=')) != NULL) {
         arg++; /* remove leading '=' */
-      } else if (i + 1 < argc) {
+      } else if (i + 1 < (size_t)argc) {
         arg = argv[++i];
       } else {
         vrna_log_error("Command line option %s is missing its argument!");

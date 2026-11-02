@@ -520,7 +520,9 @@ details="The following strategies (methods) are available to convert structure p
  observed pairing probabilities will be penalized during the folding recursion. The magnitude of\
  the penalties can affected by adjusting the factor beta (e.g. --sp-strategy=\"Zb0.8\").\n\n\
  'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012.\
- Perturbation vectors can be calculated by using RNApvmin.\n\n"
+ Perturbation vectors can be calculated by using RNApvmin.\n\n\
+ 'X': Cross-linking data input, according to Lorenz et al. 2026.\
+ Use interval pairs derived from cross-linking experiments to guide the structure prediction.\n\n"
 string
 typestr="strategy"
 dependon="sp-data"
@@ -583,13 +585,6 @@ typestr="method"
 default="O"
 optional
 hidden
-
-
-option  "crosslink"   x
-"Use crosslink data to guide the structure prediction.\n\n"
-string
-typestr="filename"
-optional
 
 
 section "Energy Parameters"

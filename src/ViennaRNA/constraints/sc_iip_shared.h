@@ -10,6 +10,7 @@ typedef struct {
   unsigned int  d;          /* end of 3' interval */
   int           score;      /* interval score */
   FLT_OR_DBL    exp_score;  /* interval score as Boltzmann factor */
+  double        energy;     /* energy for the interaction between the intervals */
 } interact_region_s;
 
 

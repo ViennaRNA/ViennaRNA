@@ -279,6 +279,7 @@ vrna_constraints_HEADERS = \
 
 vrna_probing_HEADERS = \
     probing/basic.h \
+    probing/crosslink.c \
     probing/SHAPE.h \
     probing/strategy_deigan.h \
     probing/strategy_eddy.h \
@@ -535,6 +536,7 @@ libRNA_constraints_la_SOURCES = \
 
 
 libRNA_probing_la_SOURCES = \
+    probing/crosslink.c \
     probing/probing.c \
     probing/strategy_chain.c \
     probing/strategy_deigan.c \
@@ -555,7 +557,8 @@ libRNA_math_la_SOURCES = \
     math/fun_kde.c \
     math/fun_linear.c \
     math/fun_log.c \
-    math/fun_logistic.c
+    math/fun_logistic.c \
+    math/fun_logit.c
 
 
 libRNA_structures_la_SOURCES = \

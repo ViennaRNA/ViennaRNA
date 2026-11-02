@@ -72,7 +72,8 @@ probing_data_free(probing_data_t *dat);
 
 int
 apply_probing_data(vrna_fold_compound_t *fc,
-                   probing_data_t       *d);
+                   probing_data_t       *d,
+                   const char           *allowed_methods);
 
 
 void

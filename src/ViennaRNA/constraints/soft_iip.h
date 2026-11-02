@@ -9,17 +9,16 @@
 
 /**
  *  @file     ViennaRNA/constraints/soft_iip.h
- *  @ingroup constraints
- *  @brief  This module provides function to incorporate RNA structure
- *          probing data derived from cross-linking experiments into the folding recursions
- *          by means of soft constraints and grammar extensions
+ *  @ingroup soft_constraints
+ *  @brief  This module provides functions to incorporate interacting
+ *          interval pair soft constraints
  */
 
 typedef struct vrna_crosslink_data_s  *vrna_sc_iip_t;
 
 
 /**
- *  @ingroup probing_data
+ *  @ingroup soft_constraints
  */
 int
 vrna_sc_add_iip(vrna_fold_compound_t  *fc,
@@ -29,10 +28,6 @@ vrna_sc_add_iip(vrna_fold_compound_t  *fc,
                 unsigned int          l,
                 double                energy,
                 unsigned int          options);
-
-int
-vrna_sc_add_iip_file(vrna_fold_compound_t  *fc,
-                     const char            *filename);
 
 
 int

@@ -161,9 +161,6 @@ bt_B(vrna_fold_compound_t *fc,
      vrna_bts_t           bt_stack);
 
 
-PRIVATE interact_region_s *
-parse_crosslink_data(FILE *fp);
-
 
 PRIVATE INLINE FLT_OR_DBL
 ml_pair_exp(vrna_fold_compound_t        *fc,
@@ -261,47 +258,9 @@ vrna_sc_add_iip(vrna_fold_compound_t  *fc,
       .b      = j,
       .c      = k,
       .d      = l,
-      .score  = (int)(energy * 100.)
+      .score  = (int)(energy * 100.),
+      .energy = energy
     }));
-  }
-
-  return ret;
-}
-
-
-PUBLIC int
-vrna_sc_add_iip_file(vrna_fold_compound_t  *fc,
-                     const char            *filename)
-{
-  int   ret = 0;
-  FILE  *fp;
-
-  if ((fc) &&
-      (filename)) {
-    if (!(fp = fopen(filename, "r"))) {
-      vrna_log_warning("Can't open crosslink-data file \"%s\"!",
-                       filename);
-      return 0;
-    }
-
-    vrna_array(interact_region_s) regions = parse_crosslink_data(fp);
-
-    fclose(fp);
-
-    if (regions) {
-      ret = 1;
-
-      for (size_t i = 0; i < vrna_array_size(regions); i++)
-        ret &= vrna_sc_add_iip(fc,
-                               regions[i].a,
-                               regions[i].b,
-                               regions[i].c,
-                               regions[i].d,
-                               (double)regions[i].score / 100.,
-                               0);
-    }
-
-    vrna_array_free(regions);
   }
 
   return ret;
@@ -1556,42 +1515,6 @@ vrna_sc_iip_update_mfe(vrna_fold_compound_t *fc,
 }
 
 
-PRIVATE interact_region_s *
-parse_crosslink_data(FILE *fp)
-{
-  char    *line;
-  int     a, b, c, d;
-  double  score;
-
-  vrna_array(interact_region_s) regions;
-
-  vrna_array_init_size(regions, 42);
-
-  while ((line = vrna_read_line(fp))) {
-    if (sscanf(line, "%d %d %d %d %lf", &a, &b, &c, &d, &score) == 5) {
-      interact_region_s r = {
-        .a      = a,
-        .b      = b,
-        .c      = c,
-        .d      = d,
-        .score  = (int)(score * 100.)
-      };
-
-      vrna_array_append(regions, r);
-    }
-
-    free(line);
-  }
-
-  if (vrna_array_size(regions) == 0) {
-    vrna_array_free(regions);
-    regions = NULL;
-  }
-
-  return regions;
-}
-
-
 PUBLIC FLT_OR_DBL
 vrna_pf_multibranch_loop_xlink(vrna_fold_compound_t       *fc,
                                unsigned int               i,
@@ -2328,7 +2251,7 @@ xl_fill_prms(vrna_fold_compound_t *fc,
             qbt2 = qbt1; /* for prm_lmm2 */
 
             if (r->c > l)
-              qbt2 *- r->exp_score;
+              qbt2 *= r->exp_score;
 
             qbt1 *= r->exp_score;
           }

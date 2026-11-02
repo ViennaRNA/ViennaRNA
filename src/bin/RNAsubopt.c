@@ -459,21 +459,10 @@ main(int  argc,
       }
     }
 
-#if 1
     if (probing_data)
       apply_probing_data(vc,
-                         probing_data);
-
-#else
-    if (with_shapes) {
-      constraints_add_SHAPE(vc,
-                                 shape_file,
-                                 shape_method,
-                                 shape_conversion,
-                                 verbose,
-                                 VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
-    }
-#endif
+                         probing_data,
+                         NULL);
 
     if (ligandMotif) {
       add_ligand_motif(vc,
