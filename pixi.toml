@@ -26,6 +26,8 @@ _unpack-dlib = {
     "-C",
     "src"
   ],
+  inputs = ["src/dlib-20.0.tar.bz2"],
+  outputs = ["src/dlib-20.0/*"],
 }
 
 prepare = {
@@ -83,16 +85,26 @@ _build-static = {
   cwd = "src/ViennaRNA/static"
 }
 
+_build-sphinx-man = {
+  cmd = ["make"],
+  cwd = "doc/source/usage/man"
+}
+
 _build-python = {
   cmd = ["make", "RNA/RNA.py"],
   cwd = "interfaces/Python"
+}
+
+_build-manpages = {
+  cmd = ["make"],
+  cwd = "man/"
 }
 
 
 rebuild-doc = {
    cmd = ["make"],
    cwd = "doc",
-   depends-on = ["clean-doc", "_build-static", "_build-doxygen", "_build-python"],
+   depends-on = ["clean-doc", "_build-static", "_build-doxygen", "_build-python", "_build-manpages", "_build-sphinx-man"],
    description = "Rebuild documentation"
 }
 
@@ -100,7 +112,7 @@ rebuild-doc = {
 build-doc = {
    cmd = ["make"],
    cwd = "doc",
-   depends-on = ["_build-static", "_build-doxygen", "_build-python"],
+   depends-on = ["_build-static", "_build-doxygen", "_build-python", "_build-manpages", "_build-sphinx-man"],
    description = "Rebuild documentation"
 }
 
