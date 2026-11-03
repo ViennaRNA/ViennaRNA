@@ -88,8 +88,8 @@ and installation process.*
 
 Usually you'll simply unpack the distribution tarball, configure and make:
 ```
-tar -zxvf ViennaRNA-2.7.2.tar.gz
-cd ViennaRNA-2.7.2
+tar -zxvf ViennaRNA-2.8.0.tar.gz
+cd ViennaRNA-2.8.0
 ./configure
 make
 sudo make install

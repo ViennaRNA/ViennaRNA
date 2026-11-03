@@ -32,7 +32,8 @@ EXTRA_DIST =  packaging/debian \
               CHANGELOG.md \
               MANIFEST.in \
               silent_rules.mk \
-              .all-contributorsrc
+              .all-contributorsrc \
+              .pixi.toml
 
 
 ############################################

@@ -2,10 +2,15 @@
 
 Below, you'll find a list of notable changes for each version of the ViennaRNA Package.
 
-## Version 2.7.x
+## Version 2.8.x
 
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.7.2...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.8.0...HEAD)
+
+
+### [Version 2.8.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.7.2...v2.8.0)
+
+**Release date**: *2026-11-06*
 
 #### Fixed in 
 
@@ -100,6 +105,9 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 #### Deprecated since 
 
   * Deprecated use of all global variables
+
+
+## Version 2.7.x
 
 
 ### [Version 2.7.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.7.1...v2.7.2)

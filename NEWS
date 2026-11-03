@@ -1,3 +1,49 @@
+Version 2.8.0
+-------------
+{bdg-primary-line}`11 - 06 - 2026`
+
+::: {div} sd-text-primary sd-font-weight-bold
+Version 2.8.0 introduces interacting interval pair (IIP) soft constraints,
+enabling the use of experimental structure probing data derived from RNA
+crosslinking experiments to guide structure prediction!
+:::
+
+With our new release we finally provide an *exact algorithmic implementation
+for integrating RNA crosslinking data* to guide the structure prediction. In
+contrast to the heuristic approach presented in
+[Skibinski et al. 2025](https://doi.org/10.1007/978-981-95-0695-8_13), the
+new IIP soft constraints feature allows for addressing all candidate structures
+that support a particular pair of sequence intervals exactly once. Consequently,
+guiding potentials (soft constraints) derived from interval pairs are independent
+of the length of the intervals.
+
+Another major change since version 2.7.2 is related to **energy parameters for
+G-Quadruplexes and modified bases**. For the former, we fix a wrong unit conversion
+that existed since the introduction of G-Quadruplex support in 2012, that rendered
+quadruplexes about four times too stable. For the latter, we fix the discrepancy
+between results obtained from `RNAfold` compared to using the API directly. In
+particular, our executable programs with modified base support pre-process the input
+sequences to substitute any modified base by its fallback base, as specified in
+the modified base parameter file, before handing it over to the API. Unfortunately,
+using the v2.7.x API directly without this preprocessing step would yield different
+(wrong) results. The related API functions now internally handle this preprocessing
+automagically, so no user intervention is necessary.
+
+In addition, the new release fixes many computational bugs, compilation problems
+with more recent versions of maintainer tools, such as required for the Python
+and Perl interfaces, and adds many new features. Most notably, we added the
+[LinearBPDesign Scheme](https://doi.org/10.1186/s13015-025-00278-6) to
+`RNAinverse` and include new and updated energy parameter files for pseudouridine,
+N1-methyl-pseudouridine, and dihydrouridine. Moreover, the `RNAconsensus` tool
+finally implements the [SoftConsensus Scheme](https://doi.org/10.1089/cmb.2024.0519).
+As of this version we also **removed the Python 2 support!**
+
+Last but not least, we introduce a new look for the HTML documentation.
+
+The full list of changes, bug fixes and additional features is available in the
+Changelog for version 2.8.0.
+
+
 Version 2.7.0
 -------------
 {bdg-primary-line}`11 - 10 - 2024`
