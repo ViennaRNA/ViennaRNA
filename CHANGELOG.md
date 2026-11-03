@@ -32,6 +32,12 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Fix discrepancy for modified base support in `RNAfold` vs. API calls due to unmodified input sequence
   * DOC: Fix expansion of function-like macros in `doxygen`
   * DOC: Fix many `doxygen` related warnings
+  * Fix problems with enforced base pair hard constraints in combination with unpaired hard constraints
+  * Do not attempt to perform stochastic backtracking for interacting RNAs
+  * Fix wrong brackets in `probing/probing.c`
+  * Fix size of encoding5/encoding3 in `vrna_seq_t`
+  * Fix a few format strings in `printf()` and `sscanf()` usage
+  * Fix return value of `vrna_math_fun_dbl_kde()` in `math/fun_kde.c`
 
 #### Changed since 
 
@@ -51,6 +57,12 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Remove redundant MFE computation in `RNAup`
   * Make nucleotide encoding model details `const`
   * Always start with default hard constraints before any user-supplied ones in `vrna_hc_prepare()`
+  * AUTOCONF: Increase minimum `autoconf` version to 2.70
+  * Preserve fractional soft constraints for partition functions
+  * WORKFLOWS: Use `pixi` environment for github worker builds
+  * Require `STD:c++17` for MSVC builds
+  * Allow for IIP soft constraints in command files
+  * Allow for more flexibility in how to provide parameters for structure probing data strategies in executable programs
 
 #### Added in 
 
@@ -65,7 +77,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Add `vrna_db_compat_remove()` and `vrna_ptable_compat_remove()`
   * Add `vrna_ptable_count_bp()` and `vrna_ptable_count_up()`
   * Allow for ignoring compatible base pairs for structure benchmark in `RNAfold` and `RNAalifold`
-  * Add vrna_ribosum_mx()
+  * Add `vrna_ribosum_mx()`
   * Add accessibility computations in global scope
   * Add callback-based API for global equilibrium probability computations (base pairs, helices, accessibility)
   * Add `vrna_eqm_probs_bp()`, `vrna_eqm_probs_up()`, and `vrna_eqm_probs_hx()`
@@ -74,6 +86,12 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Add `VRNA_ARRAY_REGISTER*` macros to automatically create typedefs for `vrna_array()` types
   * Add `vrna_ep_array_t` type and use it as return type for `vrna_eqm_probs_*()` functions
   * Add `.all-contributorsrc` file to list contributors according the the *All Contributors* guidelines
+  * Add name of lexically-enclosing function of a log call to the log message
+  * Add log-message calling function name output flag for executable programs
+  * Add `pixi.toml` with a few pre-set tasks to allow for reproducible builds
+  * Add **interacting interval pair (IIP) soft constraints** feature
+  * Add **RNA crosslinking data support** as a source for structure probing input (single sequence MFE and partition function)
+  * Add Logit (log-odds) function to math functions
 
 #### Removed in 
 
