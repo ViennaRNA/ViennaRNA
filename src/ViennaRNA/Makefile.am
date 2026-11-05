@@ -279,7 +279,7 @@ vrna_constraints_HEADERS = \
 
 vrna_probing_HEADERS = \
     probing/basic.h \
-    probing/crosslink.c \
+    probing/crosslink.h \
     probing/SHAPE.h \
     probing/strategy_deigan.h \
     probing/strategy_eddy.h \
