@@ -33,7 +33,7 @@ EXTRA_DIST =  packaging/debian \
               MANIFEST.in \
               silent_rules.mk \
               .all-contributorsrc \
-              .pixi.toml
+              pixi.toml
 
 
 ############################################
