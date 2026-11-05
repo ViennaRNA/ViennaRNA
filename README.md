@@ -120,7 +120,7 @@ script:
    program `RNALfold`:
 ```
 cd src
-tar -xzf libsvm-3.35.tar.gz
+tar -xzf libsvm-3.37.tar.gz
 cd ..
 ```
 
@@ -128,7 +128,7 @@ cd ..
    program `RNAmultifold`:
 ```
 cd src
-tar -xjf dlib-20.0.tar.bz2
+tar -xzf dlib-20.0.1.tar.gz
 cd ..
 ```
 

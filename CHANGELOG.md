@@ -14,7 +14,6 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 #### Fixed in 
 
-  * Fix wrong include file in `RNAfold.c`
   * Fix Wuchty subopt with G-quadruplexes
   * Fix Wuchty subopt with circular RNAs
   * Fix heap-use-after-free in `RNAsubopt` constraint handling
@@ -68,6 +67,8 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Require `STD:c++17` for MSVC builds
   * Allow for IIP soft constraints in command files
   * Allow for more flexibility in how to provide parameters for structure probing data strategies in executable programs
+  * Update `libsvm` to `libsvm-3.37`
+  * Update `dlib` to `dlib-20.0.1`
 
 #### Added in 
 

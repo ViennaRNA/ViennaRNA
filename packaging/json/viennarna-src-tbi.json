@@ -1,4 +1,7 @@
 {
+  "2.8.x": { "package": { "viennarna-2.8.0-src-any" : "packages/source/ViennaRNA-2.8.0.tar.gz"},
+             "flavor": "SourceCode"
+           },
   "2.7.x": { "package": { "viennarna-2.7.2-src-any" : "packages/source/ViennaRNA-2.7.2.tar.gz",
                           "viennarna-2.7.1-src-any" : "packages/source/ViennaRNA-2.7.1.tar.gz",
                           "viennarna-2.7.0-src-any" : "packages/source/ViennaRNA-2.7.0.tar.gz"},

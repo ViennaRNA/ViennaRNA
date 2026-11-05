@@ -10,29 +10,31 @@ _unpack-libsvm = {
   cmd = [
     "tar",
     "-xzf",
-    "src/libsvm-3.35.tar.gz",
+    "src/libsvm-3.37.tar.gz",
     "-C",
     "src"
   ],
-  inputs = ["src/libsvm-3.35.tar.gz"],
-  outputs = ["src/libsvm-3.35/*"],
+  inputs = ["src/libsvm-3.37.tar.gz"],
+  outputs = ["src/libsvm-3.37/*"],
 }
 
 _unpack-dlib = {
   cmd = [
     "tar",
-    "-xjf",
-    "src/dlib-20.0.tar.bz2",
+    "-xzf",
+    "src/dlib-20.0.1.tar.gz",
     "-C",
     "src"
   ],
-  inputs = ["src/dlib-20.0.tar.bz2"],
-  outputs = ["src/dlib-20.0/*"],
+  inputs = ["src/dlib-20.0.1.tar.gz"],
+  outputs = ["src/dlib-20.0.1/*"],
 }
 
 prepare = {
   cmd = [ "autoreconf", "-i" ],
-  depends-on = ["_unpack-libsvm", "_unpack-dlib"]
+  depends-on = ["_unpack-libsvm", "_unpack-dlib"],
+  inputs = ["configure.ac", "m4/*"],
+  outputs = ["configure"],
 }
 
 build = {
