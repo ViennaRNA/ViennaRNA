@@ -38,5 +38,6 @@ pkgdata_DATA = \
 EXTRA_DIST = \
     $(pkgdata_DATA) \
     parameter_files.txt \
-    probing_data_files.txt
+    probing_data_files.txt \
+    uncrustify.cfg
 

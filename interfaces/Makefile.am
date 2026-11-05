@@ -60,12 +60,14 @@ DOXYGEN_DOCUMENTATION = \
     boltzmann_sampling.dox \
     commands.dox \
     combinatorics.dox \
+    concentrations.dox \
     constraints_hard.dox \
     constraints_ligand.dox \
     constraints_soft.dox \
     probing.dox \
     probing_SHAPE.dox \
     eval.dox \
+    file_formats.dox \
     paths.dox \
     fold_compound.dox \
     grammar.dox \
@@ -77,6 +79,7 @@ DOXYGEN_DOCUMENTATION = \
     part_func.dox \
     plotting.dox \
     sequence.dox \
+    structure_utils.dox \
     subopt.dox \
     utils.dox \
     walk.dox

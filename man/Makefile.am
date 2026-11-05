@@ -50,7 +50,8 @@ ct2db.1:  ../src/Utils/ct2db.ggo
 
 endif
 
-EXTRA_DIST =  include
+EXTRA_DIST =  include \
+              help2manWrapper.sh
 
 # remove all generated man pages
 maintainer-clean-local:
