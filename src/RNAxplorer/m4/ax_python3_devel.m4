@@ -3,7 +3,7 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
 
     # (AM_PATH_PYTHON) cannot be used for multiple Python version at once
     if test -z "$PYTHON3" ; then
-      AC_PATH_PROGS([PYTHON3], [python3 python312 python3.12 python311 python3.11 python310 python3.10 python39 python3.9 python38 python3.8 python37 python3.7 python36 python3.6 python35 python3.5 python34 python3.4], [no])
+      AC_PATH_PROGS([PYTHON3], [python3 python315 python3.15 python314 python3.14 python313 python3.13 python312 python3.12 python311 python3.11 python310 python3.10 python39 python3.9], [no])
     fi
     AC_ARG_VAR(PYTHON3, [Path to Python3 interpreter (e.g.: /usr/bin/python3)])
 
@@ -49,6 +49,7 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
                   print(sysconfig.get_path('purelib', vars={'base':'$' '{prefix}'}))"`
           fi
           AC_SUBST(python3dir, $PYTHON3_DIR)
+          AC_SUBST(python3dir_expanded, $(eval printf "%s" ${python3dir}))
           AC_MSG_RESULT([$PYTHON3_DIR])
           AC_ARG_VAR(PYTHON3_DIR, [Directory to install python3 scripts in])
 
@@ -58,6 +59,7 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
                   print(sysconfig.get_path('platlib', vars={'platbase':'$' '{exec_prefix}'}))"`
           fi
           AC_SUBST(py3execdir, $PYTHON3_EXECDIR)
+          AC_SUBST(py3execdir_expanded, $(eval printf "%s" ${py3execdir}))
           AC_MSG_RESULT([$PYTHON3_EXECDIR])
           AC_ARG_VAR(PYTHON3_EXECDIR, [Directory to install architecture dependent python3 things in])
 

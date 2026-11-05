@@ -33,7 +33,7 @@ AC_DEFUN([RXP_ENABLE_SWIG_PYTHON],[
     ## if swig is not available, check whether we already have swig generated sources
     if test "x$has_swig" != "xyes"
     then
-      AC_RXP_TEST_FILE([${srcdir}/interfaces/Python/RNAxplorer_wrap.c],[],[
+      AC_RXP_TEST_FILE([${srcdir}/interfaces/Python/RNAxplorer_wrap.cpp],[],[
         with_python="no"
       ])
       AC_RXP_TEST_FILE([${srcdir}/interfaces/Python/RNAxplorer.py],[],[
