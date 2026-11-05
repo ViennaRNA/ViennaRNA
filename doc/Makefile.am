@@ -173,7 +173,6 @@ EXTRA_DIST =  $(pkgdata_DATA) \
               source \
               sphinx-extensions \
               man2rst.py \
-              requirements.txt \
               refman-html \
               build \
               @REFERENCE_MANUAL_PDF_NAME@
