@@ -59,6 +59,19 @@
       "aliases" : [ "ivo" ]
     },
     {
+      "login": "xtof",
+      "name": "Christoph Flamm",
+      "email" : "xtof@tbi.univie.ac.at",
+      "avatar_url": "https://avatars.githubusercontent.com/u/93640?v=4",
+      "profile": "www.tbi.univie.ac.at/~xtof",
+      "contributions": [
+        "research",
+        { "type" : "code", "commits": 0, "loc": 0, "text" : "findpath, switch.pl" },
+        "ideas",
+        "mentoring"
+      ]
+    },
+    {
       "login": "studla",
       "name": "Peter F. Stadler",
       "email" : "",
@@ -102,18 +115,6 @@
       ]
     },
     {
-      "login": "dwiegreffe",
-      "name": "Daniel Wiegreffe",
-      "email" : "daniel@informatik.uni-leipzig.de",
-      "avatar_url": "https://avatars.githubusercontent.com/u/15086794?v=4",
-      "profile": "https://wiegreffe.info/",
-      "contributions": [
-        "research",
-        { "type" : "code", "commits": 0, "loc": 0, "text" : "RNAturtle and RNApuzzler secondary structure layouts" }
-      ],
-      "aliases" : [ "daniel@wiegreffe.info" ]
-    },
-    {
       "login": "berni",
       "name": "Stephan Bernhart",
       "email" : "berni@bioinf.uni-leipzig.de",
@@ -128,27 +129,48 @@
       "aliases" : [ "berni", "bernling", "berni@tbi.univie.ac.at" ]
     },
     {
-      "login": "martin-raden",
-      "name": "Martin Raden",
-      "email" : "mmann@informatik.uni-freiburg.de",
-      "avatar_url": "https://avatars.githubusercontent.com/u/22291305?v=4",
-      "profile": "https://github.com/martin-raden",
+      "login": "wbeyer",
+      "name": "Wolfgang Beyer",
+      "email" : "wolfgang@fremdling.tbi.univie.ac.at",
+      "avatar_url": "",
+      "profile": "",
       "contributions": [
-        "bug",
-        "code"
+        "research",
+        { "type" : "code", "commits": 0, "loc": 0, "text" : "first version of RNApkplex" }
       ]
     },
     {
-      "login": "xtof",
-      "name": "Christoph Flamm",
-      "email" : "xtof@tbi.univie.ac.at",
-      "avatar_url": "https://avatars.githubusercontent.com/u/93640?v=4",
-      "profile": "www.tbi.univie.ac.at/~xtof",
+      "login": "sbon",
+      "name": "Sebastian Bonhöffer",
+      "email" : "",
+      "avatar_url": "",
+      "profile": "",
       "contributions": [
         "research",
-        { "type" : "code", "commits": 0, "loc": 0, "text" : "findpath" },
-        "ideas",
-        "mentoring"
+        { "type" : "code", "commits": 0, "loc": 0, "text" : "implementation of partition function folding served as a precursor to our part_func.c" }
+      ]
+    },
+    {
+      "login": "thboury",
+      "name": "Theo Boury",
+      "email" : "theo.boury.a@inria.com",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "research",
+        { "type" : "code", "commits": 0, "loc": 0, "text" : "LinearBP inverse folding seed" },
+        "ideas"
+      ]
+    },
+    {
+      "login": "GiovanniBussi",
+      "name": "Giovanni Bussi",
+      "email" : "giovanni.bussi@gmail.com",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4378974?v=4",
+      "profile": "https://www.bussilab.org/",
+      "contributions": [
+        "code",
+        "ideas"
       ]
     },
     {
@@ -164,14 +186,83 @@
       "aliases" : [ "entzian@tbi.univie.ac.at" ]
     },
     {
-      "login": "ulim",
-      "name": "Ulrike Mückstein",
+      "login": "mfekete",
+      "name": "Martin Fekete",
       "email" : "",
       "avatar_url": "",
       "profile": "",
       "contributions": [
         "research",
-        { "type" : "code", "commits": 0, "loc": 0, "text" : "RNAup" }
+        { "type" : "code", "commits": 0, "loc": 0, "text" : "first attempts at alignment folding" }
+      ]
+    },
+    {
+      "login": "dgruber",
+      "name": "Andreas Gruber",
+      "email" : "",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "research",
+        { "type" : "code", "commits": 0, "loc": 0, "text" : "first approach on RNALfold Z-score filtering" }
+      ]
+    },
+    {
+      "login": "shammer",
+      "name": "Stefan Hammer",
+      "email" : "s.hammer@univie.ac.at",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "research",
+        { "type" : "code", "text" : "Parts of SWIG interface and corresponding unit tests" },
+        "bug",
+        "test",
+        "ideas"
+      ]
+    },
+    {
+      "login": "mhuynen",
+      "name": "Martijn Huynen",
+      "email" : "",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "mkoestl",
+      "name": "Mario Köstl",
+      "email" : "mario-koestl@gmx.at",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "test",
+        { "type": "code", "text" : "worked on SWIG interface and related unit testing" }
+      ]
+    },
+    {
+      "login": "bkrakhofer",
+      "name": "Bärbel Krakhofer",
+      "email" : "",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "wblangdon",
+      "name": "William B. Langdon",
+      "email" : "w.langdon@cs.ucl.ac.uk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23079279?v=4",
+      "profile": "http://www0.cs.ucl.ac.uk/staff/W.Langdon/",
+      "contributions": [
+        "research",
+        { "type": "code", "commits": 0, "loc": 0, "text" : "Initial SSE4.2 support" },
+        "ideas",
+        { "type" : "data", "text" : "GGGP derived RNA parameters"}
       ]
     },
     {
@@ -187,17 +278,6 @@
       "aliases" : [ "dluntzer@sobras.tbi.univie.ac.at" ]
     },
     {
-      "login": "dgruber",
-      "name": "Andreas Gruber",
-      "email" : "",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "research",
-        { "type" : "code", "commits": 0, "loc": 0, "text" : "first approach on RNALfold Z-score filtering" }
-      ]
-    },
-    {
       "login": "juraj",
       "name": "Juraj Michalik",
       "email" : "juraj.michalik.2048@gmail.com",
@@ -207,6 +287,98 @@
         "research",
         { "type" : "code", "commits": 0, "loc": 0, "text" : "non-redundant Boltzmann sampling" }
       ]
+    },
+    {
+      "login": "ulim",
+      "name": "Ulrike Mückstein",
+      "email" : "",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "research",
+        { "type" : "code", "commits": 0, "loc": 0, "text" : "RNAup" }
+      ]
+    },
+    {
+      "login": "yponty",
+      "name": "Yann Ponty",
+      "email" : "",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "research",
+        "code",
+        "ideas",
+        "mentoring"
+      ]
+    },
+    {
+      "login": "martin-raden",
+      "name": "Martin Raden",
+      "email" : "mmann@informatik.uni-freiburg.de",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22291305?v=4",
+      "profile": "https://github.com/martin-raden",
+      "contributions": [
+        "bug",
+        "code"
+      ]
+    },
+    {
+      "login": "tspicher",
+      "name": "Thomas Spicher",
+      "email" : "tspicher@tbi.univie.ac.at",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "research",
+        { "type" : "data", "text" : "Dihydrouridine parameters"},
+        "bug",
+        "ideas"
+      ]
+    },
+    {
+      "login": "mtacker",
+      "name": "Manfred Tacker",
+      "email" : "",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "research",
+        { "type" : "code", "commits": 0, "loc": 0, "text" : "hacked constrained folding into MFE folding for the first time" }
+      ]
+    },
+    {
+      "login": "htafer",
+      "name": "Hakim Tafer",
+      "email" : "htafer@gmail.com",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "research",
+        { "type" : "code", "commits": 0, "loc": 0, "text" : "RNAplex, RNAsnoop" }
+      ]
+    },
+    {
+      "login": "atanzer",
+      "name": "Andrea Tanzer",
+      "email" : "at@tbi.univie.ac.at",
+      "avatar_url": "",
+      "profile": "",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "dwiegreffe",
+      "name": "Daniel Wiegreffe",
+      "email" : "daniel@informatik.uni-leipzig.de",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15086794?v=4",
+      "profile": "https://wiegreffe.info/",
+      "contributions": [
+        "research",
+        { "type" : "code", "commits": 0, "loc": 0, "text" : "RNAturtle and RNApuzzler secondary structure layouts" }
+      ],
+      "aliases" : [ "daniel@wiegreffe.info" ]
     },
     {
       "login": "s-will",
@@ -236,53 +408,6 @@
       ]
     },
     {
-      "login": "mkoestl",
-      "name": "Mario Köstl",
-      "email" : "mario-koestl@gmx.at",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "test",
-        { "type": "code", "text" : "worked on SWIG interface and related unit testing" }
-      ]
-    },
-    {
-      "login": "tspicher",
-      "name": "Thomas Spicher",
-      "email" : "tspicher@tbi.univie.ac.at",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "research",
-        "data",
-        "bug",
-        "ideas"
-      ]
-    },
-    {
-      "login": "thboury",
-      "name": "Theo Boury",
-      "email" : "theo.boury.a@inria.com",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "research",
-        { "type" : "code", "commits": 0, "loc": 0, "text" : "LinearBP inverse folding seed" },
-        "ideas"
-      ]
-    },
-    {
-      "login": "GiovanniBussi",
-      "name": "Giovanni Bussi",
-      "email" : "giovanni.bussi@gmail.com",
-      "avatar_url": "https://avatars.githubusercontent.com/u/4378974?v=4",
-      "profile": "https://www.bussilab.org/",
-      "contributions": [
-        "code",
-        "ideas"
-      ]
-    },
-    {
       "login": "wuchty",
       "name": "Stefan Wuchty",
       "email" : "",
@@ -291,119 +416,6 @@
       "contributions": [
         "research",
         { "type" : "code", "commits": 0, "loc": 0, "text" : "Suboptimal structures" }
-      ]
-    },
-    {
-      "login": "htafer",
-      "name": "Hakim Tafer",
-      "email" : "htafer@gmail.com",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "research",
-        { "type" : "code", "commits": 0, "loc": 0, "text" : "RNAplex, RNAsnoop" }
-      ]
-    },
-    {
-      "login": "shammer",
-      "name": "Stefan Hammer",
-      "email" : "s.hammer@univie.ac.at",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "research",
-        { "type" : "code", "text" : "Parts of SWIG interface and corresponding unit tests" },
-        "bug",
-        "test",
-        "ideas"
-      ]
-    },
-    {
-      "login": "wbeyer",
-      "name": "Wolfgang Beyer",
-      "email" : "wolfgang@fremdling.tbi.univie.ac.at",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "research",
-        { "type" : "code", "commits": 0, "loc": 0, "text" : "first version of RNApkplex" }
-      ]
-    },
-    {
-      "login": "mfekete",
-      "name": "Martin Fekete",
-      "email" : "",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "research",
-        { "type" : "code", "commits": 0, "loc": 0, "text" : "first attempts at alignment folding" }
-      ]
-    },
-    {
-      "login": "mtacker",
-      "name": "Manfred Tacker",
-      "email" : "",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "research",
-        { "type" : "code", "commits": 0, "loc": 0, "text" : "hacked constrained folding into MFE folding for the first time" }
-      ]
-    },
-    {
-      "login": "sbon",
-      "name": "Sebastian Bonhöffer",
-      "email" : "",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "research",
-        { "type" : "code", "commits": 0, "loc": 0, "text" : "implementation of partition function folding served as a precursor to our part_func.c" }
-      ]
-    },
-    {
-      "login": "mhuynen",
-      "name": "Martijn Huynen",
-      "email" : "",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "bug"
-      ]
-    },
-    {
-      "login": "bkrakhofer",
-      "name": "Bärbel Krakhofer",
-      "email" : "",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "bug"
-      ]
-    },
-    {
-      "login": "studla",
-      "name": "Peter F. Stadler",
-      "email" : "",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "research",
-        "ideas",
-        "question",
-        "mentoring",
-        "infra"
-      ]
-    },
-    {
-      "login": "atanzer",
-      "name": "Andrea Tanzer",
-      "email" : "at@tbi.univie.ac.at",
-      "avatar_url": "",
-      "profile": "",
-      "contributions": [
-        "bug"
       ]
     }
   ]

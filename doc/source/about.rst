@@ -46,4 +46,3 @@ in particular:
     :avatars:
     :names:
     :contributions: emoji
-    :order: byCommit
