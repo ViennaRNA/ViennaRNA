@@ -38,11 +38,11 @@ jobs:
         header_level: 3
         version_prefix: "Version"
     - name: Download source archives
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: dist-archives
     - name: Download OSX installer
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         pattern: osx-installer-*
         merge-multiple: true
