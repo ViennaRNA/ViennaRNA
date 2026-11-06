@@ -63,7 +63,7 @@
       "name": "Christoph Flamm",
       "email" : "xtof@tbi.univie.ac.at",
       "avatar_url": "https://avatars.githubusercontent.com/u/93640?v=4",
-      "profile": "www.tbi.univie.ac.at/~xtof",
+      "profile": "https://www.tbi.univie.ac.at/~xtof",
       "contributions": [
         "research",
         { "type" : "code", "commits": 0, "loc": 0, "text" : "findpath, switch.pl" },
@@ -76,7 +76,7 @@
       "name": "Peter F. Stadler",
       "email" : "",
       "avatar_url": "https://avatars.githubusercontent.com/u/18547406?v=4",
-      "profile": "https://github.com/studla",
+      "profile": "https://www.bioinf.uni-leipzig.de/~studla/",
       "contributions": [
         "research",
         "ideas",
