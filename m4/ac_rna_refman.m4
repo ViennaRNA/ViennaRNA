@@ -85,6 +85,11 @@ RNA_PACKAGE_IF_ENABLED([doc],[
           AC_RNA_APPEND_VAR_COMMA(doc_build_html_failed, [no python])
         ])
 
+  if test "x$doc_build_requirements_html" != xno;
+  then
+    RST_MAN_PAGE_DIR=source/usage/man
+  fi
+
   if test "x$LATEX_CMD" = xno;
   then
     AC_MSG_WARN([Could not find pdflatex!])
@@ -123,6 +128,7 @@ RNA_PACKAGE_IF_ENABLED([doc],[
     AC_RNA_APPEND_VAR_COMMA(doc_build_pdf_failed, [no grep])
   fi
 
+  AC_SUBST(RST_MAN_PAGE_DIR)
 ])
 
 

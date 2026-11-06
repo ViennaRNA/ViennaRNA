@@ -1,6 +1,6 @@
 include $(top_srcdir)/silent_rules.mk
 
-SUBDIRS = CLA source/usage/man
+SUBDIRS = CLA @RST_MAN_PAGE_DIR@
 
 pkgdata_DATA = \
     viennarna.bib
