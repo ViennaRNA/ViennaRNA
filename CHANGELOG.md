@@ -12,7 +12,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 **Release date**: *2026-11-06*
 
-#### Fixed in 
+#### Fixed in v2.8.0
 
   * Fix Wuchty subopt with G-quadruplexes
   * Fix Wuchty subopt with circular RNAs
@@ -43,7 +43,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Fix a few format strings in `printf()` and `sscanf()` usage
   * Fix return value of `vrna_math_fun_dbl_kde()` in `math/fun_kde.c`
 
-#### Changed since 
+#### Changed since v2.8.0
 
   * API: Preserve fractional unpaired and base-pair soft constraints for single-sequence partition functions, and round accumulated contributions for MFE calculations
   * API: Change raw soft-constraint storage fields from `int` to `double`
@@ -70,7 +70,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Update `libsvm` to `libsvm-3.37`
   * Update `dlib` to `dlib-20.0.1`
 
-#### Added in 
+#### Added in v2.8.0
 
   * Support hi-motifs in Wuchty-style subopt
   * Add `vrna_en_internal()`, `vrna_en_bulge()`, `vrna_en_stack()` functions
@@ -99,11 +99,11 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Add **RNA crosslinking data support** as a source for structure probing input (single sequence MFE and partition function)
   * Add Logit (log-odds) function to math functions
 
-#### Removed in 
+#### Removed in v2.8.0
 
   * SWIG: Remove Python 2.x support
 
-#### Deprecated since 
+#### Deprecated since v2.8.0
 
   * Deprecated use of all global variables
 
