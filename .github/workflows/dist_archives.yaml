@@ -78,7 +78,8 @@ jobs:
       run: pixi run prepare
     - name: Pixi configure stage
       run: pixi run configure production -- ${{ inputs.config-flags }}
-    - name: Pixi - Create distribution archive
+    - id: tarball
+      name: Pixi - Create distribution archive
       run: |
         pixi run dist
         version_number=$(ls ViennaRNA-*.tar.gz)
