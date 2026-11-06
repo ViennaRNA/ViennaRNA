@@ -149,12 +149,13 @@ The ViennaRNA Package
         .. grid-item-card::
             :columns: 12
             :text-align: justify
-            :class-item: sd-text-info denbi-survey 
+            :class-item: sd-text-info denbi-survey
 
             .. image:: gfx/Logo_deNBI_woBackground.svg
-              :height: 64px
+              :height: 42px
               :align: left
               :alt: de.NBI logo
+              :target: https://www.denbi.de
 
             **This is an approved de.NBI service.** Please help us improve by taking our
             `short user survey <https://www.surveymonkey.de/r/denbi-service?sc=rbc&tool=viennarna>`_.
