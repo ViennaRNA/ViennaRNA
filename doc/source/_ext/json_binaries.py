@@ -160,7 +160,8 @@ class ShowBinaryPackagesDirective(SphinxDirective):
         else:
             rst.append(lindent + ".. tab-set::")
             rst.append(lindent + "    :class: sd-align-major-start\n")
-            for flavor_v, d in data.items():
+            data_sorted = [ (key, data[key]) for key in sorted(data.keys(), reverse=True) ]
+            for flavor_v, d in data_sorted: # data.items():
                 flavor_v_text = flavor_v.replace("-", " ").replace("_", " ")
                 flavor_v_link = flavor_v.replace("-", "_").replace(".", "_").lower()
                 rst.append(lindent + f"    .. tab-item:: {flavor_v_text}")
@@ -216,6 +217,10 @@ def parse_json_files(app, docname, source):
                         d = json.load(f)
                         for k, v in d.items():
                             dist = k
+                            print("flavor: ", flavor, v['flavor'])
+                            if v['flavor'].lower() == "unknown" and dist.lower().startswith("ubuntu"):
+                                v['flavor'] = "Ubuntu"
+
                             if flavor.lower() == v['flavor'].lower():
                                 for package, fname in v['package'].items():
                                     version = detect_version_number(package)
