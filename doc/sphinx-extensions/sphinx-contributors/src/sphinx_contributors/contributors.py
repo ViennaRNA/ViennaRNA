@@ -113,6 +113,7 @@ class Contributor:
         contributions_class = container_class + "__contributions"
         show_login = options.get('show_login', False)
         show_contributions = options.get('show_contributions', False)
+        show_email = options.get('show_email', False)
 
         # make a list out of the 'show_contributions' option
         if show_contributions == "" or show_contributions == None:
@@ -151,7 +152,7 @@ class Contributor:
 
         login = self.login.replace('@', ' [at] ')  # replace @ by [at]
 
-        if self.url or self.email:
+        if self.url or (show_email and self.email):
             url = self.url if self.url else f"mailto:{self.email}"
             node_username += nodes.reference(text=self.display_name if not show_login else login,
                                          refuri=url)

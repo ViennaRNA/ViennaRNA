@@ -85,6 +85,7 @@ class ContributorsDirective(Directive):
         "order": directives.unchanged,
         "provider": directives.unchanged,
         "avatar_size" : directives.positive_int,
+        "email" : directives.flag,
     }
 
     def run(self):
@@ -107,6 +108,7 @@ class ContributorsDirective(Directive):
         else:
             sort_by = None
 
+        print("show_email: ", self.options.get("email", False))
         contributors_options = {
             # pass over and pre-process options taken from the directive call
             'provider' : self.options.get("provider", "github"),
@@ -125,6 +127,7 @@ class ContributorsDirective(Directive):
                         if self.state_machine.document.attributes['source'] else ".",
             'anonymous' :  "anonymous" in self.options,
             'show_names' : "names" in self.options,
+            'show_email' : self.options.get("email", False) != False,
             'show_contributions' : self.options.get('contributions', False),
             'avatars_only' : "avatars_only" in self.options,
             'show_avatars' : "avatars" in self.options or "avatars_only" in self.options,
