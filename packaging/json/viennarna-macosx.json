@@ -1,6 +1,6 @@
 {
-  "MacOSX":  { "package":  { "viennarna-2.7.2-osx-x86_64" : "ViennaRNA-2.7.2-MacOSX-x86_64.dmg",
-                             "viennarna-2.7.2-osx-arm64" : "ViennaRNA-2.7.2-MacOSX-arm64.dmg"
+  "MacOSX":  { "package":  { "viennarna-2.8.0-osx-x86_64" : "ViennaRNA-2.8.0-MacOSX-x86_64.dmg",
+                             "viennarna-2.8.0-osx-arm64" : "ViennaRNA-2.8.0-MacOSX-arm64.dmg"
                             },
                     "flavor": "OSX"
                   }
